@@ -1,0 +1,346 @@
+Reviewer 1: 
+          >>> Summary of the submission <<<
+
+This paper presents an automatic technique for combining the benefits of
+deep and shallow DSL embeddings by allowing programmers to write code
+using the shallow embedded -- which offers convenience to programmers
+-- and automatically convert to a deep embedding -- which enables
+compilers to perform optimisations and generate efficient code. 
+The technique, realised in the Yin-Yang library, is based on
+Scala's relatively new macro library.
+
+The technique is applied to three not insubstantial case studies. 
+
+
+
+Points in favour:
++ impressive work
++ likely to significantly improve the quality of future DSLs in terms of
+programmer friendliness, optimizability and quality of error messages
++ solid evaluation, though more interpretation of the results is required
+to help the reader understand their significance.
+
+Points against:
+- Programs written in Yin-Yang are fairly difficult to read.
+- One wonders whether this can all be done already using Racket's powerful
+macro system.
+- The fragments of formal semantics presented look buggy, but without the full
+semantics
+it is impossible to tell.
+- The paper is hastily written and contains many typos and problems with the
+language.
+
+Originality:
+
+The approach seems quite original, certainly in the context of Scala, though
+one
+does wonder how much of this could already be done with Racket's macros. That
+certainly
+would be interesting to know, though I admit the settings are quite different,
+and 
+that managing and exploiting types is one of the issues Yin-Yang has dealt
+with, which
+would be irrelevant in the Racket setting.
+
+Significance:
+
+The technique presented in the paper offer DSL writers the benefits of shallow
+embeddings
+(namely familiar syntax) with the benefits of deep embeddings (compiler
+optimisations and
+domain specific checking). This should significantly improve the quality of
+DSLs in the
+future, thereby offering all programmers a useful means for lifting the level
+of abstraction
+of their programs AND retaining all the benefits of a regular compiler
+(optimisations
+and good error messages).
+
+Evidence:
+
+The technique has been evaluated on three case studies. The results are
+analysed in
+some depth, pointing out both the benefits of the technique, but also
+indicating some
+directions where it can be refined in the future.
+
+Clarity:
+
+The paper is relatively clear, but is let down by scrappy language.
+
+Detailed comments:
+
+Abstract. Spurious sPACE after Yin-Yang.
+
+Introduction.
+- as well as achieve good performance: achieve to achieving
+- However, restrictions in the language limit expressiveness: in the DSL? The
+host?
+Please be clearer.
+- p2: Ideally, we should be able to --> Ideally, we would like to
+- p3: Finally, minimal maintenance overhead and semantic equivalence ... is: is
+--> are
+ -- that whole paragraph reads awkwardly. 
+ -- They support EDSLs that are interpreted and **those** that generate code --
+unless
+you mean EDSLs that are both interpreted and generate code.
+- "Core translation is described in (§4)": why the parentheses? It's like
+saying 
+"I'm driving to work in my (car)." Compare with your following sentence:
+"... between the direct embedding and the deep embedding (§7)", which is
+fine.
+"I'm driving to work in my car (Ferrari)". The point is that the part in
+parentheses
+should not be in parentheses when it is a substantive in the core sentence,
+rather
+than a side remark/annotation. If you remove the parenthetical comment, the
+sentence
+should still be a valid sentence. 
+- p4: same as above, multiple times.
+- p7: "We would have performed much faster with a simple while loop". Would you
+have?
+"We" should not be the subject of this sentence, as you are not doing the
+performing.
+  : we have must introduce --> drop have or otherwise rewrite
+- p8: Figure should be Fig. Spurious space after "user" in the 5th line.
+- p9: Yin-Yang requires **the** existence of semantically ....
+- p10. Space missing before "Figure 6", and Figure should be Fig.
+  : properly align the subfigure captions in Fig 6. Center the bottom code
+chunk.
+   Maybe use the subfigure package.
+  : figure 6c --> Fig 6c
+  : "note that we explicitly ascribe types to expressions and function calls":
+is this you
+        or Yin-Yang doing the ascribing?
+- p11, first sentence "Yin-Yang virtualizes most of Scala intrinsics": again it
+is not you 
+  doing this. Be careful using "we" as the subject of sentences.
+        : Fig 7, shouldn't there be constraints on x in the first rule?
+        What is t in the last rule?
+        
+etc etc
+
+- p21, intro part of Section 8. The should be written in past tense, as the
+evaluation 
+was done in the past. As is, written in present tense, it seems to be talking
+about 
+what will be following sections will describe, but it uses the wrong verbs. 
+For instance, you cannot port an application in section 8.2. You can describe
+the process
+of porting the application, though.
+
+- 8.2: Correctness can not be established using a case study. How does this
+claimed
+correctness relate to the formalism?
+
+- Please provide some interpretation of the various results, rather than just
+stating
+them.
+
+- Related work, last paragraph -- not clear how this is related to what is
+presented in 
+the paper.
+
+- Conclusion: "of said DSL" --> "of the DSL"
+
+References: loads of capitals missing. Name messed up in reference 6.
+
+
+
+
+Reviewer 2: 
+>>> Summary of the submission <<<
+
+This paper presents an automatic translation of a shallow embedding to
+a deep embedding that aims to provide all of the good aspects of deep
+embeddings (e.g., performance, multiple back-end targes) without
+losing the good aspects of shallow embeddings (e.g., tool support,
+good error messages, simplicity).
+
+
+
+
+          >>> Evaluation <<<
+
+Fundamentally, this paper hides whatever "secret sauce" it is that
+makes the idea work in a mass of Scala details, making the paper in
+its current form unsuitable for publication.
+
+As far as I understand it, the basic idea for transforming a shallow
+embedding DSL into a deep one is to "virtualize" a program in the
+shallow DSL by turning a set of host (Scala) language constructs into
+constructors, e.g., "if" and "while". But then, what? That, at least
+by itself doesn't seem to really provide all of the promised
+benefits. 
+
+Meanwhile, the evaluation mostly focuses on correctness of the
+translation. While it is good to know about correctness, the other
+aspects of a deep DSL are not carefully discussed. There is the
+tantalizing sentence "the captured variables analysis and guarded
+re-compilation improved the performance of the query engine by 1-4x
+(depending on the query)." but it is not clear exactly what improved
+and why.
+
+-----------
+
+Typos: "velues".
+
+Section 2.2: what is "lift"?
+
+The problem described in "Run-time domain-specific error reporting"
+seems strange. If these are macros, why cannot the macro just do what
+the text suggests it should do, namely check to see if the arguments
+are constant? I think you're saying that you can do this, but you
+would prefer to do it at compile-time for the host language and not
+compile time for the DSL. But why would you prefer that? Compile-time
+for the DSL seems like the right time to check this.
+
+In figure 6, why the conditional with the -1 result?
+
+"protot"
+
+"can achieved by" => "can be achieved by"
+
+
+
+Reviewer 3: 
+
+    >>> Summary of the submission <<<
+
+Embeddeding domain-specific languages (EDSLs) into host 
+languages is faced with a trade-off: 
+- the EDSL user prefers a seamless integration of the DSL 
+ into the host language, i.e., a shallow embedding 
+- the EDSL designer needs to have access to a suitable
+ representation of the EDSL expressions in order to 
+ optimize and interprete them or to generate code, i.e., 
+ the designers have to work with a deep embeddings 
+The paper presents Yin-Yang a Scala framework that aims to 
+provide the best of the two ends. It allows using the
+EDSL as a shallow embedding and provides support for 
+automatically generating deep embeddings -- thus, relieving
+the EDSL designer of a lot of work.
+
+The approach is implemented in Scala and makes use of many
+features, frameworks, and tools in the Scala world, in particular
+the central translation steps exploit Scala macros. The evaluation
+of the work is based on interesting case studies from previous
+work on EDSLs in Scala and shows very promising results.
+
+
+
+          >>> Evaluation <<<
+
+Points in favor:
+----------------
+* This is an impressive engineering solution for a complex 
+ and practical problem that pulls out all the stops of 
+ working with programming languages. 
+* From a general point of view, the paper is very readable and 
+ addresses all relevant aspects. From a technical point of view,
+ the reader has to know quite a bit about Scala to understand 
+ the details (but for ECOOP, that is probably fine).
+* The central idea of the approach is a conceptual one that 
+ is transferable to other language settings: build an abstracting
+ interface that clearly separates host language and compiler aspects 
+ on the one side from EDSL design aspects on the other side.
+* Implementation and evaluation are convincing.
+
+Points for improvement/against:
+-------------------------------
+* From a scientific point of view, I would like to see a presentation
+ that clearer separates the conceptual contributions from the 
+ realization in a particular language/tooling/library setting. 
+ In particular, it would be interesting to know what are the prerequisites
+ of the host language to make the approach work. A list of 
+ things are listed on the way of the description, but it remains
+ a bit implicit what is actually needed (e.g., from the type system) and
+ what is nice to have.
+* The assumptions made should be stated explicitly, more prominently, and
+ as soon as possible. E.g., no ealier than on page 19 you say "So far, we 
+ assumed that there is no side-effect in the EDSL...." When reading the 
+ text, I have several times tried to figure out what is assumed to make 
+ the given statement true.
+(* Shorten the text (several things are repeated) and enlarge the code 
+  fragments to make them more readable)
+
+Minor aspects:
+-------------
+- Abstract, line 4: "Yin-Yang , " Remove the blank
+- p. 2: functions calls ---> function calls
+- p. 7, l. 3: each operation createS 
+- p. 7: we have must ---> we must
+- p. 10, l. 2: Missing blank before "Figure 6"
+- p. 10, l. -3 and all over in the paper: figure x ---> Figure x
+- p. 11, footnote: to of the 
+- p. 12, l. -3: methods such AS lam, app ...
+- p. 13, l. -2: langauge
+- p. 14, before headline of Sec. 5: a lonely word ... "protot"
+- p. 15: get a following message ---> get the following
+- p. 16, l. -2: . if type ----> . If type 
+- p. 17: (clsName ... missing ")"
+in the reference: java ---> Java
+         kansas lava ---> Kansas Lava
+
+
+
+Reviewer 4:
+
+    >>> Summary of the submission <<<
+
+This paper presents Yin-Yang, an approach to create deeply embedded
+DSLs out of shallow DSLs.
+The paper first introduces the trade-offs between deeply and shallowly
+embedded DSLs and continues to give background on Scala macros and
+LMS. The paper then walks through the manual translation process and
+how Yin-Yang automates it.
+Finally, the paper discusses the implementation and evaluation of the
+tool.
+
+
+
+
+          >>> Evaluation <<<
+
+The paper is very clearly written and nicely walks the reader through
+the design trade-offs and alternatives. Concrete examples make the
+discussions lucid.
+
+Handling the trade-off between programmer effectiveness and program
+efficiency is an important design decision when designing DSLs and
+Yin-Yang offers a way out of the dilemma: make it possible to generate
+the deep embedding from the shallow embedding.
+
+
+Detailed comments:
+- Abstract: "We present Yin-Yang , a framework ..." remove space
+before comma.
+- p5 bottom: "The type class Numeric ensures that vectors contain only
+numerical velues." -> values
+- p7: "... to potentially target other platforms, we have must
+introduce an ..." remove "have".
+- p8: "... was exposing only the Rep[_] types to the user ." remove
+space before period.
+- p9: "Furthermore, these problems among of the main disadvantages of
+..." Strange wording.
+- p10: "... EDSL defined previously.Figure 6 contains..." add space
+before period.
+- p10: Subfigures 6 a and b could be aligned nicer; their captions run
+into each other.
+- p10: "This can achieved by translating ..." -> This can be
+achieved...
+- p11: In Figure 7 for if expressions, I'm not sure whether the t in
+"Gamma |- t : T" refers to the whole if expression or something else. 
+- p11 footnote: "This is similar to of the let..." remove "of"
+- p12: "... need to be treated specially in by the translation ... "
+remove "by" or "in".
+- p13: "langauge" -> "language"
+- p14: Last word of Section 4.2 is "protot" on itself. This should
+probably be a paragraph about what prototyping is and what the
+prototyping flag does.
+- p16: "... can handle create different IR nodes ..." remove "handle"
+- p17: "... argument (clsName which extends a Scala function." Missing
+closing parenthesis.
+- p18: "This a repetitive task ..." -> "This is a ..."
+- p22: The English in Section 8.3 is sometimes hard to follow.
+

@@ -1,0 +1,210 @@
+\documentclass{llncs}
+\usepackage{llncsdoc}
+
+% Build
+\usepackage{subfiles}
+
+% Math
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{math}
+\usepackage{mathtools}
+
+% Graphics
+\usepackage{graphicx}
+
+% Text stuff
+\usepackage{listings}
+%% sstucki: comment this back in later. my eyes hurt from the
+%% pixelated substituted fonts...
+%\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage[usenames]{color}
+\usepackage[font=bf,labelfont=bf]{caption}
+\DeclareCaptionType{copyrightbox}
+\usepackage{subcaption}
+\usepackage{multirow}
+\usepackage{etoolbox}
+\usepackage{stmaryrd}
+
+% PL Formulas
+\usepackage{fleqn}
+\usepackage{latexsym}
+\usepackage{bcprules}
+\usepackage{prooftree}
+
+\patchcmd{\maketitle}{\@copyrightspace}{}{}{}
+%\usepackage[font=bf,labelfont=bf]{caption}
+
+%for Strikethrough, to remove when not required anymore
+\usepackage[normalem]{ulem}
+
+% Layout
+\usepackage{xspace}% space in macros
+\usepackage{multicol}
+
+% Makes tables look beautiful
+\usepackage{booktabs}
+\usepackage{tabularx}
+
+\input{yy_macros}
+
+% ----- begin macros
+\lstdefinelanguage{Scala}%
+{morekeywords={abstract,%
+  case,catch,char,class,%
+  def,else,extends,final,for,%
+  if,import,implicit,%
+  match,module,%
+  new,null,%
+  object,override,%
+  %package,% commented out for a specific example
+  private,protected,public,%
+  for,public,return,super,%
+  this,throw,trait,try,type,%
+  val,var,%
+  with,while,%
+  yield,%
+  macro%
+  },%
+  sensitive,%
+  morecomment=[l]//,%
+  morecomment=[s]{/*}{*/},%
+  morestring=[b]",%
+  morestring=[b]',%
+  showstringspaces=false%
+}[keywords,comments,strings]%
+
+\lstset{language=Scala,%
+  mathescape=true,%
+%  columns=[c]fixed,%
+%  basewidth={0.5em, 0.40em},%
+  aboveskip=1pt,%\smallskipamount,
+  belowskip=1pt,%\negsmallskipamount,
+  lineskip=-0.2pt,
+  basewidth={0.54em, 0.4em},%
+%  basicstyle=\ttfamily,%\scriptsize,%
+  basicstyle=\footnotesize\ttfamily,
+  keywordstyle=\sffamily\bfseries%
+%  keywordstyle=\sffamily\bfseries,%
+%  xleftmargin=0.5cm
+}
+
+
+\newcommand{\commentstyle}[1]{\slseries{#1}}
+\newcommand{\keywordstyle}[1]{\bfseries{#1}}
+
+% Code
+\lstnewenvironment{listing}{\lstset{language=Scala}}{}
+\lstnewenvironment{listingsmall}{\lstset{language=Scala,basicstyle=\small\ttfamily}}{}
+\lstnewenvironment{listingtiny}{\lstset{language=Scala,basicstyle=\scriptsize\ttfamily}}{}
+
+\newcommand{\scode}[1]{\lstinline[language=Scala,columns=fixed,basicstyle=\ttfamily,keywordstyle=\ttfamily]|#1|}
+\newcommand{\jcode}[1]{\lstinline[language=Java,flexiblecolumns=true,basicstyle=\ttfamily]{#1}}
+
+\newcommand{\code}[1]{\scode{#1}}
+\newcommand{\sct}[1]{(\S \ref{#1})}
+
+% TODOs:
+\newif\ifshowTodos
+\showTodostrue
+\showTodosfalse % Uncomment this to hide all TODOs.
+\ifshowTodos
+\newcommand{\todo}[1]{{\color{red} \textbf{[TODO: #1 ]}}}
+\newcommand{\sstucki}[1]{{\color{red} [\textbf{sstucki}: #1 ]}}
+\newcommand{\manojo}[1]{{\color{red} [\textbf{manojo}: #1 ]}}
+\newcommand{\comm}[1]{}
+\newcommand{\orElse}[2]{{\color{red} [\sout{#1} {\color{magenta} #2}]}}
+\else
+\newcommand{\todo}[1]{}
+\newcommand{\sstucki}[1]{}
+\newcommand{\manojo}[1]{}
+\newcommand{\comm}[1]{}
+\newcommand{\orElse}[2]{#2}
+\renewcommand{\sout}[1]{}
+\fi
+% paper specific commands
+\newcommand{\tool}{Yin-Yang\xspace}
+
+
+
+\begin{document}
+
+\title{Yin-Yang: Concealing the Deep Embedding of DSLs}
+
+\author{Vojin Jovanovic and Amir Shaikhha}
+
+\institute{Ecole Polythechnique Federale de Lausanne, EPFL\\
+\email{\{first\}.\{last\}@epfl.ch}}
+
+\maketitle
+
+\begin{abstract}
+%
+  Deeply embedded domain-specific languages (EDSLs) intrinsically
+  compromise programmer experience for improved program
+  performance. \todo{This is a new term. We should explain
+    better.} Shallow EDSLs complement them by trading program
+  performance for good programmer experience.
+%
+  We present \emph{\tool}, a framework for DSL embedding that uses
+  Scala macros to reliably translate shallow \edsl programs to
+  corresponding deep \edsl programs. The translation allows program
+  prototyping and development in the user friendly shallow
+  embedding, while the corresponding deep embedding is used where
+  performance is important.
+%
+  On the EDSL author side, Yin-Yang can automatically generate deep
+  EDSL embeddings from their shallow counterparts. This leads to
+  reliability by construction, since the deep and shallow embeddings
+  are provably equivalent. Generating deep embeddings shields the EDSL
+  author from complicated compiler internals and shifts focus on
+  domain-specific optimizations and error-reporting.
+\end{abstract}
+% \category{D.3.3}{Programming Languages}{Language Constructs and Features}
+
+\keywords
+Embedded Domain-Specific Languages, Macros, Deep Embedding, Shallow Embedding, Compile-Time Meta-Programming
+
+%The SPJ rules:
+%Here is the problem:
+%- Writing usable and performance-oriented DSLs is hard. The fundamental trade-off is between DSL user experience and performance.
+%- On one hand, we have direct embeddings (a la Hudak), which provide the same user experience as that of the underlying host language (error reporting,
+%intuitive code constructs, etc.). On the other hand, with deep embeddings (citation), the aim is to create an intermediate representation (IR) which can then be further optimized. These deep embeddings involve heavy use of host language abstractions, which invariably/unfortunately leak to the DSL user space. It's not only harder to write DSL code, but also nearly impossible to debug: cryptic type errors, no good mapping from DSL code to generated/optimized code.
+%- Problems not attacked here: typed DSLs vs untyped DSLs. What do we mean by linguistic mismatch?
+
+%It is an interesting problem:
+%- This is really the holy grail of DSLs: a fast, direct embedding. If we can do this, people will never need to go from a library implementation to a hand-%made, often more buggy version of the DSL (with it's own lexer,parser,typer, which are hard to write even for compiler experts) just for performance sake. They will also therefore properly benefit from the toolchain given by a host language.
+
+%Here's our solution:
+%- We present YinYang (why do we call it YinYang? a question of balance?), which automatically translates a direct embedding into a deep embedding. We do this using a means of metaprogramming: macros.
+%- Given a direct embedding, macros transform every function into a corresponding IR node (more?). While the deep embedding itself can be optimized at compile time (cite?), it is better (arguably??) to cleanly distinguish the deep embedding (in particular for heterogeneous codegen purposes: also, we want to control particular optimizations). For this reason, we target the Lightweight Modular Staging framework, which separates interface from implementation.
+%- Most importantly, our program preserves equivalence through lifting, compilation and evaluation: the value obtained by executing a direct embedding is the same as that of compiling and executing it's lifted,deep version.
+
+%Here's what we can learn from this:
+%- The translation actually helps us in more ways: for instance we can be more precise about domain-specific errors, directly at the direct embedding level.
+%- What else?
+
+%How we are different from others:
+%- We do typed stuff (Racket and co don't apply?)
+%- Finally Tagless does not aim to provide a direct embedding. At best, we can achieve what is known as a shallow embedding (Rep[T] = T), but all the problems remain.
+%- LMS already distinguishes interface from implementation, and using infix methods, tries to alleviate some issues. But the complexity of the underlying type system still gets in the way.
+%- Forge sucks (personal point-of-view from MJ): it introduces yet another DSL to write DSLs, which somehow defeats the purpose (Note: this shouldn't be said as is in the paper)
+% - Stuff about Awesome Prelude and what not
+
+%Other complicated stuff that we do not do:
+%- Treating mixed-stage values: sometimes it's not enough to directly translate a direct embedding. One has to decide what should be staged and what should be a constant. This requires advanced domain knowledge. By doing codegen instead of wrapping everything in a macro, we still leave the choice to a DSL developer
+%- Rep[T=>U] vs. Rep[T] => Rep[U] : I had a discussion with Sandro who told me that they really are the same thing in a formal context, but it's LMS' quirkiness that has made one specific choice? I'm not clear on this.
+
+\cite{slick}
+
+\bibliographystyle{plain}
+
+\bibliography{vjovanov-lib,manual}
+
+\end{document}
+
+
+

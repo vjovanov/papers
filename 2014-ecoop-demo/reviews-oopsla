@@ -1,0 +1,721 @@
+*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=
+
+ 
+
+First reviewer's review:
+
+ 
+
+          >>> Summary of the submission <<<
+
+ 
+
+Reviewer 1:
+
+ 
+
+The paper is about programming EDSLs (in Scala) and describes a third way
+
+that promises to combine the complementary advantages of shallow and
+
+deep embeddings of EDSLs while mitigating both of their drawbacks.
+
+Shallow (or library based) EDSLs offer good error messages, rapid
+
+prototyping and source code debugging but deliver poor performance
+
+since there is no IR to which to apply domain specific optimizations;
+
+they also invite the user to stray outside the bounds of the
+
+EDSL by using unintended host language features. Deep embeddings, which
+
+construct an explicit IR that can be optimized, offer good performance
+
+but typically rely on complicated type based encodings to leverage
+
+host language static checking, leading to poor error messages and a
+
+preponderance of difficult to place type annotations and coercions to
+
+guide the host type checker and fool the compiler into constructing a
+
+term representation from a simulacrum of code.
+
+ 
+
+The basic idea of the paper is to allow EDSL clients to author code in
+
+the shallow embedding and use Scala's macro system to construct the
+
+deep embedding at compile time. The resulting IR can then be checked
+
+at compile-time, producing domain specific error messages prior to execution,
+
+and
+
+optimized, interpreted or compiled selectively either at compile time
+
+or runtime, when advantageous to do so. The paper also describes and evaluates
+
+a
+
+relatively cheap guard mechanism that can be used to avoid expensive
+
+and/or repeated runtime recompilation of IR (ie. particular data values).
+
+ 
+
+Reviewer 2:
+
+ 
+
+The authors describe Yin-Yang, a Scala library based on macros that
+
+translates shallow embedded domain-specific language (EDSL) terms into
+
+deep EDSL terms. Yin-Yang also implements guarded recompilation, a
+
+mechanism for deciding whether a deeply embedded term needs to be
+
+compiled at run time due to data dependencies.
+
+ 
+
+          >>> Contributions <<<
+
+ 
+
+Reviewer 1:
+
+1) Another take on EDSLs that claims to offer the advantage of both shallow and
+
+deep embeddings 
+
+and none of their disadvantages.
+
+ 
+
+2) A guard mechanism for avoiding expensive runtime recompilation of deeply
+
+embedded programs.
+
+ 
+
+Reviewer 2:
+
+ 
+
+The primary contribution of the paper is the idea that languages that
+
+provide support for EDSL construction should include a mechanism for
+
+translating shallow EDLS terms into deep EDSL terms. This provides a
+
+better programmer interface to EDSLs without sacrificing the
+
+performance, that is, it combines the programmer interface benefits of
+
+shallow embeddings with the performance benefit of deep
+
+embeddings. The main idea behind the paper is demonstrated through an
+
+implementation in Scala.
+
+ 
+
+          >>> Technical Review <<<
+
+ 
+
+Reviewer 1:
+
+The ideas in the paper are promising but the presentation is very poor
+
+and too sketchy. It was only on the second reading that I understood
+
+what the paper was trying to achieve and even then it's still not
+
+clear to me what the underlying mechanisms are. The text and examples
+
+are riddled with typos. 
+
+ 
+
+I'd encourage the authors to restructure the paper around a small, but
+
+complete, worked example so the reader has something concrete to cling
+
+on to.
+
+ 
+
+(subset of typos)
+
+ 
+
+Abstract. Virualization -> Virtualization
+
+Figure 2. pow is wrong and fails to multiply by b.
+
+ 
+
+Figure 5. What is the return type of apply? In Figure 6, it looks like
+
+YYTransform(c,_,_) is applied to dslBlock but I don't see how this
+
+typechecks given Figure 5.
+
+ 
+
+page 6. I didn't understand the need for abstract class
+
+LiftEvidence. Is this because the client IR is opaque to YinYang so
+
+the client. What is R - perhaps give an example for RegExpDSL.
+
+ 
+
+page 3. "Since, Matrix and Vector are abstract..." -> why is Matrix
+
+abstract - it's defined as Vector[Vector[T]}? Do you mean VectorOps
+
+and NumberOps?
+
+ 
+
+page 3. "A term t of type Rep[T] witl evaluate to "t' T"." -> do you meant "a
+
+value of type T".
+
+page 3. {\it exp} -> ex
+
+ 
+
+page 5. This interfaces to Interpet and CodeGenerator are not very
+
+typesafe - can you do better? Do these methods live on the IR type?
+
+ 
+
+page 7. often DSL recompilation -> frequent DSL recompilation
+
+page 8. For function types, each type variable -> For function types, the
+
+domain and codomain ...?
+
+page 9. DLSs -> DSLs
+
+page 10. Figure 11 a) swap "IBM" and "HAL" to be consistent with other
+
+figures.
+
+page 10. Figure 11 c) Rep[Char -> Rep[Char], Spell out the omitted typeTags ...
+
+and _ .
+
+page 11. Figure 12 c) align the second line (Storage.check) with the
+
+left margin - I thought this was part of the body of reset().
+
+page 9. ran -> run
+
+page 12 inside inside -> inside
+
+page 12. takes proportionally -> is proportional
+
+ 
+
+Reviewer 2:
+
+ 
+
+The paper would be much improved if it brought the main idea into
+
+focus much earlier. One section of background material is sufficient;
+
+the second section should then introduce the idea of rewriting shallow
+
+DSL terms into deep DSL terms using an example, much like the example
+
+that shows up later in Figure 11. Following sections should then
+
+explain more of the technical details of the implementation. As it
+
+stands, Section 6 provides only a very shallow (no pun intended)
+
+overview of that technology behind Yin-Yang.
+
+ 
+
+The quality of the code examples detracts from the paper. For example,
+
+in Figure 2, which shows the implementation of the "staged power
+
+function," a multiplication was left out. Rather than showing the
+
+implementation of the staged power function, it shows one
+
+implementation of the function $\lambda x . 1$. In Figure 11a, the
+
+variable text is bound to the string "IBM", and the variable pattern
+
+is bound to the string "HAL". In Figure 11b, the variable text is
+
+bound to "HAL", and pattern is bound to "IBM". These are obviously
+
+typos, but they are careless typos; careless mistakes in so many
+
+things I think I understand clearly make me wonder how many mistakes
+
+there are in the things that either I don't understand clearly or in
+
+the things whose details are not explained in depth.
+
+ 
+
+The authors mention incomprehensible type error several times
+
+throughout the paper and give an example of one such error in Figure
+
+3. Even shallow DSLs are known to have poor error messages. One
+
+advantage of being able to crawl over shallow DSL terms is that it
+
+permits better error reporting, but the authors never show that
+
+Yin-Yang improves error reporting. Does a shallow DSL term have to
+
+type check before Yin-Yang gets to see it? If so, then the user will
+
+still see type errors generated by bad shallow DSL terms, which is not
+
+much of an improvement. I don't know from reading the paper where
+
+Yin-Yang sits in this space; it needs to be made clear in the paper.
+
+ 
+
+The authors also mention the difficulty inherent in debugging deeply
+
+embedded DSLs and propose Yin-Yang as a partial solution---programmers
+
+can debug using the shallow DSL, and then turn on the full power of
+
+Yin-Yang to gain the optimization benefits of a deeply embedded
+
+DSL. Although they admit that this requires that the shallow and deep
+
+embedding have identical semantics, I think they gloss over the
+
+difficulty of providing this sort of guarantee in practice. I am not
+
+convinced; the paper would be improved by an example that shows that
+
+having the shallow DSL available really does make it easier to debug
+
+programs.
+
+ 
+
+I do not have a good understanding of guarded recompilation. I think
+
+the classic approach is to reify a DSL expression to IR and then
+
+recompile if the IR has not been seen before. This avoids the
+
+recompilation, but still requires reification. The Yin-Yang approach
+
+is to track an IR term's data dependencies with respect to the
+
+parameters to the function that generates the reified IR term and then
+
+only recompile if those dependencies have changed. However, I am not
+
+sure my understanding is correct. The paper would be improved by
+
+making it very clear exactly what is going on here. As a reader I need
+
+to understand clearly both how things are done in other systems and
+
+how Yin-Yang's approach is an improvement.
+
+ 
+
+The claims in Section 6.2 about ascription being "correct" make me
+
+uncomfortable :) Does LMS have a translation into non-Repful terms a
+
+la [1]?
+
+ 
+
+I had to go read the Scala macro paper to understand what was going on
+
+with the Yin-Yang implementation. That should not be necessary when an
+
+extra paragraph or two in this paper would have sufficed.
+
+ 
+
+The authors may wish to reference F#'s quotation mechanism [2] which
+
+allows the simultaneous generation of both compiled code and reflected
+
+syntax trees from a single definition.
+
+ 
+
+There is a good idea in this paper, but the presentation must be improved.
+
+ 
+
+[1] W. Choi, B. Aktemur, K. Yi, and M. Tatsuta, "Static analysis of
+
+multi-staged programs via unstaging translation," in Proceedings of
+
+the 38th annual ACM SIGPLAN-SIGACT symposium on Principles of
+
+programming languages, New York, NY, USA, 2011, pp. 81-92.
+
+ 
+
+[2] D. Syme, "Leveraging .NET meta-programming components from F#:
+
+integrated queries and interoperable heterogeneous execution," in
+
+Proceedings of the 2006 workshop on ML, New York, NY, USA, 2006,
+
+pp. 43-54.
+
+ 
+
+          >>> Revisions <<<
+
+ 
+
+Reviewer 1:
+
+Please restructure the paper around a small, but complete, worked example so
+
+the
+
+reader has something concrete cling to. 
+
+ 
+
+*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*
+
+ 
+
+Second reviewer's review:
+
+ 
+
+          >>> Summary of the submission <<<
+
+ 
+
+The paper introduces Yin-Yang, a Scala library for implementing
+
+shallow/deep embedded DSL pairs. Yin-Yang takes the best of both worlds:
+
+the programmer experience of shallow EDSLs, with the runtime performance
+
+of deep EDSLs. With Yin-Yang, both the shallow and the deep EDSLs are
+
+implemented, along with a few implementations of Yin-Yang classes to
+
+specify the required behavior. The DSL program is written using the
+
+shallow EDSL. Yin-Yang's macros then replace shallow EDSL invocations
+
+with deep ones. This is done after type checking has been invoked on the
+
+shallow version, providing better error messages where necessary. For
+
+debugging, the translation can be disabled, to avoid debugging of
+
+generated code. Yin-Yang was evaluated by complimenting existing Scala
+
+deep EDSLs with shallow ones, and adding the necessary Yin-Yang code to
+
+couple them. Evaluation measured the compilation time and run-time of
+
+several DSL programs.
+
+ 
+
+          >>> Contributions <<<
+
+ 
+
+The Yang: The paper seems to address a real problem and to provide a
+
+seemingly pragmatic solution.
+
+ 
+
+The Yin: The paper is written for a narrow audience. It assumes
+
+knowledge of previous work in the field of DSL embedding techniques in
+
+Scala. Researchers in the field of DSLs that not familiar with Scala
+
+or with these particular techniques in Scala would find it hard to
+
+appreciate the contribution, not to mention to fully understand.
+
+ 
+
+I think this paper should be completely re-written in a way that does
+
+not assume prior knowledge of DSL embedding techniques in Scala, or
+
+directed to a more Scala-centric venue.
+
+ 
+
+          >>> Technical Review <<<
+
+ 
+
+I started reading this paper with great expectations. I was not familiar
+
+with shallow and deep-embedding in Scala, but I understood from the
+
+context that these refer to techniques in DSL implementation using
+
+interpretation and translation respectively. This kind of work is of
+
+great essence to DSL research. The trade-offs between interpretation
+
+(classic embedded or internal DSLs), and translation are well known,
+
+and controlling them is of importance. But then, as I went on reading
+
+the introduction and background, I started feeling left out. Section
+
+2 states that familiarity with the basics of Scala is assumed, however,
+
+many terms which I imagine come from previous research in the field of
+
+Scala EDSLs are used in this paper without definition. Such terms include
+
+shallow and deep embedding, compile-time DSLs, guarded recompilation and
+
+more. This problem is even more severe if considering the introduction
+
+alone. Many terms later introduced in the Background section are used
+
+in the introduction, making it hard for a reader unfamiliar with them
+
+to appreciate the contribution. The Background section does make things
+
+a little better, but to me, most explanations were still unclear.
+
+ 
+
+Things did not improve as I continued reading the paper. I did
+
+understand the basic idea conveyed in Sections 3 and 4, and thus was
+
+able to understand the overall approach behind Yin-Yang. I was then
+
+slightly disappointed, as my original perception of the contribution
+
+was that Yin-Yang would require only one implementation of the DSL,
+
+and would complement it with the other by itself. Understanding that
+
+this library only allows switching user code between two separate
+
+implementations that need to be provided by the DSL author made the
+
+solution much less attractive.
+
+ 
+
+Throughout the paper I hoped that as code examples come along, my
+
+understanding of the paper will grow. I liked the fact that all code
+
+examples provided in the paper are short, but yet, these examples were
+
+mostly worthless for me. This made the reading of Section 6 very hard,
+
+causing me to skip over most of it. I did return to Section 6.5 to try
+
+to understand the concept of guarded recompilation, which is presented
+
+as one of the Yin-Yang's main advantages. The explanation there helped
+
+me get a general idea of what the term means, but the idea why Yin-Yang
+
+makes it more efficient is still not clear to me.
+
+ 
+
+The quantitative evaluation looks reasonable, but without proper
+
+understanding of the implementation I cannot properly relate to the
+
+evaluation.
+
+ 
+
+The paper contains grammatical errors and style issues (e.g., "orders
+
+of THE magnitude"), and needs a better proof reading.
+
+ 
+
+*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*
+
+ 
+
+Third reviewer's review:
+
+ 
+
+          >>> Summary of the submission <<<
+
+ 
+
+The paper describes Yin-Yang a library for transforming shallow EDSLs in Scala
+
+to deeply embedded variants of those DSLs.
+
+ 
+
+Internal DSLs are a popular approach to addressing domain-specific
+
+abstractions. Shallow internal DSLs directly encode domain concepts as
+
+computations
+
+in the host language. An internal DSL in this style is essentially a library.
+
+The
+
+disadvantage of internal DSLs is the DSL designer has no control over static
+
+analysis, error messages, and optimization strategy applied by the host
+
+compiler.
+
+ 
+
+Deep DSL embeddings use an explicit representation of the DSL program within
+
+the host
+
+language. With this style of DSL, the DSL author develops a compiler, perhaps
+
+with
+
+the only exception of using the host language syntax instead of a dedicated
+
+parser. This allows the application of domain-specific optimization and
+
+analysis. Lightweight Modular Staging (LMS) is a Scala framework for creating
+
+deeply
+
+embedded DSLs in Scala.
+
+ 
+
+Section 3 of the paper provides a good analysis of the shortcomings of internal
+
+DSLs
+
+in Scala, and of LMS in particular based on inspection of concrete programs
+
+written
+
+using these approaches.
+
+ 
+
+The paper then introduces Yin-Yang, a compile-time meta-programming library
+
+that
+
+supports the translation of shallow internal DSLs to deep internal DSLs. Thus,
+
+client
+
+programmers can program in the plain host language, while DSL designers can
+
+implement
+
+domain-specific optimizations on the deep representation.
+
+ 
+
+          >>> Technical Review <<<
+
+ 
+
+What I liked about this paper is the thorough analysis of the problems with
+
+internal
+
+DSLs in Scala.
+
+ 
+
+The solution to the problem is conceptually straightforward: a translation of
+
+regular
+
+Scala code to an 'exploded' representation on which analyses and
+
+transformations can
+
+be applied. The description of the realization of that solution in Yin-Yang is
+
+an
+
+impenetrable wall of text (Sections 5 and 6). This section could well be
+
+interesting if
+
+explained using code. In its current state I find it hard to judge the
+
+contribution.
+
+ 
+
+ 
+
+Minor:
+
+ 
+
+The paper contains many typos and grammatical mistakes, which give it a rushed
+
+impression.
+
+ 
+
+p10/fig11: why are HAL and IBM commuted in Fig 11.b)?
+
+ 
+
+          >>> Revisions <<<
+
+ 
+
+Make the description of Yin-Yang understandable.
+
+ 
+
+*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*
+
+ 
+
+ 
+
+ 
