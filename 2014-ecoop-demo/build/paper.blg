@@ -4,46 +4,44 @@ The top-level auxiliary file: build/paper.aux
 The style file: plain.bst
 Database file #1: vjovanov-lib.bib
 Database file #2: manual.bib
-Warning--to sort, need author or key in Slick
-You've used 3 entries,
+You've used 2 entries,
             2118 wiz_defined-function locations,
-            515 strings with 4576 characters,
-and the built_in function-call counts, 1105 in all, are:
-= -- 101
-> -- 56
+            512 strings with 4533 characters,
+and the built_in function-call counts, 957 in all, are:
+= -- 89
+> -- 55
 < -- 1
-+ -- 23
++ -- 22
 - -- 20
-* -- 69
-:= -- 166
-add.period$ -- 7
-call.type$ -- 3
-change.case$ -- 19
+* -- 64
+:= -- 152
+add.period$ -- 6
+call.type$ -- 2
+change.case$ -- 16
 chr.to.int$ -- 0
-cite$ -- 4
-duplicate$ -- 51
-empty$ -- 85
+cite$ -- 2
+duplicate$ -- 44
+empty$ -- 62
 format.name$ -- 20
-if$ -- 243
+if$ -- 206
 int.to.chr$ -- 0
-int.to.str$ -- 3
+int.to.str$ -- 2
 missing$ -- 2
-newline$ -- 16
+newline$ -- 13
 num.names$ -- 4
-pop$ -- 26
+pop$ -- 18
 preamble$ -- 1
-purify$ -- 16
+purify$ -- 14
 quote$ -- 0
-skip$ -- 51
+skip$ -- 41
 stack$ -- 0
-substring$ -- 42
-swap$ -- 23
+substring$ -- 37
+swap$ -- 22
 text.length$ -- 1
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 12
-warning$ -- 1
+type$ -- 8
+warning$ -- 0
 while$ -- 6
-width$ -- 4
-write$ -- 29
-(There was 1 warning)
+width$ -- 3
+write$ -- 24

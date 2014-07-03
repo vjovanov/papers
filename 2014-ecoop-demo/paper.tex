@@ -165,7 +165,33 @@ Development of external DSLs includes building a parser and type checker as well
 
 \end{itemize}
 
+Direct embeddings are typically friendly for the \emph{DSL user} as they \emph{i)} \emph{linguistically match} the host language and \emph{ii)} can be easily debugged since values of the embedded language directly correspond to the values of the host language. However, since programs can not be introspected, the number of possible domain-specific optimizations is limited.
 
+% Deep embedding exhibits good performance but interface suffers
+Deep embeddings reify the DSL programs into an \emph{intermediate representation} IR. The reification hinders usability as it often relies on complex type system constructs that create a linguistic mismatch with the host language. Furthermore, the IR construction prevents term introspection during debugging and makes the problem even harder. However, the domain knowledge about the IR opens opportunities for optimizations.
+
+% DSL author goes through horror of making the interface usable
+
+
+% Yin-Yang translates deep embedding into the shallow one
+
+% Generation
+
+\section{Demonstration: A DSL for In-Memory Queries}
+
+  % We generate deep embedding for the shallow embedding
+  Our demonstration shows how \tool is used for: \emph{i)} the DSL developer and \emph{ii)} the DSL user. For the purpose of the demonstration we use an existing DSL for writing in-memory queries.
+
+  % We will write operators for the query language in the direct embeddings
+
+
+  % From the direct embedding we will generate the deep embedding
+
+  % We will write queries that use our new operators
+
+  % Demonstrate the type errors, debugging, and prototyping.
+
+  % Introduce optimizations
 
 
 \bibliographystyle{plain}
