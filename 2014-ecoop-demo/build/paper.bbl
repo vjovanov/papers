@@ -1,6 +1,19 @@
 \begin{thebibliography}{1}
 
-\bibitem{slick}
+\bibitem{Slick}
 Slick, http://slick.typesafe.com/.
+
+\bibitem{Hudak96csur}
+Paul Hudak.
+\newblock Building domain-specific embedded languages.
+\newblock {\em ACM Comput. Surv.}, 28(4es):196, 1996.
+
+\bibitem{rompf_optimizing_2013}
+Tiark Rompf, Arvind~K. Sujeeth, Nada Amin, Kevin~J. Brown, Vojin Jovanovic,
+  {HyoukJoong} Lee, Manohar Jonnalagedda, Kunle Olukotun, and Martin Odersky.
+\newblock Optimizing data structures in high-level programs: New directions for
+  extensible compilers based on staging.
+\newblock In {\em Proceedings of the 40th annual {ACM} {SIGPLAN-SIGACT}
+  symposium on Principles of programming languages}, page 497–510, 2013.
 
 \end{thebibliography}
