@@ -1,5 +1,10 @@
 \begin{thebibliography}{1}
 
+\bibitem{burmako_scala_2013}
+Eugene Burmako.
+\newblock Scala macros: Let our powers combine!
+\newblock In {\em Proceedings of the 4th Annual Scala Workshop}, 2013.
+
 \bibitem{Hudak96csur}
 Paul Hudak.
 \newblock Building domain-specific embedded languages.
@@ -12,5 +17,10 @@ Tiark Rompf, Arvind~K. Sujeeth, Nada Amin, Kevin~J. Brown, Vojin Jovanovic,
   extensible compilers based on staging.
 \newblock In {\em Proceedings of the 40th annual {ACM} {SIGPLAN-SIGACT}
   symposium on Principles of programming languages}, page 497–510, 2013.
+
+\bibitem{shabalin2013quasiquotes}
+Denys Shabalin, Eugene Burmako, and Martin Odersky.
+\newblock Quasiquotes for scala.
+\newblock Technical report, 2013.
 
 \end{thebibliography}
