@@ -153,10 +153,10 @@ Embedded Domain-Specific Languages, Macros, Deep Embedding, Shallow Embedding, C
 \section{Introduction}
 
 % External DSLs
-External Domain-specific languages (DSLs) are languages with a custom compiler specialized to a particular application domain. Knowledge about the domain and specialization of the language give the compiler possibilities for optimization that do not exist in general purpose languages. A restricted language makes it easy for \emph{DSL users} to learn the language while the optimizations can yield execution times close to hand-optimized programs \cite{rompf_optimizing_2013}.
+External Domain-specific languages (DSLs) are languages with a custom compiler specialized to a particular application domain. Knowledge about the domain and specialization of the language give the compiler possibilities for optimization that do not exist in \emph{general-purpose languages}. A restricted language makes it easy for \emph{DSL users} to learn the language while the optimizations can yield execution times close to hand-optimized programs \cite{rompf_optimizing_2013}.
 
 % Embedded DSLs
-The development of external DSLs includes building a parser and type checker as well as a large tool-chain (i.e., debuggers, IDEs, and documentation tools). An appealing alternative are \emph{embedded DSLs}~(EDSLs)~\cite{Hudak96csur} that reuse the parser, type checker and the tool-chain of a general-purpose \emph{host language} to minimize required development effort. We can classify DSL embeddings into:
+The development of external DSLs includes building a parser and a type checker as well as a large tool-chain (i.e., debuggers, IDEs, and documentation tools). An appealing alternative are \emph{embedded DSLs}~(EDSLs)~\cite{Hudak96csur} that reuse the parser, the type checker, and the tool-chain of a general-purpose host language to minimize required development effort. We can classify DSL embeddings into:
 
 \begin{itemize}
 
@@ -192,7 +192,7 @@ effect, the translation completely conceals the deep embedding from the user.
 To avoid error prone maintenance of synchronized direct and deep embeddings
 \tool reuses the core translation to generate the deep embeddings based on the
 definition of direct embeddings. Since the same translation is applied both
-for the \edsl definition and the \edsl program the equivalence between the
+for the \edsl definition and the \edsl program, the equivalence between the
 embeddings is assured. With deep embedding generation DSL author can focus on
 the domain-specific optimizations while the interface is completely handled by
 \tool.
@@ -203,7 +203,7 @@ the domain-specific optimizations while the interface is completely handled by
   
 
   % We generate deep embedding for the shallow embedding
-  Our demonstration shows how \tool is used by: \emph{i)} a DSL author and \emph{ii)} a DSL user. The demonstration shows how the DSL user can be agnostic about concept of the deep embedding. Furthermore, the DSL author can program deep embeddings and program transformations with regular Scala. For the purpose of the demonstration we use a DSL for writing in-memory queries. The demonstration proceeds as follows: 
+  Our demonstration shows how \tool is used by: \emph{i)} a DSL author and \emph{ii)} a DSL user. The demonstration shows how the DSL user can be agnostic about the deep embedding. Furthermore, the DSL author can program deep embeddings and program transformations just by using the syntax of the direct embedding. For the purpose of the demonstration we use a DSL for writing in-memory queries. The demonstration proceeds as follows: 
 
 \lstset{mathescape=false}
 \begin{figure*}[ht]
