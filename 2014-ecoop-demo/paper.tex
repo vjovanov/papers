@@ -180,19 +180,26 @@ Deep embeddings reify the DSL programs into an \emph{intermediate representation
 \section{Demonstration: A DSL for In-Memory Queries}
 
   % We generate deep embedding for the shallow embedding
-  Our demonstration shows how \tool is used for: \emph{i)} the DSL developer and \emph{ii)} the DSL user. For the purpose of the demonstration we use an existing DSL for writing in-memory queries.
+  Our demonstration shows how \tool is used by: \emph{i)} the DSL author and \emph{ii)} the DSL user. The demonstration shows how the DSL user can be agnostic about concept of the deep embedding. Furthermore, the DSL author can program the deep embeddings and program transformations as regular Scala code. For the purpose of the demonstration we use a DSL for writing in-memory queries.
 
   % We will write operators for the query language in the direct embeddings
+  The DSL author writes a na\"{\i}ve Scala implementation of common query operators.
 
+  The DSL user can immediately write concise queries in the DSL. Although the query performance is satisfactory for prototyping, in production, the overhead is unacceptably large.
 
   % From the direct embedding we will generate the deep embedding
+  To improve on the situation the DSL author decides to provide a deep embedding for the query engine. All he needs to do is place a single Scala annotation per query operator he implemented. The annotation marks that the for the operator the author would like to have a deep embedding.
 
-  % We will write queries that use our new operators
+  % The DSL user will write queries.
+  All the DSL user needs to do now is put the queries in a DSL scope. After putting queries into the DSL scopes the user is still faced with the same type errors as before. The program execution errors can still be debugged in a standard debugger. After placing queries into scopes all standard compiler optimizations are applied to the DSL yielding significant performance improvements.
 
   % Demonstrate the type errors, debugging, and prototyping.
+  The DSL user then decides to further improve performance by introducing the domain specific optimizations in the query language. The DSL author declares simple rewrite rules that the DSL compiler will later apply. The rewrite rules are specified through Scala quasiquotes and thus the DSL author can stay completely agnostic of the underlying data structures.
 
-  % Introduce optimizations
+  % Example of the rule
 
+  % Performance
+  The DSL author then measures performance of his DSL and realizes that the generated code performs on par with the hand-optimized version of the query.
 
 \bibliographystyle{plain}
 
