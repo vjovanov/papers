@@ -18,9 +18,4 @@ Tiark Rompf, Arvind~K. Sujeeth, Nada Amin, Kevin~J. Brown, Vojin Jovanovic,
 \newblock In {\em Proceedings of the 40th annual {ACM} {SIGPLAN-SIGACT}
   symposium on Principles of programming languages}, page 497–510, 2013.
 
-\bibitem{shabalin2013quasiquotes}
-Denys Shabalin, Eugene Burmako, and Martin Odersky.
-\newblock Quasiquotes for scala.
-\newblock Technical report, 2013.
-
 \end{thebibliography}

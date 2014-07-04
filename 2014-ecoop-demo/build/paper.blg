@@ -1,49 +1,47 @@
-This is BibTeX, Version 0.99d (TeX Live 2013/Debian)
+This is BibTeX, Version 0.99d (TeX Live 2013)
 Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
 The top-level auxiliary file: build/paper.aux
 The style file: plain.bst
 Database file #1: vjovanov-lib.bib
 Database file #2: manual.bib
-Warning--empty institution in shabalin2013quasiquotes
-You've used 4 entries,
+You've used 3 entries,
             2118 wiz_defined-function locations,
-            519 strings with 4746 characters,
-and the built_in function-call counts, 1457 in all, are:
-= -- 134
-> -- 80
+            516 strings with 4647 characters,
+and the built_in function-call counts, 1193 in all, are:
+= -- 109
+> -- 62
 < -- 1
-+ -- 32
-- -- 28
-* -- 91
-:= -- 242
-add.period$ -- 12
-call.type$ -- 4
-change.case$ -- 27
++ -- 25
+- -- 22
+* -- 73
+:= -- 191
+add.period$ -- 9
+call.type$ -- 3
+change.case$ -- 20
 chr.to.int$ -- 0
-cite$ -- 5
-duplicate$ -- 66
-empty$ -- 105
-format.name$ -- 28
-if$ -- 308
+cite$ -- 3
+duplicate$ -- 58
+empty$ -- 90
+format.name$ -- 22
+if$ -- 258
 int.to.chr$ -- 0
-int.to.str$ -- 4
+int.to.str$ -- 3
 missing$ -- 3
-newline$ -- 23
-num.names$ -- 8
-pop$ -- 32
+newline$ -- 18
+num.names$ -- 6
+pop$ -- 26
 preamble$ -- 1
-purify$ -- 22
+purify$ -- 17
 quote$ -- 0
-skip$ -- 53
+skip$ -- 48
 stack$ -- 0
-substring$ -- 47
+substring$ -- 42
 swap$ -- 24
 text.length$ -- 1
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 16
-warning$ -- 1
-while$ -- 10
-width$ -- 5
-write$ -- 44
-(There was 1 warning)
+type$ -- 12
+warning$ -- 0
+while$ -- 8
+width$ -- 4
+write$ -- 34

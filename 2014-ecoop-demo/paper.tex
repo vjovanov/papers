@@ -153,7 +153,7 @@ Embedded Domain-Specific Languages, Macros, Deep Embedding, Shallow Embedding, C
 \section{Introduction}
 
 % External DSLs
-External Domain-specific languages (DSLs) are languages with a custom compiler specialized to a particular application domain. Knowledge about the domain and specialization of the language give the compiler possibilities for optimization that do not exist in \emph{general-purpose languages}. A restricted language makes it easy for \emph{DSL users} to learn the language while the optimizations can yield execution times close to hand-optimized programs \cite{rompf_optimizing_2013}.
+External domain-specific languages (DSLs) are languages with a custom compiler specialized to a particular application domain. Knowledge about the domain and specialization of the language give the compiler possibilities for optimization that do not exist in \emph{general-purpose languages}. This often leads to execution times close to hand-optimized programs \cite{rompf_optimizing_2013}. A restricted language makes it easier for \emph{DSL users} to learn the language.
 
 % Embedded DSLs
 The development of external DSLs includes building a parser and a type checker as well as a large tool-chain (i.e., debuggers, IDEs, and documentation tools). An appealing alternative are \emph{embedded DSLs}~(EDSLs)~\cite{Hudak96csur} that reuse the parser, the type checker, and the tool-chain of a general-purpose host language to minimize required development effort. We can classify DSL embeddings into:
@@ -166,10 +166,10 @@ The development of external DSLs includes building a parser and a type checker a
 
 \end{itemize}
 
-Direct embeddings are typically friendly for the \emph{DSL user} as they \emph{i)} \emph{linguistically match} the host language and \emph{ii)} can be easily debugged since values of the embedded language directly correspond to the values of the host language. However, since the structure of the programs is not completely known, the number of possible domain-specific optimizations is limited.
+Direct embeddings are typically friendly for the DSL user as they \emph{i)} \emph{linguistically match} the host language and \emph{ii)} can be easily debugged since values of the embedded language directly correspond to the values of the host language. However, since the structure of the programs is not completely known, the number of possible domain-specific optimizations is limited.
 
 % Deep embedding exhibits good performance but interface suffers
-Deep embeddings reify the DSL programs into an \emph{intermediate representation} (IR). This reification hinders usability as it often relies on complex type system constructs that create a linguistic mismatch with the host language. Furthermore, the IR construction in the programs disallows value inspection with classical debuggers and makes the problem even harder. However, the IR being domain specific opens new opportunities for optimization.
+Deep embeddings reify the DSL programs into an \emph{intermediate representation} (IR). This reification hinders usability as it often relies on complex type system constructs that create a linguistic mismatch with the host language. Furthermore, the IR construction in the programs disallows value inspection with classical debuggers and makes debugging hard. However, the IR being domain specific opens new opportunities for optimization and allows good execution times.
 
 
 % Direct interface with meta-programming.
@@ -189,7 +189,7 @@ performance is not important. The translation is then applied when performance
 is essential or alternative interpretations of a program are required. In
 effect, the translation completely conceals the deep embedding from the user.
 
-To avoid error prone maintenance of synchronized direct and deep embeddings
+To avoid error prone maintenance of synchronized, direct and deep, embeddings
 \tool reuses the core translation to generate the deep embeddings based on the
 definition of direct embeddings. Since the same translation is applied both
 for the \edsl definition and the \edsl program, the equivalence between the
@@ -200,10 +200,9 @@ the domain-specific optimizations while the interface is completely handled by
 
 \section{Demonstration: A DSL for In-Memory Queries}
 
-  
 
   % We generate deep embedding for the shallow embedding
-  Our demonstration shows how \tool is used by: \emph{i)} a DSL author and \emph{ii)} a DSL user. The demonstration shows how the DSL user can be agnostic about the deep embedding. Furthermore, the DSL author can program deep embeddings and program transformations just by using the syntax of the direct embedding. For the purpose of the demonstration we use a DSL for writing in-memory queries. The demonstration proceeds as follows: 
+  Our demonstration shows how \tool is used by: \emph{i)} a DSL author and \emph{ii)} a DSL user. The DSL author only needs to define the direct embedding of a DSL and declare domain-specific program transformations. The DSL user writes code in the user friendly shallow embedding and can be agnostic about the deep embedding. For the purpose of the demonstration we use a DSL for writing in-memory queries. The demonstration proceeds as follows:
 
 \lstset{mathescape=false}
 \begin{figure*}[ht]
@@ -215,7 +214,7 @@ the domain-specific optimizations while the interface is completely handled by
 class SelectOp[A](parent: Oper[A])
   (pred: A => Boolean) extends Oper[A]{
   def open() = parent.open
-  def next() = parent findFirst pred    
+  def next() = parent findFirst pred
   def reset() = parent.reset
   def close() = ()
 }
@@ -225,36 +224,36 @@ class SelectOp[A](parent: Oper[A])
 
 \begin{subfigure}[b]{1\linewidth}
 \begin{listingtiny}
+
 def transform(s: Sym[Any]): Exp[Any] = s match {
-  case sql"join($r, join($s, $t))" => 
-    ql"join(join($r, $s), $t)"
-  case sql"join(join($r, $s), $t)" => 
-    ql"join($r, join($s, $t))"
+  case SelectOp(SelectOp(r)(pred1))(pred2) =>
+    SelectOp(r)(x => pred1(x) && pred2(x))
   case _ => super.transform(s)
 }
+
 \end{listingtiny}
 
 \end{subfigure}
 \end{multicols}
-\caption{\label{lst:select} A selection query operator (left) and the rules for \code{join} reordering (right).}
+\caption{\label{lst:select} A selection query operator (left) and domain-specific transformation rules (right).}
 \end{figure*}
 
   % We will write operators for the query language in the direct embeddings
-  {\bf DSL author}: Writes a na\"{\i}ve Scala implementation of common query operators. An example operator is presented in the left part of \figref{lst:select}.
+  {\bf DSL author}: Writes a na\"{\i}ve Scala implementation of common query operators. An example operator is presented in \figref{lst:select} on the left.
 
   {\bf DSL user}: Can immediately write concise queries in the DSL. Although the query performance is satisfactory for prototyping, in production, the overhead is unacceptably large.
 
   % From the direct embedding we will generate the deep embedding
-  {\bf DSL author}: To improve on the situation the author decides to provide a deep embedding for the query engine. All he needs to do is place a single Scala class annotation per query operator he implemented. The annotation marks that the annotated operator we would like to have the deep embedding generated. \tool then processes the annotated classes and generates the deep embedding that includes reification logic and code generation.
+  {\bf DSL author}: To improve on the situation the author decides to provide a deep embedding for the query engine. All he needs to do is place a single Scala class annotation per query operator he implemented. The annotation marks that the deep embedding will be generated. \tool then processes the annotated classes and generates the deep embedding that includes reification logic and code generation.
 
   % The DSL user will write queries.
-  {\bf DSL user}: Places queries in a DSL scope. After putting queries into the DSL scopes the user is still faced with the same type errors as before. The program execution errors can still be debugged in a standard debugger. In production, the DSL scope will invoke the translation and apply all standard compiler optimizations to the DSL yielding significant performance improvements.
+  {\bf DSL user}: Places queries he wrote in a DSL scope that activates the deep embedding. After putting queries into the DSL scopes the user is still faced with the same type errors as before and program execution errors can still be debugged in a standard debugger. In production, however, the DSL scope will invoke the translation and apply all standard compiler optimizations to the DSL yielding significant performance improvements.
 
   % Demonstrate the type errors, debugging, and prototyping.
-  {\bf DSL author}: Decides to further improve performance by introducing the domain specific optimizations in the query language. The DSL author declares simple rewrite rules that the DSL compiler will later apply. The rewrite rules are specified through Scala quasi-quotes~\cite{shabalin2013quasiquotes} and thus the DSL author can stay completely agnostic of the underlying data structures. The rules for \code{join} associativity are presented in the right part of \figref{lst:select}.
-  
+  {\bf DSL author}: Decides to further improve performance by introducing the domain specific optimizations in the query language. The DSL author declares simple rewrite rules that the DSL compiler will later apply. The rewrite rules are specified through Scala pattern matching. The rules for selection elimination are shown in \figref{lst:select} on the right.
+
   % Performance
-  {\bf DSL user}: Then measures performance of his DSL and realizes that the generated code performs on par with the hand-optimized version of the query.
+  {\bf DSL user}: Measures performance of his DSL and realizes that the generated code performs on par with the hand-optimized version of the query.
 
 \bibliographystyle{plain}
 
