@@ -1,10 +1,10 @@
 language: bash
 script: 
- - cd ecoop-2015/
+ - cd 2015-ecoop/
  - make clean
  - make
  - cd ../
- - cd ecoop-2014-demo/
+ - cd 2014-ecoop-demo/
  - make clean
  - make
  - cd ../
