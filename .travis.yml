@@ -1,6 +1,6 @@
 install:
  - sudo apt-get install texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended 
- - sudo apt-get install chktex texlive-latex3
+ - sudo apt-get install chktex texlive-latex3  texlive-math-extra
 language: bash
 script: 
  - cd 2015-ecoop/
