@@ -1,0 +1,10 @@
+language: bash
+script: 
+ - cd ecoop-2015/
+ - make clean
+ - make
+ - cd ../
+ - cd ecoop-2014-demo/
+ - make clean
+ - make
+ - cd ../
