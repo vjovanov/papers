@@ -1,0 +1,394 @@
+\documentclass[paper.tex]{subfiles}
+
+\begin{document}
+
+\section{Translation}
+\label{sec:formalization}
+
+
+The syntax of our core language is the following:
+\newcommand{\alt}{\mid}
+\begin{align*}
+\shortintertext{Terms:}
+t       &::= t\;t \alt \func{x: \tau}{t} \alt x[\tau]\dotsm[\tau] \alt \llet{x:
+  \sigma}{t}{t} \alt \kfix\;t \alt x \\
+v       &::= \func{x: \tau}{t} \alt c\\
+c       &::= \ktrue \alt \kfalse \alt 0 \alt 1 \alt \dots\\
+\shortintertext{Types:}
+\sigma  &::= \tau \alt \univ{X}{\sigma}\\
+\tau    &::= X \alt \Func{\tau}{\tau} \alt \btyp\\
+\btyp   &::= \kbool \alt \kint
+\end{align*}
+Extensions to \calculus like $\kif$, and arithmetic operations are straightforward so we use them freely in our examples.
+
+% %% sstucki: adding comments as I'm reading this.
+% \newcommand{\sstucki}[1]{{\color{red} [\textbf{sstucki}: #1]}}
+
+% \comm{% Description of the System.
+% The \tool completely conceals the deep embedding of DSLs by providing users with the shallow embedding that is used for prototyping,
+% debugging, user friendly interface, and type checking. When performance is essential, users allow  \tool translates the shallow programs
+% into the corresponding deep programs providing users with the
+% best of both worlds. In this section we first define shallow and deep EDSLs, formalize the translation, prove its correctness, and finally
+% discuss its consequences.
+% }
+
+% % Introducing HM.
+% In this section we formalize the core translation of \tool in polymorphic lambda-calculus of rank 1 with the
+% $\klet$ construct for introducing universally quantified terms. Also, we add the fixpoint combinator $\kfix$, the primitive types $\kbool$
+% and $\kint$, and the type-preserving compile-time meta programming construct $\macro{-}$. The calculus does not include the type
+% reconstruction— all type annotations are explicitly stated. Since the typing rules and the reduction rules are well known
+% we omit them from the paper. The syntax of our core language is the following:
+% \newcommand{\alt}{\mid}
+% \begin{align*}
+% \shortintertext{Terms:}
+% t       &::= t\;t \alt \func{x: \tau}{t} \alt x[\tau]\dotsm[\tau] \alt \llet{x:
+%   \sigma}{t}{t} \alt \kfix\;t \alt x \alt \macro{t}\\
+% v       &::= \func{x: \tau}{t} \alt c\\
+% c       &::= \ktrue \alt \kfalse \alt 0 \alt 1 \alt \dots\\
+% \shortintertext{Types:}
+% \sigma  &::= \tau \alt \univ{X}{\sigma}\\
+% \tau    &::= X \alt \Func{\tau}{\tau} \alt \btyp\\
+% \btyp   &::= \kbool \alt \kint
+% \end{align*}
+% Extensions to \calculus like $\kif$, and arithmetic operations are straightforward so we use them freely in our examples.
+
+% % Explanation of the macro.
+% The $\macro{t}$ represents a compiler-plugin or macros with type reflection. It is evaluated at compile time and translates a term
+% $\tctx{\Gamma}{t: T}$ into a term of the same type $\tctx{\Gamma}{t':T}$ according to the translation rules specified outside of the
+% language. The parameter $v$ is a value that configures the translation. Prior to the translation the
+% term $t$ is fully type-checked and the translation is \emph{type-driven} (the types of all terms can be reconstructed).
+
+% % Definition of a shallow EDSLs.
+% The {\bf EDSLs} are libraries that use advanced language features like the GADTs \cite{cheney_first-class_2003} and the type classes
+% \cite{hall_type_1996} in Haskell, or the implicit conversions in Scala \cite{oliveira_implicit_2012}, to appear as a new
+% language. Our calculus lacks these features so we define an EDSL as a sequence of declarations:
+% \[
+%  d = \langle x_i: \sigma_i =t_i \rangle^{i=1..n}
+% \] where $x_i$ are operation names with type $\sigma_i$ and $t_i$ are their implementations. Set of operation names is defined as $\vars{d}
+% = \{x_i\}$. An EDSL program is introduced as $\tlet\;d\;\tin\;t$ where $t$ is the body of the program.
+% As the motivating example we introduce a simple EDSL for the integer power function:
+
+% \vspace{2pt}
+% \begin{listing}
+%  $d_{pow} = \langle$
+%   $pow: \Func{\kint}{\Func{\kint}{\kint}} = \kfix \func{p: \Func{\kint}{\Func{\kint}{\kint}}}{}$
+%      $\func{b: \kint}{\func{e: \kint}{}} \kif\;e == 0 \;\kthen\;1\;\kelse\;b * (p\;b\;(e - 1))$
+%  $\rangle$
+% \end{listing}
+% \vspace{2pt}
+
+% % Definition of a Deep EDSL
+% The {\bf Deep EDSL} $d_d$ is defined as:
+% \[
+% d_{d} = \langle x_i: \sigma_i = t_i ,\;\_eval: \univ{X}{\Func{\Rep{X}}{X}} = t_e\rangle^{i=1..n}\\
+% \]
+% where $R:: \Func{*}{*}$ is a higher-kind type that hides the IR of the program.\\
+
+% For example, $R$ can be $\univ{X}{Rep[X]}$ in LMS or $\univ{X}{Dynamic}$ for untyped EDSLs. A deep EDSL program is introduced as
+% $\tlet\;d_{d} \;\tin\;\_eval[\tau](t)$ where a term $t$ is the user written program. For example, an EDSL for a part of \calculus it self
+% would be:
+% \vspace{1pt}
+% \begin{listing}
+%  $d_{core} = \langle$
+%   $\_app: \univ{X}{\univ{Y}{\Func{\Rep{\Func{X}{Y}}}{\Func{\Rep{X}}}{\Rep{Y}}}} = t_{app},$
+%   $\_lam: \univ{X}{\univ{Y}{\Func{(\Func{\Rep{X}}{\Rep{Y}})}{\Rep{\Func{X}{Y}}}}}  = t_{lam},$
+%   $\_fix: \univ{X}{\Func{\Rep{\Func{X}{X}}}{\Rep{X}}} = t_{fix},$
+%   $\_lift:\univ{X}{\Func{X}{\Rep{X}}} = t_{lift},$
+%   $\_eval:\univ{X}{\Func{\Rep{X}}{X}} = t_{eval}$
+% $\rangle$
+% \end{listing}
+% % \vspace{2pt}d
+% we omit the bodies due to their complexity.
+
+% % d_core
+% We will use the $d_{core}$ as the core EDSL in the \tool translation. It is worth mentioning that the type safe version of the $\_eval$
+% function can not be implemented in \calculus. For simplicity we omit more constructs like GADTs with
+% awareness that they could be used in the deep embedding implementation.
+
+% % Transformation context
+% Now we define \tool translation as $\yytrone{-}$ with parameters $Y = (prot, d_{s}, d_{d}, R, L)$. In $Y$,
+% $prot$ is the prototyping flag, $d_{s}$ is the shallow EDSL, $d_{d}$ is the deep EDSL, $R::* \rightarrow *$ is a type constructor for the
+% IR types in $d_{d}$, and $L$ is the set of types that can be captured as free variables. For the translation to work $d_{s}$ and $d_{d}$
+% need to have equivalent function names and semantics.
+
+% %
+% \comm{\sstucki{this needs to be fleshed out:
+%   \begin{itemize}
+%   \comm{\item $\yytrone{-}$ is not
+%     actually a transformation (i.e. a function), it's term (or rather a
+%     scope for terms) that will be expanded/evaluated at compile time, so
+%     calling it a transformation could be confusing ($\ttrone{-}$ is the
+%     transformation).}
+%   \item There is a one-to-one correspondence between the non-core
+%     bindings in $d_{s}$ and $d_{d}$.
+%  \comm{ We do this tomorrow.
+%     \item There's another interesting question here, that may be blurred
+%     by the fact that System F knows only function types: does
+%     $\Rep{-}$ represent a single (higher-kinded) type, or does it
+%     represent a family of such types?  Surely, not all the staged
+%     types have the same representation, so this might be reflected in
+%     the types, right?  Especially in the absence of subtypes.  Should
+%     there be an $R_X$ for every type $X$ in $L$?  If nothing else,
+%     consider using a family of types, as this subsumes the case of a
+%     single type at no extra cost. UPDATE: I just read your discussion
+%     about different choices for $\Rep{-}$ and saw that you partly
+%     cover this. Still, I think that for the formalism, it would be
+%     perfectly fine to have a family $(R_X, X \in L)$ of simple-kinded
+%     types. The only difference in the translation rules, is that
+%     (Base) would change to $\yytrone{T} = R_T$ with pre-condition $T
+%     \in L$. If you think about it, the whole \texttt{Rep[T]}-idea, is
+%     very LMS-specific, no? WDYT?
+% }
+% \end{itemize}}}
+% % Example of usage
+% Presuming that $d_{pow}$ has a deep counterpart $d_{dpow}$ \tool transformation is used as follows in program development:
+% \begin{listing}
+%  $\klet\;b: \kint = 2\;\kin\;\klet\;e: \kint = 64\;\kin\;\klet\;d_{pow}\;\kin\;$
+%    $\dpow{pow\;b\;e}{\ktrue}$
+% \end{listing}
+% and with $\dpow{-}{\kfalse}$ in production.
+
+% % Parameters
+% Translation of $\yytrone{-}$ is presented in Figure \ref{transformation}. The $\Gamma$ is the typing context and $\Pi$ is the set of free
+% variables captured by the enscoped term. The context $Y$ is not modified during the transformation so we omit it from the translation
+% rules. The $\yytr{-}$ is the core transformer of \tool. In $\yytr{-}$, prior to the translation, all the non-free variables are
+% alpha-renamed to the unique names. The case when no rule applies is considered as the error that is reported to the user. For example, in
+% \trule{(Prot)} failure to transform the term $t$ will report an error to the user.
+
+
+% \comm{\sstucki{shouldn't $Y$ be passed to $\ttrone{-}$? E.g.\\
+%   $\yytrone{t} = let\;d_{d}\; in \;eval[\tau] \ttrone{t}^Y$\\
+%   Also, this looks very much like a rewriting rule, should we add it
+%   to fig.~\ref{transformation}?  Finally, mention how the usual rules
+%   of scoping ensure that the deep DSL operations are used here, etc.}}
+
+% \boxfig{transformation}{Yin-Yang Transformation.}{
+
+% \begin{multicols}{2}[\judgement{Macro Expansion}{$\Gamma, \; \Pi,\; Y = (prot, d_{s}, d_{d}, R, L)$}]
+% \infmacro{Prot}
+%  {prot = \ktrue \quad \tctx{\Gamma}{\yy{t}{(false, d_s, d_d, R, L)}: \tau}}
+%  {t}{t}
+% \infmacro{Prod}
+%  {prot = \kfalse}
+%  {t}{\klet d_{d} \kin \eval{\tau}{\yytr{t}}}
+% \end{multicols}
+
+% \begin{multicols}{2}[\judgement{Term Transformation}{}]
+
+% \infyy{\textsc{Lam}}
+%   {\tctx{\Gamma}{t: \tau_b}}
+%   {\func{x: \tau}{t}}{\_lam[\tau][\tau_b]\;\func{x:\Ttrone{\tau}}\;\ttrone{t}}
+
+% \infyy{\textsc{App}}
+%   {\tctx{\Gamma}{t_1: \Func{\tau_1}{\tau_2}}}
+%   {t_1\;t_2}{\_app[\tau_1][\tau_2]\;\ttrone{t_1}\;\ttrone{t_2}}
+
+% \end{multicols}
+
+% \begin{multicols}{2}
+
+% %\infyyax{\textsc{T-App}}
+% %  {t[\tau]}{\ttrone{t}[\tau]}
+
+% %\infyy{\textsc{T-Lift}}
+% %  {\tctx{\Gamma}{x[\tau]: \tau'} \; x \in (\Pi \setminus \vars{d_{s}}) \; \tau' \in L}
+% %  {x[\tau]}{(\lift{\tau'}){(x[\tau])}}
+
+% \end{multicols}
+
+% \begin{multicols}{2}
+
+% \infyy{\textsc{Var}}
+%   {x \notin (\Pi \setminus \vars{d_{s}})}
+%   {x[\tau_1]\dotsm[\tau_n]}{x[\tau_1]\dotsm[\tau_n]}
+
+% \infyy{\textsc{FVar}}
+%   {\begin{matrix}
+%       \tctx{\Gamma}{x[\tau_1]\dotsm[\tau_n]: \tau}\\
+%       x \in (\Pi \setminus \vars{d_{s}}) \quad \tau \in L
+%     \end{matrix}}
+%   {x[\tau_1]\dotsm[\tau_n]}{\lift{\tau}{(x[\tau_1]\dotsm[\tau_n])}}
+
+% \end{multicols}
+
+% \begin{multicols}{2}
+
+% \infyy{\textsc{Fix}}
+%   {\tctx{\Gamma}{t: \Func{\tau}{\tau}}}
+%   {\kfix\;t}{\_fix[\tau]\;\ttrone{t}}
+
+% \infyy{\textsc{Let}}
+%   {\tctx{\Gamma}{t_1: \sigma} \gap \tctx{\Gamma}{t_2: \tau}}
+%   {\llet{x: \sigma}{t_1}{t_2}}{\llet{x: \ttrone{\sigma}}{\trone{t_1}}{\ttrone{t_2}}}
+
+% \end{multicols}
+
+
+% \begin{multicols}{3}[\judgement{Type Transformation}{}]
+
+% \infyyax{\textsc{Base}}
+%   {\btyp}{\Rep{\btyp}}
+
+% \infyyax{\textsc{Func}}
+%   {\Func{\tau_1}{\tau_2}}{\Rep{\Func{\tau_1}{\tau_2}}}
+
+% \infyyax{\textsc{Univ}}
+%   {\univ{X}{\sigma}}{\univ{X}{\Ttrone{\sigma}}}
+
+% \end{multicols}
+% }
+
+% % How the transformation functions.
+% Expansion of $\yytrone{-}$ has two rules \trule{(Prot)} for program development, and \trule{(Prod)} for execution in production. The rules
+% are chosen based on user specified flag $prot$. Rule \trule{(Prot)} returns the original term under the condition that
+% deep translation is possible. This is done to prevent shallow EDSL code that can not be translated to $d_{d}$ (e.g. using
+% unsupported variables in $d_{shallow}$ and unsupported language features). Rule \trule{(Prod)} transforms the
+% shallow program with $\ttrone{-}$ and injects it into the deep embedding. Since $\vars{d_s}$ are not transformed they will be rebound to the
+% variables in $d_{d}$.
+
+% % Concrete rules
+% In $\ttrone{-}$ all term constructs are virtualized \cite{rompf_scala-virtualized:_2009} to function calls corresponding to
+% $d_{core}$. Function definition, application, and $\tfix$ are virtualized to methods $\_lam$, $\_app$, and $\_fix$.
+% The $\tlet$ is not virtualized but its sub-terms are transformed. Transformation $\ttrone{t}$ does
+% not transform variables introduced in the program and $d_{s}$ \trule{(Var)}, lifts free variables that are not in $d_{s}$ \trule{(FVar)}
+% only if they belong to allowed types.
+
+% With \tool the program from the previous example is transformed to the following:
+% \vspace{2 pt}
+% \begin{listing}
+%  $\klet\;b: \kint = 2\;\kin\;\klet\;e: \kint = 64\kin \klet\;d_{pow}\;\kin\;\klet\;d_{dpow}\;\kin\;$
+%     $\eval{\kint}{\;(pow\;(\lift{\kint}{b})\;(\lift{\kint}{e}))}$
+% \end{listing}
+% \vspace{2 pt}
+% where $pow$ is now bound to the definition in $d_{dpow}$.
+
+% Correct type checking of and semantic correctness of $\yytrone{-}$ depend on the following requirements:
+% \begin{itemize}
+%  \item Deep embedding $d_d$ contains the desired subset of $d_{core}$ (e.g., for a meaningful EDSL at least $\_app$ is needed).
+%  \item For every name $x_i: \sigma$ in $d_{s}$ there needs to exist $x_i: \yytr{\sigma}$ in $d_{d}$.
+%  \item Set of lifted types $L$ corresponds to the types used in the type signature of $d_{d}$.
+%  \item Every $x_i[\tau_1]...[\tau_n]\;t$ in the shallow embedding $d_s$ must reduce to a same value as $eval[\tau](x_i[\tau_1]...[\tau_n]
+% \trone{t})$ in the deep embedding.
+% \end{itemize}
+
+% We state and prove the theorems about type safety and semantic equivalence. The proofs are done by straightforward induction on typing rules
+% and
+% we omit them due to their verbosity.
+% \begin{description}
+%   \item[Type safety (deep)] The \tool transformation preserves type
+%     safety.  If
+%     \[
+%     \Gamma \vdash \klet d_s \kin t: T,
+%     \]
+%     then
+%     \[
+%     \Gamma \vdash \klet d_s \kin \,
+%     \yy{t}{(\kfalse, d_{s}, d_{d}, R, L)} : T,
+%     \]
+%     provided that $d_d$ is a valid deep counterpart of $d_s$, and $R$,
+%     $L$ fulfill the conditions for valid deep embeddings.
+%   \item[Semantic equivalence] The \tool transformation preserves
+%     semantic equivalence.  If
+%     \[
+%       \klet d_s \kin \yy{t}{(\ktrue, d_{s}, d_{d}, R, L)}\rightarrow^* v,
+%     \]
+%     then
+%     \[
+%     \klet d_s \kin \yy{t}{(\kfalse, d_{s}, d_{d}, R, L)} \rightarrow^* v,
+%     \]
+%     provided that $d_d$ is a valid deep and semantically equivalent
+%     counterpart of $d_s$, and $R$, $L$ fulfill the conditions for
+%     valid deep embeddings.
+%   \end{description}
+
+% \subsection{Automatic Inlining}
+% \label{sec:automatic-inlining}
+
+% In high-performance EDSLs it is often desired to automatically inline all functions and to completely prevent dynamic dispatch in user code
+% (e.g., storing functions into lists). This is achieved by having all functions in the EDSL of form $\Func{\Rep{X}}{\Rep{Y}}$. This approach
+% is taken by LMS \cite{rompf_lightweight_2012} and Delite \cite{brown_heterogeneous_2011} based EDSLs.
+
+% \tool transformation can be slightly modified to allow only EDSLs with inlining behavior. If we omit rules \trule{(Lam)} and
+% \trule{(App)}, and change the translation rule \trule{(Func)} to:
+
+% \infyyax{\textsc{Func}}
+%   {\Func{\tau_1}{\tau_2}}{\Func{\trone{\tau_1}}{\trone{{\tau_2}}}}
+
+
+% To ensure type-safety the transformation must also be modified to ensure only primitive types in inside type parameters. Without these
+% restrictions, generic functions would not type-check in the deep EDSL. Finally, the signatures in $d_{core}$ need to correspond to the
+% new transformation rule. We do not present complete translation since it is less general the translation from Figure \ref{formalization}.
+
+% \subsection{Deep EDSL Generation}
+
+
+% % Generation
+% Up until now the translation required dual implementations of the
+% deep EDSLs and the shallow EDSLs. Keeping a semantically equivalent shallow embedding is a large overhead for the EDSL author. However, to
+% generate the deep EDSL from the shallow one we apply:
+% \[
+%  d_d^n = \langle
+%    x_i: \ttrone{\sigma}^{Y_i} = \ttrone{t_i}^{Y_i} \rangle^{i\in1..n}
+% \]
+% with $Y^i=(\kfalse, d_{s}, d_{core} \cup d_{d}^{i-1}, R, \{\})$
+
+% definition as $d_{d}^n$ where $n$ is the number of declarations in $d_{d}$. If we have an $\eval{-}{-}$ function for $d_{core}$ it will
+% apply for the newly generated deep EDSL. With the translation our motivating example would be generated as following. Operations $mul^*$,
+% $if^*$, $sub^*$, and $eq^*$ represent the translation of the primitive operations.
+
+% \begin{listing}
+%  $d_{dpow} = \langle \todo{complete if it makes sense}$
+%   $pow = \_fix[\Func{\kint}{\Func{\kint}{\kint}}]$
+%    $\_lam[\Func{\Func{\kint}{\kint}}{\kint}][\Func{\Func{\kint}{\kint}}{\kint}]$
+%    $\func{p: \Rep{\Func{\kint}{\Func{\kint}{\kint}}}}$
+%    $\_lam[\kint][\Func{\kint}{\kint}]\func{b:\Rep{\kint}}{}$
+%    $\_lam[\kint][\kint] \func{e: \Rep{\kint}}{}$
+%     $\kif^*\;\_app[\kbool][\kbool]\;eq^* (e (\_lift[\kint] 0)) \;$
+%     $\kthen\;\_lift[\kint]\;1\;$
+%     $\kelse\;\_app[\kint][\kint] mul^* b (p\;b\;sub^*(e
+% (\_lift[\kint] 1))))$
+%   $\rangle$
+% \end{listing}
+
+% \subsection{Discussion}
+% Although quite simple, the $\yytrone{-}$ translation gives numerous benefits to both EDSL authors and users.
+% The \emph{EDSL users} the following benefits:
+% \begin{itemize}
+
+% \item {\bf Clean interface} Users write their programs in the shallow EDSL avoiding all the problems of the deep embedding. The
+% precondition of \trule{(Prot)} assures that the translation is possible.
+
+% \item {\bf High-Performance} When performance is important users can change the $prot$ flag and get the high-performance of the deep EDSL.
+
+% \item {\bf Restricted Language} The core language features can be restricted in the shallow EDSL. It is interesting to see that parts of the
+% core embedding $d_{core}$ can be omitted from the deep embedding. In that case corresponding host language constructs can not be used in the
+% shallow embedding. For example, if we omit $\_fix$ from the core calculus users will not be allowed to use recursion in their shallow
+% embedding. To our knowledge this is not possible with existing EDSL embedding techniques.
+
+% \end{itemize}
+
+% The EDSL authors get the following benefits:
+% \begin{itemize}
+
+% \item {\bf Alternative IR} Different values for $R$ can decide on the IR representation the deep EDSL. For example, $R$ can be
+% $\univ{X}{Exp[X]}$ for higher-order abstract syntax \cite{pfenning_higher-order_1988}, $\univ{X}{Exp}$ for first-order abstract syntax, or
+% $\univ{X}{Dynamic}$ if the host language supports dynamic types \cite{abadi_dynamic_1991}. Unlike with classical deep EDSLs \tool gives
+% flexibility to the EDSL author to choose between different IR representations.
+
+% \item {\bf Deep EDSL Generation} The implementation of the Deep EDSL is easily generated by the core transformer.
+
+% \item {\bf Minimal Interface} EDSL authors are completely shielded from the compiler internals. The only thing they need to implement is
+% the $d_s$ and the minimal $d_{core}$ deep EDSL.
+
+% \end{itemize}
+
+% % Other languages
+% Although formalized in a simple calculus \tool translation can cover more advanced language constructs. Type reconstruction happens
+% before $\macro{-}$ expansion so the types are already reconstructed. After $\yytr{-}$ translation all types are defined so there is no
+% need for new type reconstruction and the type checking always succeeds. Extending the rules to a calculus with subtyping is not very
+% difficult if types $\Rep{-}$ are covariant. Implicit conversions \cite{oliveira_implicit_2012} in Scala are resolved
+% before $\macro{-}$ expansion and are treated as simple function application. Type Classes in Scala \cite{oliveira_type_2010} are implemented
+% as implicit conversions. We omitted addition of these features to the formalization but we explain them in the context of Scala in the
+% implementation Section \sct{sec:yy-impl}.
+
+\end{document}

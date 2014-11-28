@@ -1,0 +1,251 @@
+\documentclass[paper.tex]{subfiles}
+
+\begin{document}
+
+\section{Translation of the Direct Embedding}
+\label{sec:translation}
+
+% Set up the problem.
+
+The purpose of the core \tool translation is to make the transition from a directly embedded DSL program to its deeply embedded counterpart in a reliable and automated way.  As seen in the previous sections, this transition is non-trivial for several reasons: \emph{i)} host language constructs such as \code{if} statements are strongly typed and accept only primitive types for some of their arguments (e.g.\ a condition has to be of \code{Boolean} type), \emph{ii)} (primitive) types in the direct embedding need to be translated into their IR counterparts (e.g.\ \code{Int} to \code{Rep[Int]}), \emph{iii)} the directly embedded DLS operations need to be mapped onto their deeply embedded counterparts, and \emph{iv)} methods defined in the deep embedding require additional parameters, such as run-time type information and source positions.  Solutions for some of these issues have been described in previous work% by the authors and others
+~\cite{carette_finally_2009,hofer_polymorphic_2008,rompf_scala-virtualized:_2009,rompf_optimizing_2013,awesome}.  However, they typically fail to address some of the above issues or leak the details of the deep embedding into the direct one.  \todo{Formulate this nicely: the problem with previous solutions is that they try to implement a term-translation but with limited support for meta programming.  If only we had a more powerful meta-programming abstraction\dots enter Scala macros!}  We therefore propose a more straight-forward solution: a type-driven program translation from direct to deep embeddings implemented using Scala macros.
+
+
+The translation is based on the idea of representing language constructs as method calls \cite{carette_finally_2009,rompf_scala-virtualized:_2009} and systematically mapping DSL operations and types of the direct embedding to their deep counterparts \cite{carette_finally_2009}.
+%
+% Types must be translated for two reasons: \emph{i)} direct programs
+% can contain explicit type annotations and \emph{ii)} type inference in
+% the deep embedding should be avoided for complete reliability of the
+% translation.  To encapsulate the the whole program must be inserted
+% into the context of the deep \edsl{} and decorated with the additional
+% information (e.g. \code{SourceContext} and \code{TypeTag})
+
+To illustrate the \tool translation, we will use a simple example program for calculating $\sum_{i=0}^n i^{exp}$ using the vector \edsl defined previously.%
+%
+% \sstucki{Let's use a slightly more realistic example for the
+%   camera-ready version.  What about ``population count'': count the
+%   number of non-zero entries in a vector (this is very similar to the
+%   current example).  It can be used to decide whether a vector is
+%   sparse or dense.}
+%
+\figref{fig:translation-example} contains three versions of the program: Listing \ref{lst:shallow} depicts the direct embedding version, Listing \ref{lst:desugaring} represents the program after type checking (as the translation sees it), and Listing \ref{lst:transformed_program} shows the result of the translation.
+
+\setlength\columnsep{4pt}
+
+\begin{figure*}
+\begin{multicols}{2}
+\begin{subfigure}[b]{1\linewidth}
+\centering
+\vspace{+12.40pt}
+\begin{listingtiny}
+import vect._; import math.pow;
+val n = 100; val exp = 6;
+optiVect {
+  if (n > 0) {
+    val v = Vector.range(0, n)
+    v.map(x => pow(x, exp)).sum
+  } else -1
+}
+\end{listingtiny}
+\vspace{+12.40pt}
+\caption{A program in direct embedding for calculating $\sum_{i=0}^n i^{exp}$.}
+\label{lst:shallow}
+\end{subfigure}
+
+\begin{subfigure}[b]{1\linewidth}
+\centering
+\begin{listingtiny}
+val n = 100; val exp = 6;
+optiVect {
+  if (n > 0) {
+    val v: Vector[Int] =
+      vect.Vector.range(0, n)
+    v.map[Int](x: Int =>
+      math.`package`.pow(x, exp)
+    ).sum[Int](math.Numeric.IntIsIntegral)
+  } else -1
+}
+\end{listingtiny}
+\caption{The program from Listing \ref{lst:shallow} after desugaring and type inference.}
+\label{lst:desugaring}
+\end{subfigure}
+\end{multicols}
+
+\begin{subfigure}[b]{1\linewidth}
+\begin{listingtiny}
+val n = 100; val exp = 6;
+new VectorDSL with IfOps with MathOps { def main() = {
+  __if[Int](hole[Int](typeTag[Int], 0) > lift[Int](-1),{
+     val v: Rep[Vector[Int]] = valDef[Vector[Int]](
+       this.Vector.range(lift[Int](0), hole[Int](typeTag[Int], 0)) })
+     v.map[Int](lam[Int, Int](x: Rep[Int] =>
+       this.`package`.pow(x, hole[Int](typeTag[Int], 1))
+     ).sum[Int](this.Numeric.IntIsIntegral)
+  },{
+    lift[Int](-1)
+  }
+)}
+
+\end{listingtiny}
+\caption{The \tool translation of the program from Listing \ref{lst:desugaring}.}
+\label{lst:transformed_program}
+\end{subfigure}
+\caption{\label{fig:translation-example} Transformation of an EDSL program for calculating $\sum_{i=0}^n i^{exp}$.}
+\end{figure*}
+
+
+The translation consists of two main steps:
+\begin{description}
+\item[Language virtualization] converts host language intrinsics into
+  function calls, which can then be evaluated to the appropriate IR
+  values in the deep embedding.
+\item[\edsl{} Intrinsification] converts DSL intrinsics (operations
+  and types) from the direct embedding into their deep counterparts.
+\end{description}
+
+\paragraph{Language virtualization,} as the name suggests, allows the basic constructs of a language, such as \code{if} statements or function abstraction, to be redefined.  This can achieved by translating them into suitable method invocations \cite{rompf_scala-virtualized:_2009}. \figref{fig:translation-example} illustrates this process: the \code{if} statement in \figref{lst:desugaring} is converted to a call to the \code{__if} method in figure~\ref{lst:transformed_program}, and similarly, \code{val} is converted to \code{valDef}.  In addition, note that we explicitly ascribe types to expressions and function calls, so as to avoid type inference in future stages of the translation.
+
+%LMS specific
+In \tool we virtualize most of the Scala intrinsics that might be used to write direct DSL programs.  This includes control flow constructs (e.g., \code{if}, \code{while}), function abstraction and application, and variable binding.  Notable exceptions are class and trait definitions, including \emph{case class} definitions (which correspond to algebraic data types in other languages), and pattern matching, although we are planning to add the later in future versions of \tool.  Scala is designed such that the types \code{Any} and \code{AnyRef}, which reside at the top of the Scala class hierarchy, contain \code{final} methods: through inheritance, these methods are defined on all types.  Hence, they need to be virtualized as well.
+
+Figure~\ref{fig:virt} lists some of the translation rules used to virtualize the Scala intrinsics, with $\ttrone{t}$ denoting the translation of a term $t$.  \todo{Explain at least one of the rules.  E.g. the \code{def} rule.}
+Note that method definitions\footnote{In Scala, the \code{def} keyword is used to define (possibly recursive) methods.  This is similar to of the \code{let} and \code{let rec} constructs in other functional languages.} need to be translated into function abstractions in order to be virtualized.
+\begin{figure*}
+  \footnotesize
+  \begin{multicols}{2}[]
+    \infyy{}
+    {\tctx{\Gamma}{t: T_2}}
+    {x: T_1 \Rightarrow t}{\mathtt{lam}[T_1,T_2](x: T_1 \Rightarrow \trone{t})}
+
+    \infyy{}
+    {\tctx{\Gamma}{t_1.f: [T_1](\Func{T_2}{T_3})}}
+    {t_1.f[T_1](t_2)}{\mathtt{app}[T_2,T_3](\ttrone{t_1}.f[T_1],\ttrone{t_2})}
+  \end{multicols}\vspace{1em}
+
+% \infyyax{}
+%   {\mathbf{def}\;f[T_1, \dotsc, T_n](t: T_a):T_r = t}{\mathbf{def}\;f[T_1, \dotsc, T_n](t: \trone{T_a}):T_r = \ttrone{t}}
+  \infyyax{}
+  {\mathbf{def}\;f[T_1](x: T_2): T_3 = t}{\mathbf{def}\;f[T_1]: (\Func{T_2}{T_3}) = \trone{x: T_2 \Rightarrow t}}\vspace{1em}
+
+  \infyy{}
+  {\tctx{\Gamma}{t: T}}
+  {\mathbf{if}(t_1) \;t_2\; \mathbf{else}\;t_3}{\text{\texttt{\_\_if}}[T](\ttrone{t_1}, \ttrone{t_2}, \ttrone{t_3})}
+
+\caption{Translation rules for language virtualization.}
+\label{fig:virt}
+\end{figure*}
+
+\paragraph{DSL Intrinsification} maps directly embedded versions
+of the DSL intrinsics to their deep counterparts.  The constructs that
+need to be converted are: \emph{i)} DSL types, \emph{ii)} DSL
+operations, \emph{iii)} constant literals, and \emph{iv)} captured
+variables in the direct program:
+\begin{itemize}
+\item The \emph{type translation} maps every DSL type in the already
+  virtualized term body to an equivalent type in the deep embedding.
+  In other words, the type translation is a function \code{tpMap} on
+  types.  Note that this function is inherently DSL-specific, and
+  hence needs to be configurable by the DSL author.  We will
+  investigate aspects of different type translation in more detail in
+  \sct{sec:alternative-type-translations}.
+
+Looking at our example in \figref{fig:translation-example}, we see that not all instances of a given type are translated in a uniform fashion.  In particular, types in type-argument position (e.g., \code{lam[Int, Int]}) are not modified, while the type of the function argument is transformed from \code{Int} to \code{Rep[Int]}. Hence, our type translation function \code{tpMap} needs to take the \emph{context} of a type term into account when translating it.  As an example, consider the following type mapping function, which corresponds to the translation in figure~\ref{fig:translation-example}:
+\lstset{mathescape=false}
+\begin{listingtiny}
+
+  def tpMap(t: Type, c: TypeContext): Type = (t, c) match {
+    case (_, TypeApply)   => t
+    case (q"t1 => t2", _) => q"${tpMap(t1)}, _) => ${tpMap(t2)}"
+    case (_, _)           => q"this.Rep[$t]"
+  }
+
+\end{listingtiny}
+%$
+\lstset{mathescape=true}
+The \code{TypeContext} type enumerates the possible contexts where a type can appear.  In our case it is only necessary to distinguish between the \code{TypeApply} context (representing a type in  type application) and other contexts.
+% \manojo{I don't understand this. Why do we only need to distinguish}
+% \sstucki{mano: is it more clear now?}
+
+\item The \emph{operation translation} maps directly embedded versions of the DSL operations into equivalent deep embeddings.  To this end, we define a function \code{opMap} on terms that returns deep versions for each shallowly embedded operation.  In our example the function \code{vect.Vector.range} is translated to the \code{this.Vector.range}.
+
+For deep embeddings using LMS, or polymorphic embeddings~\cite{hofer_polymorphic_2008} in general, this function simply injects operations into the scope of the deep \edsl (i.e.,\ by adding a suitable module prefix).  Of course, other approaches, such as name mangling or context injection via additional function parameters, are also possible.  In the current implementation of \tool, the \code{opMap} function is fixed to simply inject the \code{this} prefix, although this might change in the future.
+
+\item \emph{Constants} can be intrinsified in the deep embedding in multiple ways. They can be converted to a method call for each constant (e.g.\ $\trone{\mathtt{1}} = $\code{_1}), type (e.g.\ $\trone{\mathtt{1}} = \,$\code{liftInt(1)}), or with a unified polymorphic function (e.g.\ $\trone{\mathtt{1}} = \,$\code{lift[Int](1)}). In the example, we use the polymorphic function approach for constants \code{-1} and \code{0}.
+
+\item \emph{Free variables} are external variables captured by a
+  direct \edsl{} term.  All that deep embedding knows about these terms is
+  their type and that they will become available only during evaluation (i.e.,\ interpretation or after code generation).  Hence free variables need to be treated specially in by the translation, and the deep embedding needs to provide support for their evaluation.  In our example, the free variables \code{n} and \code{exp} are replaced with appropriate calls to the polymorphic method \code{hole[T]}, which handles the evaluation of free variables in our deep \edsl.
+\end{itemize}
+
+\comm{
+\item Scope injection puts the whole direct \edsl in the context of the deep \edsl and rebinds the terms in the new context. To achieve this we need to rewire all constant objects (e.g. vect.Vector) to their deep \edsl versions. This is achieved by replacing the prefix of the object with \code{this}.
+}
+
+
+\subsection{Alternative Type Translations}
+\label{sec:alternative-type-translations}
+
+% Gives us a number of interesting possibilities.
+Having type translation as a function opens a number of possible deep embedding strategies. Alternative type translations can also dictate the interface of \code{lam} and \code{app} and other core \edsl{} constructs. Here we discuss the ones that we find useful in \edsl{} design:
+
+\paragraph{The identity translation.}  If we choose \code{tpMap} to be
+the identity function and virtualization methods such \code{lam},
+\code{app} and \code{_if} to be implemented in the obvious way using
+the corresponding Scala intrinsics, the resulting translation will
+simply yield the original, directly embedded DSL program.
+
+\paragraph{Generic polymorphic embedding.} If instead we choose
+\code{tpMap} to simply map any type term $T$ (in non-argument
+position) to \code{Rep[$T$]}, for some abstract, higher-kinded IR type
+\code{Rep} in the deep EDSL scope, we obtain a translation to a
+\emph{finally-tagless, polymorphic}
+embedding~\cite{carette_finally_2009,hofer_polymorphic_2008}.  By
+choosing the virtualization methods to operate on the IR-types in the
+appropriate way, one obtains an embedding that \emph{preserves
+  well-typedness}, irrespective of the particular DSL it implements.
+We will not present the details of this translation here, but refer
+the interested reader to~\cite{carette_finally_2009}.
+
+\paragraph{Automatic Inlining.} In high-performance EDSLs it is often desired to automatically inline all functions and to completely prevent dynamic dispatch in user code (e.g., storing functions into lists).  This is achieved by translating function types of the form \code{$A$ => $B$} in the direct embedding into \code{Rep[$A$] => Rep[$B$]} in the deep embedding (where \code{Rep} again designates IR types).  This approach is used by LMS \cite{rompf_lightweight_2012} and Delite \cite{brown_heterogeneous_2011}, and is also the one illustrated by our example above.
+
+To ensure type-safety the translation must also be modified to ensure only
+primitive types in type parameter position. Without these restrictions, generic
+functions would not type-check in the deep embedding. In this case this is a desired behavior as it fosters high-performance code by avoiding dynamic dispatch.
+
+\paragraph{Complete Abstraction.} If we want to completely abstract over the host language expressions we can transform all types uniformly. This is achieved by a simple type function:
+
+\lstset{mathescape=false}
+\begin{listingtiny}
+  def tpMap(t: Type, c: TypeContext): Type = (t, c) match {
+    case (_, TypeApply) => t
+    case (_, _)         => q"this.Rep[$t]"
+  }
+\end{listingtiny}
+\lstset{mathescape=true}
+%$
+\sstucki{Why is this so? Explain what this function does.}
+
+\paragraph{Simple Types.} If deep \edsl authors want to avoid complicated types (e.g., \code{Rep[T]}), the \code{tpMap} function can simply transform all types to the base type of all IR nodes (e.g., \code{Exp}). If one would like the complete freedom of types the \code{tpMap} can return the \code{Dynamic} type \cite{abadi_dynamic_1991} that makes the behavior equivalent to dynamic languages.
+
+\paragraph{Translation of Base Types.} All previous translations ignored types in the type parameter position. The reason is that the \code{tpMap} function behaved like a higher-kinded type. If we would like to map some of the base types to something completely different those types need to be changed in the position of type application as well. This translation is used for \edsls based on polymorphic embedding \cite{hofer_polymorphic_2008} that use \code{this.T} to represent type \code{T}.
+
+With the previous translations the type system of the direct embedding was ensuring that the term will type-check in the deep embedding. With this translation one should be very careful about the correctness of the translation.
+
+\subsection{Restricting Host Language Constructs}
+\label{sec:restricting}
+
+Deep \edsls{} alone have no means of restricting the usage of certain langauge constructs and features of the host language. This can lead to confusion, type-errors, and bugs. For example, in the deep embedding one could always use a \code{try/catch} construct like this:
+\lstset{mathescape=false}
+\begin{listingtiny}
+  new VectorDSL {
+    try Vector.fill(-1,  100) catch { case _ => println("Error") }
+  }
+\end{listingtiny}
+\lstset{mathescape=true}
+%
+However, the functionality of \code{try/catch} will be executed during IR construction time, and this would capture errors of domain-specific error reporting. \sstucki{This paragraph makes no sense to me.  E.g. what does ``in the deep embedding one could always\dots'' mean?  We don't write things in the deep embedding manually -- we use the transformation to virtualize/lift the \code{try} construct.  The point is that the embedded DSL might not have semantics for exception handling, and hence this code should be rejected.}
+\orElse{The behavior of \code{try} in this case is misleading, error prone, and incorrect.}{}
+
+With the core translation we restrict the language features of the host language by simply omitting functions from the deep embedding. For example, if our deep embedding does not contain a function \code{lam} the user will not be able to define lambdas in the direct embedding. \manojo{For example with LMS, does this mean that the DSL developer has to tell the translation which functions the deep embedding should contain? If yes, how does he tell that?}
+
+\end{document}

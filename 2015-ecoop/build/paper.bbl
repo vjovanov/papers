@@ -1,0 +1,9 @@
+\begin{thebibliography}{1}
+
+\bibitem{scala_macros}
+Eugene Burmako and Martin Odersky.
+\newblock Scala {M}acros, a {T}echnical {R}eport.
+\newblock In {\em Third {I}nternational {V}alentin {T}urchin {W}orkshop on
+  {M}etacomputation}, 2012.
+
+\end{thebibliography}
