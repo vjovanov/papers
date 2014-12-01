@@ -1,55 +1,42 @@
-\documentclass[preprint]{llncs}
+
+\let\oldvec\vec% Store \vec in \oldvec
+\documentclass{llncs}
+\let\vec\oldvec% Restore \vec from \oldvec
 \usepackage{llncsdoc}
 
-% Build
-\usepackage{subfiles}
+% % Build
+% \usepackage{subfiles}
 
-% Math
-\usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{math}
-\usepackage{mathtools}
+% % Math
+ \usepackage{amsmath}
+ \usepackage{amssymb}
+ \usepackage{math}
+ \usepackage{mathtools}
 
-% Graphics
-\usepackage{graphicx}
+% % Graphics
+ \usepackage{graphicx}
 
-% Text stuff
-\usepackage{listings}
-%% sstucki: comment this back in later. my eyes hurt from the
-%% pixelated substituted fonts...
-%\usepackage[T1]{fontenc}
-\usepackage[utf8]{inputenc}
-\usepackage{url}
-\usepackage{hyperref}
-\usepackage[usenames]{color}
-\usepackage[font=bf,labelfont=bf]{caption}
-\DeclareCaptionType{copyrightbox}
-\usepackage{subcaption}
-\usepackage{multirow}
-\usepackage{etoolbox}
-\usepackage{stmaryrd}
+% % Text stuff
+ \usepackage{listings}
+ \usepackage[T1]{fontenc}
+ \usepackage[utf8]{inputenc}
+ \usepackage{url}
+ \usepackage[usenames]{color}
 
-% PL Formulas
-\usepackage{fleqn}
-\usepackage{latexsym}
-\usepackage{bcprules}
-\usepackage{prooftree}
+% % PL Formulas
+ \usepackage{latexsym}
+ \usepackage{bcprules}
+ \usepackage{prooftree}
 
-\patchcmd{\maketitle}{\@copyrightspace}{}{}{}
-%\usepackage[font=bf,labelfont=bf]{caption}
 
-%for Strikethrough, to remove when not required anymore
-\usepackage[normalem]{ulem}
+% % Layout
+ \usepackage{xspace}% space in macros
 
-% Layout
-\usepackage{xspace}% space in macros
-\usepackage{multicol}
+% % Makes tables look beautiful
+ \usepackage{booktabs}
+ \usepackage{tabularx}
 
-% Makes tables look beautiful
-\usepackage{booktabs}
-\usepackage{tabularx}
-
-\input{macros}
+ \input{macros}
 
 % ----- begin macros
 \lstdefinelanguage{Scala}%
@@ -110,20 +97,11 @@
 % TODOs:
 \newif\ifshowTodos
 \showTodostrue
-\showTodosfalse % Uncomment this to hide all TODOs.
+%\showTodosfalse % Uncomment this to hide all TODOs.
 \ifshowTodos
 \newcommand{\todo}[1]{{\color{red} \textbf{[TODO: #1 ]}}}
-\newcommand{\sstucki}[1]{{\color{red} [\textbf{sstucki}: #1 ]}}
-\newcommand{\manojo}[1]{{\color{red} [\textbf{manojo}: #1 ]}}
-\newcommand{\comm}[1]{}
-\newcommand{\orElse}[2]{{\color{red} [\sout{#1} {\color{magenta} #2}]}}
 \else
 \newcommand{\todo}[1]{}
-\newcommand{\sstucki}[1]{}
-\newcommand{\manojo}[1]{}
-\newcommand{\comm}[1]{}
-\newcommand{\orElse}[2]{#2}
-\renewcommand{\sout}[1]{}
 \fi
 % paper specific commands
 
@@ -143,7 +121,7 @@
 Partial Evaluation, Macros
 
 
-\subfile{calculus.tex}
+\input{calculus.tex}
 \bibliographystyle{plain}
 
 \bibliography{vjovanov-lib}
