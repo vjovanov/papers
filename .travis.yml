@@ -4,8 +4,7 @@ install:
 language: bash
 script: 
  - cd 2015-ecoop/
- - make clean
- - make
+ - bash ./clean-make.sh
  - cd ../
  - cd 2014-ecoop-demo/
  - make clean
