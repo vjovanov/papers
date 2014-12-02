@@ -6,6 +6,7 @@
 
 TEX_SRCS=\
 	paper.tex \
+	intro.tex \
 	calculus.tex \
 #        abstract.tex \
 #	 conclusion.tex \
