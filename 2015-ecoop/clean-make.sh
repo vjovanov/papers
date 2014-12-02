@@ -1,2 +1,2 @@
 #!/bin/bash
-./clean-refs.sh && make clean && make
+make clean && make

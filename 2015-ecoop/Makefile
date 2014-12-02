@@ -29,7 +29,7 @@ PDF_INPUT_FILES=$(DIA_SRCS:%.dia=%.pdf) $(DOT_SRCS:%.dot=%.pdf) $(GNUMERIC_SRCS:
 PDF_INPUT_PATHS=$(PDF_INPUT_FILES:%=build/%)
 EPS_INPUT_PATHS=$(PDF_INPUT_PATHS:%.pdf=%.eps)
 
-TEX_OPTIONS=-output-directory build
+TEX_OPTIONS=-output-directory build -interaction=nonstopmode
 
 PDFLATEX=pdflatex $(TEX_OPTIONS)
 BIBTEX=TEXMFOUTPUT=build bibtex

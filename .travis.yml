@@ -11,3 +11,7 @@ script:
  - make clean
  - make
  - cd ../
+notifications:
+  email:
+    - gvojin@gmail.com
+    - denys.shabalin@epfl.ch
