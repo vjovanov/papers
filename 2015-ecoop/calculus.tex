@@ -1,35 +1,41 @@
 
-\section{Syntax}
+\section{Formalization $F_{i <:}$}
 \begin{figure}[H]
 \begin{center}$
 \begin{array}{l@{\hspace{0.2mm}}}
 \begin{array}{l@{\hspace{10mm}}l}
 
-  t ::=                     & \lindent{\mbox{Terms:}}            \\
-  \gap x                    & \mbox{identifier}                  \\
-  \gap (x: \i{T}) \ra t     & \mbox{function}                    \\
-  \gap t(t)                 & \mbox{application}                 \\
-  \gap \{ \seq{x = t} \}    & \mbox{record}                      \\
-  \gap t.x                  & \mbox{selection}                   \\
-  \gap \ct t                & \mbox{inlining starting point}     \\
+  t ::=                            & \lindent{\mbox{Terms:}}            \\
+  \gap x, x                        & \mbox{identifier}                  \\
+  \gap (x: \i{T}) \ra t            & \mbox{function}                    \\
+  \gap t(t)                        & \mbox{application}                 \\
+  \gap \{ \seq{x = t} \}           & \mbox{record}                      \\
+  \gap t.x                         & \mbox{selection}                   \\
+  \gap \ct t                       & \mbox{inlining request}            \\
+  \gap [X <: \i{T}] \ra t          & \mbox{type abstraction}            \\
+  \gap t [\i{T}]                   & \mbox{type application}            \\
 
-  T ::=                     & \lindent{\mbox{Types:}}            \\
-  \gap \i{T} \ra \j{T}      & \mbox{function type}               \\
-  \gap \{ \seq{x: \i{T}} \} & \mbox{record type}                 \\
+  S,\ T,\ U ::=                    & \lindent{\mbox{Types:}}            \\
+  \gap \i{S} \ra \j{T}             & \mbox{function type}               \\
+  \gap \{ \seq{x: \i{S}} \}        & \mbox{record type}                 \\
+  \gap [X <: \i{S}] \ra \j{T}      & \mbox{universal type}              \\
+  \gap \top                        & \mbox{top type}                    \\
 
-  \i{T},\ \j{T},\ \k{T} ::= & \lindent{\mbox{Inlineable Types:}} \\ 
-  \gap T                    & \mbox{dynamic type}                \\
-  \gap \static{T}           & \mbox{static type}                 \\
-  \gap \mayInline{T}        & \mbox{maybe inline type}           \\
-  \gap \inline{T}           & \mbox{must inline type}            \\
+  \i{T},\ \j{T},\ \k{T}, \l{T} ::= & \lindent{\mbox{Inlineable Types:}} \\ 
+  \gap T,\ \dynamic{T}             & \mbox{dynamic type}                \\
+  \gap \static{T}                  & \mbox{static type}                 \\
+  \gap \inline{T}                  & \mbox{must inline type}            \\
+
+  \Gamma ::=                       & \lindent{\mbox{Contexts:}}         \\
+  \gap \emptyset                   & \mbox{empty context}               \\
+  \gap \Gamma, x: iT               & \mbox{term binding}                \\
+  \gap \Gamma, X <: iT             & \mbox{type binding}                \\
 
 \end{array}
 \end{array}
 $\end{center}
-\caption{}
+\caption{Syntax}
 \end{figure}
-
-\section{Typing}
 
 \begin{figure}[H]
   \infrule[\textsc{T-Ident}]
@@ -46,25 +52,82 @@ $\end{center}
 
   \infrule[\textsc{T-App}]
   {\Gamma \ts t_1: \i{(\j{T_1} \ra \k{T_2})} \ \ \ \ \Gamma \ts t_2: \j{T_2}}
-  {\Gamma \ts t_1 (t_2) : (i \barwedge j \barwedge k) T_2}
+  {\Gamma \ts t_1 (t_2) : (i \wedge j \wedge k) T_2}
 
   \infrule[\textsc{T-Sel}]
   {\Gamma \ts t: \i{\{ x = \j{T_1}, \seq{y = \k{T_2}} \}}}
-  {\Gamma \ts t.x : (i \barwedge j) T_1}
+  {\Gamma \ts t.x : (i \wedge j) T_1}
 
   \infrule[\textsc{T-Inline}]
   {\Gamma \ts t: \static{T}}
   {\Gamma \ts \ct{t}: \inline{T}}
+
+  \infrule[\textsc{T-TAbs}]
+  {\Gamma,\ X <: \i{T_1} \ts t_2: \j{T_2}}
+  {\Gamma \ts [X <: \i{T_1}] \ra t_2: static [X <: \i{T_1}] \ra \j{T_2}}
+
+  \infrule[\textsc{T-TApp}]
+  {\Gamma \ts t_1: \i{([X <: \j{T_{11}}] \ra \k{T_{12}})}  \ \ \ \ \Gamma \ts \l{T_2} <: \j{T_{11}}} 
+  {\Gamma \ts t_1[\l{T_2}] : [X \mapsto \l{T_2}] (i \wedge k) T_{12} }
   
-  \caption{$\Gamma \ts t: \i{T}$}
+  \infrule[\textsc{T-Sub}]
+  {\Gamma \ts t: \i{S} \ \ \ \ \Gamma \ts \i{S} <: \j{T}}
+  {\Gamma \ts t: \j{T}}
+  \caption{typing $\Gamma \ts t: \i{T}$}
 \end{figure}
 
 \begin{figure}[H]
-  TODO
-  \caption{Intersection of inlineable types $\i{T_1} \barwedge \j{T_2}$}
+  \infrule[\textsc{IS-Dynamic}]{\forall i.\ i <: dynamic}{}
+  \infrule[\textsc{IS-Static}]{\forall i \in \{ static,\ inline \} .\ i <: static}{}
+  \infrule[\textsc{IS-Inline}]{inline <: inline}{}
+  \caption{Inlinity Subtyping $i <: j$}
 \end{figure}
 
 \begin{figure}[H]
-  TODO
-  \caption{Intersection of types ${T_1} \wedge {T_2}$}
+  \infrule{\forall i,\ \forall j,\ i <: j.\ i \wedge j = j}{}
+  \caption{Inlinity Intersection $i \wedge j$}
+\end{figure}
+
+\begin{figure}[H]
+  \infrule[\textsc{S-Refl}]
+  {\Gamma \ts S <: S}
+  {}
+
+  \infrule[\textsc{S-Trans}]
+  {\Gamma \ts S <: U \ \ \ \ \Gamma \ts U <: T}
+  {\Gamma \ts S <: U}
+
+  \infrule[\textsc{S-Top}]
+  {\Gamma \ts S <: \top}
+  {}
+  
+  \infrule[\textsc{S-TVar}]
+  {X <: T \in \Gamma}
+  {\Gamma \ts X <: T}
+
+  \infrule[\textsc{S-Arrow}]
+  {\Gamma \ts \k{T_1} <: \i{S_1} \ \ \ \ \Gamma \ts \j{S_2} <: \l{T_2}}
+  {\Gamma \ts \i{S_1} \ra \j{S_2} <: \k{T_1} \ra \l{T_2}}
+  
+  \infrule[\textsc{S-All}]
+  {\Gamma,\ X <: \i{U_1} \ts \j{S_2} <: \k{T_2}}
+  {\Gamma \ts [X <: \i{U_1}] \ra \j{S_2} <: [X <: \i{U_1}] \ra \k{T_2}}
+
+  \infrule[\textsc{S-RecWidth}]
+  {\{ x_p: i_p T_p\ ^{p \in 1..n+m} \} <: \{ x_p: i_p T_p\ ^{p \in 1..n} \}}
+  {}
+
+  \infrule[\textsc{S-RecDepth}]
+  {\forall p \in 1..n.\ i_p S_p <: j_p T_p}
+  {\{ x_p: i_p S_p\ ^{p \in 1..n}\} <: \{ x_p: j_p T_p\ ^{p \in 1..n} \}}
+
+  \infrule[\textsc{S-RecPerm}]
+  {\{ x_p : i_p S_p\ ^{p \in 1..n}\} $ is permutation of $ \{ y_p: j_p T_p\ ^{p \in 1..n} \}}
+  {\{ x_p : i_p S_p\ ^{p \in 1..n}\} <: \{ y_p: j_p T_p\ ^{p \in 1..n} \} }
+  
+  \infrule[\textsc{S-Inline}]
+  {i <: j \ \ \ \ \Gamma \ts S <: T}
+  {\Gamma \ts \i{S} <: \j{T}}
+
+  \caption{Subtyping $\Gamma \ts \i{S} <: \j{T}$}
 \end{figure}
