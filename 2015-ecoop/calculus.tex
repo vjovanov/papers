@@ -5,31 +5,31 @@
 \begin{array}{l@{\hspace{0.2mm}}}
 \begin{array}{l@{\hspace{10mm}}l}
 
-  t ::=                            & \lindent{\mbox{Terms:}}            \\
-  \gap x, x                        & \mbox{identifier}                  \\
-  \gap (x: \i{T}) \ra t            & \mbox{function}                    \\
-  \gap t(t)                        & \mbox{application}                 \\
-  \gap \{ \seq{x = t} \}           & \mbox{record}                      \\
-  \gap t.x                         & \mbox{selection}                   \\
-  \gap \ct t                       & \mbox{inlining request}            \\
-  \gap [X <: \i{T}] \ra t          & \mbox{type abstraction}            \\
-  \gap t [\i{T}]                   & \mbox{type application}            \\
+  t ::=                             & \lindent{\mbox{Terms:}}            \\
+  \gap x, y                         & \mbox{identifier}                  \\
+  \gap (x: \i{T}) \ra t             & \mbox{function}                    \\
+  \gap t(t)                         & \mbox{application}                 \\
+  \gap \{ \seq{x = t} \}            & \mbox{record}                      \\
+  \gap t.x                          & \mbox{selection}                   \\
+  \gap \ct t                        & \mbox{inlining request}            \\
+  \gap [X <: \i{T}] \ra t           & \mbox{type abstraction}            \\
+  \gap t [\i{T}]                    & \mbox{type application}            \\
 
-  S,\ T,\ U ::=                    & \lindent{\mbox{Types:}}            \\
-  \gap \i{S} \ra \j{T}             & \mbox{function type}               \\
-  \gap \{ \seq{x: \i{S}} \}        & \mbox{record type}                 \\
-  \gap [X <: \i{S}] \ra \j{T}      & \mbox{universal type}              \\
-  \gap \top                        & \mbox{top type}                    \\
+  S,\ T,\ U ::=                     & \lindent{\mbox{Types:}}            \\
+  \gap \i{S} \ra \j{T}              & \mbox{function type}               \\
+  \gap \{ \seq{x: \i{S}} \}         & \mbox{record type}                 \\
+  \gap [X <: \i{S}] \ra \j{T}       & \mbox{universal type}              \\
+  \gap \top                         & \mbox{top type}                    \\
 
-  \i{T},\ \j{T},\ \k{T}, \l{T} ::= & \lindent{\mbox{Inlineable Types:}} \\ 
-  \gap T,\ \dynamic{T}             & \mbox{dynamic type}                \\
-  \gap \static{T}                  & \mbox{static type}                 \\
-  \gap \inline{T}                  & \mbox{must inline type}            \\
+  \i{T},\ \j{T},\ \k{T},\ \l{T} ::= & \lindent{\mbox{Inlineable Types:}} \\ 
+  \gap T,\ \dynamic{T}              & \mbox{dynamic type}                \\
+  \gap \static{T}                   & \mbox{static type}                 \\
+  \gap \inline{T}                   & \mbox{must inline type}            \\
 
-  \Gamma ::=                       & \lindent{\mbox{Contexts:}}         \\
-  \gap \emptyset                   & \mbox{empty context}               \\
-  \gap \Gamma, x: iT               & \mbox{term binding}                \\
-  \gap \Gamma, X <: iT             & \mbox{type binding}                \\
+  \Gamma ::=                        & \lindent{\mbox{Contexts:}}         \\
+  \gap \emptyset                    & \mbox{empty context}               \\
+  \gap \Gamma,\ x: iT               & \mbox{term binding}               \\
+  \gap \Gamma,\ X <: iT             & \mbox{type binding}               \\
 
 \end{array}
 \end{array}
@@ -64,7 +64,7 @@ $\end{center}
 
   \infrule[\textsc{T-TAbs}]
   {\Gamma,\ X <: \i{T_1} \ts t_2: \j{T_2}}
-  {\Gamma \ts [X <: \i{T_1}] \ra t_2: static [X <: \i{T_1}] \ra \j{T_2}}
+  {\Gamma \ts [X <: \i{T_1}] \ra t_2: \static{[X <: \i{T_1}] \ra \j{T_2}}}
 
   \infrule[\textsc{T-TApp}]
   {\Gamma \ts t_1: \i{([X <: \j{T_{11}}] \ra \k{T_{12}})}  \ \ \ \ \Gamma \ts \l{T_2} <: \j{T_{11}}} 
