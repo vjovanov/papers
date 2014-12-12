@@ -1,6 +1,8 @@
 \section{Case Studies}
 \label{sct:case-studies}
 
+
+
 \subsection{Integer Power Function}
 \begin{itemize}
   \item Explain what happens.
@@ -15,15 +17,67 @@
 \caption{\label{lst:vector_deep_ir} Function for computing the non-negative power of a real number.}
 \end{figure}
 
+
+
 \subsection{Variable Argument Functions}
+
+\begin{itemize}
+  \item \code{@i?} in argument position is a macro that expands the function to an underlying function \code{@i? def min_underlying[T: Numeric](values:Seq[T]@i?): T} and a macro that will call it according to the input parameters.
+  \item Comparison to other approaches.
+\end{itemize}
 
 \begin{figure}
 \begin{listing}
-@inlinestatic def min[T: Numeric](@inlinestatic values:T*): T =
+@i? def min[T: Numeric](@i? values:T*): T =
+  values.tail.foldLeft(values.head)((min, el) => if (el < min) el else min)
 \end{listing}
 \caption{\label{lst:vector_deep_ir} Function for computing the non-negative power of a real number.}
 \end{figure}
 
-\subsection{Dot Product}
 
-\subseciton{Butterfly Networks}
+
+\subsection{Butterfly Networks}
+\begin{itemize}
+  \item Reference LMS. Discuss @i! annotation on classes. Works for both dynamic and static inputs.
+  \item Comparison to LMS. Mention a pervasive number of annotations. Discuss duality of Exp[T] and @i!.
+\end{itemize}
+
+
+
+
+\subsection{Dot Product}
+\begin{itemize}
+  \item Explain the removal of type classes together with inline. Explain how type classes
+  are @i? and how they will completely evaluate if they are passed a static value.
+  \item Comparison to other approaches.
+\end{itemize}
+
+
+\begin{figure}
+\begin{listing}
+object Numeric {
+  @i! implicit def dnum: Numeric[Double] @i! = DoubleNumeric
+  @i! def zero[T](implicit num: Numeric[T]): T = num.zero
+  object Implicits {
+    @i! implicit def infixNumericOps[T](x: T)(implicit num: Numeric[T]): Numeric[T]#Ops = new num.Ops(x)
+  }
+}
+trait Numeric[T] {
+  def plus(x: T, y: T): T
+  def times(x: T, y: T): T
+  def zero: T
+
+  @i! class Ops(lhs: T) {
+    @i! def +(rhs: T) = plus(lhs, rhs)
+    @i! def *(rhs: T) = times(lhs, rhs)
+  }
+}
+
+object DoubleNumeric extends Numeric[Double] {
+  @i! def plus(x: Double @i?, y: Double @i?): Double = x + y
+  @i! def times(x: Double @i?, y: Double @i?): Double = x * y
+  @i! def zero: Double = 0.0
+}
+\end{listing}
+\caption{\label{lst:vector_deep_ir} Function for computing the non-negative power of a real number.}
+\end{figure}
