@@ -1,2 +1,29 @@
 \section{Case Studies}
 \label{sct:case-studies}
+
+\subsection{Integer Power Function}
+\begin{itemize}
+  \item Explain what happens.
+  \item Typical partial evaluation example. Can be handled by D and Idris and not without duplication with type-driven partial evaluation.
+\end{itemize}
+
+\begin{figure}
+\begin{listing}
+@i? def pow(base: Double, exp: Int @i?): Double =
+  if (exp == 0) 1 else base * pow(base, exp)
+\end{listing}
+\caption{\label{lst:vector_deep_ir} Function for computing the non-negative power of a real number.}
+\end{figure}
+
+\subsection{Variable Argument Functions}
+
+\begin{figure}
+\begin{listing}
+@inlinestatic def min[T: Numeric](@inlinestatic values:T*): T =
+\end{listing}
+\caption{\label{lst:vector_deep_ir} Function for computing the non-negative power of a real number.}
+\end{figure}
+
+\subsection{Dot Product}
+
+\subseciton{Butterfly Networks}
