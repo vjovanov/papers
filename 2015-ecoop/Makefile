@@ -6,11 +6,15 @@
 
 TEX_SRCS=\
 	paper.tex \
+	abstract.tex \
 	intro.tex \
 	calculus.tex \
-#        abstract.tex \
-#	 conclusion.tex \
-        vjovanov-lib.bib \
+  scala-translation.tex \
+  case-studies.tex \
+  evaluation.tex \
+  related.tex \
+  conclusion.tex \
+  vjovanov-lib.bib \
 	llncs.cls \
 #
 
