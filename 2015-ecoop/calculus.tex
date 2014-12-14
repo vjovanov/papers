@@ -1,10 +1,12 @@
 
+\clearpage
 \section{Formalization $F_{i <:}$}
+
+\begin{multicols}{2}
 \begin{figure}[H]
 \begin{center}$
 \begin{array}{l@{\hspace{0.2mm}}}
 \begin{array}{l@{\hspace{10mm}}l}
-
   t ::=                             & \lindent{\mbox{Terms:}}            \\
   \gap x, y                         & \mbox{identifier}                  \\
   \gap (x: \i{T}) \ra t             & \mbox{function}                    \\
@@ -19,24 +21,24 @@
   \gap \i{S} \ra \j{T}              & \mbox{function type}               \\
   \gap \{ \seq{x: \i{S}} \}         & \mbox{record type}                 \\
   \gap [X <: \i{S}] \ra \j{T}       & \mbox{universal type}              \\
-  \gap \top                         & \mbox{top type}                    \\
+  \gap Any                          & \mbox{top type}                    \\
 
   \i{T},\ \j{T},\ \k{T},\ \l{T} ::= & \lindent{\mbox{Inlineable Types:}} \\ 
+  \gap X                            & \mbox{type identifier}             \\
   \gap T,\ \dynamic{T}              & \mbox{dynamic type}                \\
   \gap \static{T}                   & \mbox{static type}                 \\
   \gap \inline{T}                   & \mbox{must inline type}            \\
 
   \Gamma ::=                        & \lindent{\mbox{Contexts:}}         \\
   \gap \emptyset                    & \mbox{empty context}               \\
-  \gap \Gamma,\ x: iT               & \mbox{term binding}               \\
-  \gap \Gamma,\ X <: iT             & \mbox{type binding}               \\
+  \gap \Gamma,\ x: iT               & \mbox{term binding}                \\
+  \gap \Gamma,\ X <: iT             & \mbox{type binding}                \\
 
 \end{array}
 \end{array}
 $\end{center}
-\caption{Syntax}
+\caption{Syntax.}
 \end{figure}
-
 \begin{figure}[H]
   \infrule[\textsc{T-Ident}]
   {x: \i{T} \in \Gamma}
@@ -52,11 +54,11 @@ $\end{center}
 
   \infrule[\textsc{T-App}]
   {\Gamma \ts t_1: \i{(\j{T_1} \ra \k{T_2})} \ \ \ \ \Gamma \ts t_2: \j{T_2}}
-  {\Gamma \ts t_1 (t_2) : (i \wedge j \wedge k) T_2}
+  {\Gamma \ts t_1 (t_2) : i \wedge j \wedge \k{T_2}}
 
   \infrule[\textsc{T-Sel}]
   {\Gamma \ts t: \i{\{ x = \j{T_1}, \seq{y = \k{T_2}} \}}}
-  {\Gamma \ts t.x : (i \wedge j) T_1}
+  {\Gamma \ts t.x : i \wedge \j{T_1}}
 
   \infrule[\textsc{T-Inline}]
   {\Gamma \ts t: \static{T}}
@@ -68,42 +70,84 @@ $\end{center}
 
   \infrule[\textsc{T-TApp}]
   {\Gamma \ts t_1: \i{([X <: \j{T_{11}}] \ra \k{T_{12}})}  \ \ \ \ \Gamma \ts \l{T_2} <: \j{T_{11}}} 
-  {\Gamma \ts t_1[\l{T_2}] : [X \mapsto \l{T_2}] (i \wedge k) T_{12} }
+  {\Gamma \ts t_1[\l{T_2}] : [X \mapsto \l{T_2}] i \wedge \k{T_{12}}}
   
   \infrule[\textsc{T-Sub}]
   {\Gamma \ts t: \i{S} \ \ \ \ \Gamma \ts \i{S} <: \j{T}}
   {\Gamma \ts t: \j{T}}
-  \caption{typing $\Gamma \ts t: \i{T}$}
+  \caption{Typing $\Gamma \ts t: \i{T}$.}
 \end{figure}
+\end{multicols}
 
-\begin{figure}[H]
-  \infrule[\textsc{IS-Dynamic}]{\forall i.\ i <: dynamic}{}
-  \infrule[\textsc{IS-Static}]{\forall i \in \{ static,\ inline \} .\ i <: static}{}
-  \infrule[\textsc{IS-Inline}]{inline <: inline}{}
-  \caption{Inlinity Subtyping $i <: j$}
-\end{figure}
+We formalize essence of our inlining system in minimalistic calculus based 
+on System F with subtyping and records. To accomodate inlining we introduce
+inlinity annotations into type system as first-class type production rules
+that encode three possible states:
 
-\begin{figure}[H]
-  \infrule{\forall i,\ \forall j,\ i <: j.\ i \wedge j = j}{}
-  \caption{Inlinity Intersection $i \wedge j$}
-\end{figure}
+\begin{enumerate}
+  \item \textbf{Dynamic types}. These are regular types which express computation at runtime.
+        All types written in end user code are considered to be dynamic by default if
+        no other inlinity annotation is given.
 
+  \item \textbf{Static types}. These are known to be statically computable at compile-time 
+        (e.g. constant expressions) but are still evaluated at runtime as user hasn't
+        expressed his desire to evaluate them can compile-time. All language literals
+        are  static by default (\textsc{T-Rec}, \textsc{T-Func}).
+
+        Even though our systemi doesn't inline those expressions compiler may 
+        choose to opportunistically optimize them away. 
+
+  \item \textbf{Inline types}. And finally the types that actually correspond to terms that
+        should be computed at compile-time as requested by the user through $inline$ term
+        (\textsc{T-Inline}). 
+\end{enumerate}
+
+Due to fine-grain nature of our inlining system every type in the system has to 
+have corresponding inlinity attributed. This makes it possible to compose compound
+types that mix compile-time evaluated inline components and runtime evaluated dynamic
+ones. For example given a following variable in lexical scope:  
+\begin{equation}\nonumber
+    point: \static{\{ x: \inline{Int},\ y: Int \}} \in \Gamma
+\end{equation}
+
+We might both perform purely compile-time computation of $x$ through $(\inline{point}).x$ 
+and runtime call to $y$ as $point.y$. This example illustrates that we need all subtrees
+of our term to be inline for inlining to happen (\textsc{T-Sel}, \textsc{T-App}). We encode
+the notion of least inlinity through inlinity intersection $\Gamma \ts i \wedge \j{T} = \k{T}$
+relation.
+
+Another notable feature of our model is tight integration between inlinity information and
+generics with respect to subtyping (\textsc{T-TAbs}, \textsc{T-TApp}) that allows us to
+abstract over inlinity without any extra features apart from regular type polymorphism.
+For example lets have a look at simple polymorphic identity function:
+\begin{equation}\nonumber
+    [T <: Any] \ra (x: T) \ra x: \static{([T <: Any] \ra \static{(T \ra T)})}
+\end{equation}
+
+Depending on the input's inlinity this function might be itself inlineable or not. For example
+given a static input literal integer it would produce static integer as a result meaning that 
+computation itself can be inlined if user asks the system to perform it. This allows
+us to easily encode operations which are polymorphic in inlinity of arguments.
+
+Unification of inlinity and regular type polymorphism is possible due to the fact that type
+inlinity is integrated into subtyping relation through (\textsc{S-Inline}) rule which merges
+subtyping of regular types and inlinity state on a type.
+
+\begin{multicols}{2}
 \begin{figure}[H]
-  \infrule[\textsc{S-Refl}]
-  {\Gamma \ts S <: S}
-  {}
+  \infax[\textsc{S-Refl}]
+  {\Gamma \ts \i{S} <: \i{S}}
 
   \infrule[\textsc{S-Trans}]
-  {\Gamma \ts S <: U \ \ \ \ \Gamma \ts U <: T}
-  {\Gamma \ts S <: U}
+  {\Gamma \ts \i{S} <: \j{U} \ \ \ \ \Gamma \ts \j{U} <: \k{T}}
+  {\Gamma \ts \i{S} <: \j{U}}
 
-  \infrule[\textsc{S-Top}]
-  {\Gamma \ts S <: \top}
-  {}
+  \infax[\textsc{S-Top}]
+  {\Gamma \ts \i{S} <: Any}
   
   \infrule[\textsc{S-TVar}]
-  {X <: T \in \Gamma}
-  {\Gamma \ts X <: T}
+  {X <: \i{T} \in \Gamma}
+  {\Gamma \ts X <: \i{T}}
 
   \infrule[\textsc{S-Arrow}]
   {\Gamma \ts \k{T_1} <: \i{S_1} \ \ \ \ \Gamma \ts \j{S_2} <: \l{T_2}}
@@ -113,15 +157,14 @@ $\end{center}
   {\Gamma,\ X <: \i{U_1} \ts \j{S_2} <: \k{T_2}}
   {\Gamma \ts [X <: \i{U_1}] \ra \j{S_2} <: [X <: \i{U_1}] \ra \k{T_2}}
 
-  \infrule[\textsc{S-RecWidth}]
+  \infax[\textsc{S-Width}]
   {\{ x_p: i_p T_p\ ^{p \in 1..n+m} \} <: \{ x_p: i_p T_p\ ^{p \in 1..n} \}}
-  {}
 
-  \infrule[\textsc{S-RecDepth}]
+  \infrule[\textsc{S-Depth}]
   {\forall p \in 1..n.\ i_p S_p <: j_p T_p}
   {\{ x_p: i_p S_p\ ^{p \in 1..n}\} <: \{ x_p: j_p T_p\ ^{p \in 1..n} \}}
 
-  \infrule[\textsc{S-RecPerm}]
+  \infrule[\textsc{S-Perm}]
   {\{ x_p : i_p S_p\ ^{p \in 1..n}\} $ is permutation of $ \{ y_p: j_p T_p\ ^{p \in 1..n} \}}
   {\{ x_p : i_p S_p\ ^{p \in 1..n}\} <: \{ y_p: j_p T_p\ ^{p \in 1..n} \} }
   
@@ -129,5 +172,27 @@ $\end{center}
   {i <: j \ \ \ \ \Gamma \ts S <: T}
   {\Gamma \ts \i{S} <: \j{T}}
 
-  \caption{Subtyping $\Gamma \ts \i{S} <: \j{T}$}
+  \caption{Subtyping $\Gamma \ts \i{S} <: \j{T}$.}
 \end{figure}
+\begin{figure}[H]
+  \infax[\textsc{I-Dynamic}]{\Gamma \ts i <: dynamic}
+
+  \infax[\textsc{I-Static1}]{\Gamma \ts static <: static}
+
+  \infax[\textsc{I-Static2}]{\Gamma \ts inline <: static}
+
+  \infax[\textsc{I-Inline}]{\Gamma \ts inline <: inline}
+
+  \infrule[\textsc{I-Ident}]
+  {X <: \j{T} \in \Gamma \ \ \ \ \Gamma \ts i <: j}
+  {\Gamma \ts i <: X}
+
+  \infrule[\textsc{I-Intersect}]
+  {\Gamma \ts i <: j}
+  {\Gamma \ts i \wedge \j{T} = \j{T}}
+
+  \caption{Inlinity subtyping $\Gamma \ts i <: j$ and intersection $\Gamma \ts i \wedge \j{T} = \k{T}$.}
+\end{figure}
+\end{multicols}
+
+\clearpage
