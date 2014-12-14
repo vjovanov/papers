@@ -1,16 +1,11 @@
-
 \section{Introduction}
-
-\subsection{Motivating Example}
 
 \begin{figure}
 \begin{listing}
-// case 1:
-  varargs: Seq[T]
-// case 2:
-  fold on a known Array size
-// case 3:
-
+def dot[V: Numeric](v1: Vector[V], v2: Vector[V]): V =
+  (v1 zip v2).foldLeft(zero[V]){ case (prod, (cl, cr)) =>
+    prod + cl * cr
+  }
 \end{listing}
-\caption{\label{lst:vector_deep_ir} Motivating example for the paper.}
+\caption{\label{lst:vector_deep_ir} Function for computing the dot product over generic \code{Numeric} values.}
 \end{figure}
