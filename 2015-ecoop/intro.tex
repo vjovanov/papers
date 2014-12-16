@@ -16,38 +16,78 @@ To achieve \emph{predictable} and \emph{safe} partial evaluation, however, a
 partial evaluator must be controlled by the
 programmer~\cite{brady2010,le2004specialization}. Unlike other compiler
 optimizations, due to compile-time execution, partial evaluation might not
-\emph{terminate}. Furthermore, the \emph{code explosion} is a concern as the
-final program is a result of compile-time execution and thus
-can be arbitrarily large. Lack of predictability and danger of code explosion are
-the reason that successful partial evaluators \cite{brady2010,taha_multi-stage_1997,rompf2012lightweight,wurthinger2013one} are programmer controlled.
+\emph{terminate}. Furthermore, \emph{code explosion} is possible as the final
+program can be arbitrarily large due to compile-time execution. Lack of
+predictability and danger of code explosion are the reason that successful
+partial evaluators \cite{brady2010,taha_multi-stage_1997,rompf2012lightweight,wurthinger2013one}
+are programmer controlled.
 
-To illustrate we define a function \code{dot} for computing a dot-product of two vectors that contain numeric values\footnotetext{We use Scala for all examples in this paper. In order to comprehend the paper the reader is required to know the mere basics of the language}.
+To show how programmers can control partial evaluation we define a function
+\code{dot}  for computing a dot-product of two vectors that contain numeric
+values\footnotetext{We use Scala for all examples in this paper. In order to
+comprehend the paper the reader is required to know the mere basics of the
+language}.
+\vspace{1.8mm}
 \begin{listing}
-def dot[V: Numeric](v1: Vector[V], v2: Vector[V]): V =
-  (v1 zip v2).foldLeft(zero[V]){ case (prod, (cl, cr)) =>
-    prod + cl * cr
-  }
+  def dot[V:Numeric](v1: Vector[V], v2: Vector[V]): V =
+    (v1 zip v2).foldLeft(zero[V]){ case (prod, (cl, cr)) =>
+      prod + cl * cr
+    }
 \end{listing}
+\vspace{1.8mm}
 
-State the problem:
+To remove the abstraction overhead of \code{zip} and \code{foldLeft} the partial evaluator
+must apply extensive analysis conclude that vectors are static in size and
+that this can be later used to unroll the \code{foldLeft}. Even if the analysis
+is successful the evaluator must be conservative about unrolling the \code{foldLeft}
+as vector sizes, and thus the produced code, can be very large. What if we know
+vector sizes and we want to predictably unroll \code{dot} into a flat sum of
+products?
+
+Ideally the programmer would, with the minimal number of annotations, be able to: \emph{i)} require
+that \code{v1} \code{v2} vectors are of statically known size, \emph{ii)} require that all operations on
+vector arguments should be further partially evaluated, \emph{iii)} allow elements of
+vectors to be generic, and \emph{iv)} do not require the programmer to re-implement
+the whole \code{Vector} data structure to achieve partial evaluation.
+
+The main idea of this paper is to explicitly capture the user intent about partial
+evaluation in the types. We annotate every type in the language with one of the three values:
 \begin{itemize}
-\item Minimal number of annotations
-\item No code duplication
-\item Allow generics
+ \item $dynamic$ signifies that the value of the type is not known at compile-time. In code $dynamic$ is represented as \code{@d}.
+ \item $static$ signifies that the value is known at compile-time. In code $static$ is represented as \code{@s}.
+ \item $inline$ requires that the type is statically known and guarantees that operations on the term will be partially evaluated. In code $inline$ is represented as \code{@i}.
 \end{itemize}
 
-The main idea of this paper is to explicitly capture user intent in the types.
-
-Modified signature:
+With our partial evaluator, to require that vectors \code{v1} and \code{v2} are static and
+to partially evaluate the function the programmer would need to make a simple modification of
+the \code{dot} signature:
+\vspace{1.8mm}
 \begin{listing}
-def dot[V: Numeric](v1: Vector[V] @i!, v2: Vector[V] @i!): V
+  def dot[V: Numeric](v1: Vector[V] @i, v2: Vector[V] @i): V
 \end{listing}
+\vspace{1.8mm}
+This, in effect, requires that only vector arguments (not their elements) are statically known and that all operations will be inlined and further partially evaluated. Residual programs of \code{dot} application in different cases are:
 
-Others have tried:
+\vspace{1.8mm}
+\begin{listing}[mathescape]
+  // [el1, el2, el3, el4] are dynamic
+  dot(Vector(el1, el2), Vector(el3, el4))
+    $\hookrightarrow$ el1 * el3 + el2 * el4
+
+  dot(Vector(2, 4), Vector(1, 10))
+    $\hookrightarrow$ 2 * 1 + 4 * 10
+
+  // inline promotes static terms into inline
+  dot(Vector(inline(2), inline(4)), Vector(inline(1), inline(10)))
+    $\hookrightarrow$ 42
+\end{listing}
+\vspace{1.8mm}
+
+Predictable partial evaluation has been a goal of many projects, however, to the best of our knowledge each solution has limitations:
 \begin{itemize}
-\item type-directed/LMS
-\item MetaML
-\item Idris/D
+\item Programming languages Idris and D provide annotations \code{static} that can be placed on function arguments. In these systems static parameters are required to be deeply static and, thus, the \code{dot} function could not be expressed.
+\item Type-directed partial evaluation~\cite{danvy1999type} and LMS~\cite{rompf2012lightweight} use types to communicate the programmers intent about partial evaluation and, thus, can express \code{dot} function. These approaches, however, require the programmer to implement two versions of \code{Vector} and other operations. This fosters, costly and hardly maintainable, code duplication.
+\item MetaOCaml
 \end{itemize}
 
 Contributions:
