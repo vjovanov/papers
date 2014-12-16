@@ -1,11 +1,57 @@
 \section{Introduction}
+\label{sct:introduction}
 
-\begin{figure}
+\emph{Partial evaluation}~\cite{jones1993partial} is an optimization technique
+that identifies \emph{statically known} program parts and pre-computes them at
+compile time. Partial evaluation has been intensively studied \cite{}, and
+successfully applied:  for removing abstraction overheads in high-level
+programs~\cite{carette2005multi,rompf2012lightweight}, for domain-specific
+languages~\cite{brady2010,jonnalagedda2014staged}, and for converting language
+interpreters into compilers~\cite{futamura1999partial,lancet,wurthinger2013one}.
+Applying partial evaluation in these domains often improves program performance
+by several orders of magnitude~\cite{shali2011Hybrid,brady2010}.
+
+
+To achieve \emph{predictable} and \emph{safe} partial evaluation, however, a
+partial evaluator must be controlled by the
+programmer~\cite{brady2010,le2004specialization}. Unlike other compiler
+optimizations, due to compile-time execution, partial evaluation might not
+\emph{terminate}. Furthermore, the \emph{code explosion} is a concern as the
+final program is a result of compile-time execution and thus
+can be arbitrarily large. Lack of predictability and danger of code explosion are
+the reason that successful partial evaluators \cite{brady2010,taha_multi-stage_1997,rompf2012lightweight,wurthinger2013one} are programmer controlled.
+
+To illustrate we define a function \code{dot} for computing a dot-product of two vectors that contain numeric values\footnotetext{We use Scala for all examples in this paper. In order to comprehend the paper the reader is required to know the mere basics of the language}.
 \begin{listing}
 def dot[V: Numeric](v1: Vector[V], v2: Vector[V]): V =
   (v1 zip v2).foldLeft(zero[V]){ case (prod, (cl, cr)) =>
     prod + cl * cr
   }
 \end{listing}
-\caption{\label{lst:vector_deep_ir} Function for computing the dot product over generic \code{Numeric} values.}
-\end{figure}
+
+State the problem:
+\begin{itemize}
+\item Minimal number of annotations
+\item No code duplication
+\item Allow generics
+\end{itemize}
+
+The main idea of this paper is to explicitly capture user intent in the types.
+
+Modified signature:
+\begin{listing}
+def dot[V: Numeric](v1: Vector[V] @i!, v2: Vector[V] @i!): V
+\end{listing}
+
+Others have tried:
+\begin{itemize}
+\item type-directed/LMS
+\item MetaML
+\item Idris/D
+\end{itemize}
+
+Contributions:
+
+Evaluation:
+
+Sections:
