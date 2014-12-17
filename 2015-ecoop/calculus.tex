@@ -24,7 +24,7 @@
   \gap \{ \seq{x: \i{S}} \}         & \mbox{record type}                 \\
   \gap [X <: \i{S}] \ra \j{T}       & \mbox{universal type}              \\
   \gap Any                          & \mbox{top type}                    \\
-  \i{T},\ \j{T},\ \k{T},\ \l{T} ::= & \lindent{\mbox{Inlineable Types:}} \\ 
+  \i{T},\ \j{T},\ \k{T},\ \l{T} ::= & \lindent{\mbox{Inlineable Types:}} \\
   \gap X                            & \mbox{type identifier}             \\
   \gap T,\ \dynamic{T}              & \mbox{dynamic type}                \\
   \gap \static{T}                   & \mbox{static type}                 \\
@@ -34,9 +34,9 @@
 \caption{Syntax of $F_{i<:}$}
 \end{figure}
 
-We formalize the essence of our inlining system in a minimalistic calculus based 
-on $F_{<:}$ with records. To accomodate inlining we introduce binding-time annotations 
-into the type system as first-class type production rules that represent three kinds 
+We formalize the essence of our inlining system in a minimalistic calculus based
+on $F_{<:}$ with records. To accomodate inlining we introduce binding-time annotations
+into the type system as first-class type production rules that represent three kinds
 of bindings:
 
 \begin{enumerate}
@@ -49,7 +49,7 @@ of bindings:
         All language literals are static by default.
 
   \item \textbf{Inline binding}. And finally the types that correspond to terms that
-        are hinted to be computed at compile-time whenever possible. 
+        are hinted to be computed at compile-time whenever possible.
 \end{enumerate}
 
 \subsection{Composition}
@@ -65,8 +65,8 @@ two possible representations encoded through $isPolar$ flag:
 \end{equation}
 
 This type is constructed out of a number of components with varying binding times.
-Representation encoding is known in advance and is static according to the signature.  
-Coordinates $a$ and $b$ do not have any binding-time annotation meaning that they are 
+Representation encoding is known in advance and is static according to the signature.
+Coordinates $a$ and $b$ do not have any binding-time annotation meaning that they are
 dynamic.
 
 Given this binding to $complex$ in our environment $\Gamma$ we can use $inline$ to obtain
@@ -76,10 +76,10 @@ a compile-time view to access $isPolar$ field:
 \end{equation}
 
 Any statically known expression can be promoted to become $inline$ that would force its computation
-to happen at compile-time. Selection of dynamic fields on the other hand will return dynamic values despite 
-the fact that record is statically known. 
+to happen at compile-time. Selection of dynamic fields on the other hand will return dynamic values despite
+the fact that record is statically known.
 
-Not all type and binding time combinations are correct though. We restrict types  
+Not all type and binding time combinations are correct though. We restrict types
 to disallow nesting of more specific binding time into less specific ones.
 
 \begin{figure}
@@ -102,12 +102,12 @@ to disallow nesting of more specific binding time into less specific ones.
 \caption {Well formed types $\wff{\i{T}}$}
 \end{figure}
 
-This restiction allows us to reject programs that have inconsistent binding-time annotations. 
+This restiction allows us to reject programs that have inconsistent binding-time annotations.
 
 \subsection{Subtyping}
 
-Another notable feature of our binding-time analysis system is deep integration with subtyping. 
-We believe that such integration is crucial for an object-oriented language that wants to 
+Another notable feature of our binding-time analysis system is deep integration with subtyping.
+We believe that such integration is crucial for an object-oriented language that wants to
 incorporate partial evaluation.
 
 At core of the subtyping relation we have a natural subtyping on binding-time information
@@ -195,7 +195,7 @@ In practice this allows us to write code that is polymorphic in the binding time
 any code duplication which is quite common in other partial evaluation systems.
 
 This is possible due to the fact that we've integrated binding time information into types
-and augmented subtyping relation with subtyping 
+and augmented subtyping relation with subtyping
 
 \subsection{Typing}
 
@@ -235,7 +235,7 @@ and augmented subtyping relation with subtyping
   {\Gamma \ts \i([X <: \j{T_1}] \ra t_2): \i{([X <: \j{T_1}] \ra \k{T_2})}}
   \vspace{4pt}
   \infrule[\textsc{T-TApp}]
-  {\Gamma \ts t_1: \i{([X <: \j{T_{11}}] \ra \k{T_{12}})}  \ \ \ \ \Gamma \ts \l{T_2} <: \j{T_{11}}} 
+  {\Gamma \ts t_1: \i{([X <: \j{T_{11}}] \ra \k{T_{12}})}  \ \ \ \ \Gamma \ts \l{T_2} <: \j{T_{11}}}
   {\Gamma \ts t_1[\l{T_2}] : [X \mapsto \l{T_2}] \k{T_{12}}}
 \caption{Typing.}
 \end{figure}
