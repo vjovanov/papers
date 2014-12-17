@@ -46,7 +46,7 @@ of bindings:
 
   \item \textbf{Static binding}. Values of static terms can be computed at compile-time
         (\eg constant expressions) but at are still evaluated at runtime by default.
-        All language literals are static by default (\textsc{T-Rec}, \textsc{T-Func}).
+        All language literals are static by default.
 
   \item \textbf{Inline binding}. And finally the types that correspond to terms that
         are hinted to be computed at compile-time whenever possible. 
@@ -54,9 +54,8 @@ of bindings:
 
 \subsection{Composition}
 
-Our system exposes binding times as first-class types making it easy to compose and reason about.
-An interesting consequence of this is that we can represent values which are partially static
-and partially dynamic.
+An interesting consequence of encoding of binding times as first-class types is
+ability to represent values which are partially static and partially dynamic.
 
 For example lets have a look at simple record that describes a complex number with
 two possible representations encoded through $isPolar$ flag:
@@ -78,11 +77,10 @@ a compile-time view to access $isPolar$ field:
 
 Any statically known expression can be promoted to become $inline$ that would force its computation
 to happen at compile-time. Selection of dynamic fields on the other hand will return dynamic values despite 
-the fact that record is statically known. It's also not possible to access them at compile-time as 
-compile-time computations can only work with $inline$ values.
+the fact that record is statically known. 
 
-Not all type and binding time combinations are correct though. We restrict possible combinations of 
-to disallow nesting of more specific binding time into less specific one.
+Not all type and binding time combinations are correct though. We restrict types  
+to disallow nesting of more specific binding time into less specific ones.
 
 \begin{figure}
 \begin{multicols}{2}
@@ -110,24 +108,20 @@ This restiction allows us to reject programs that have inconsistent binding-time
 
 Another notable feature of our binding-time analysis system is deep integration with subtyping. 
 We believe that such integration is crucial for an object-oriented language that wants to 
-incorporate binding-time analysis.
+incorporate partial evaluation.
 
 At core of the subtyping relation we have a natural subtyping on binding-time information
-with as $dynamic$ as top binding-time.
+with $dynamic$ as top binding-time.
 
 \begin{figure}[H]
 \begin{multicols}{2}
-  \infax[\textsc{I-Dynamic}]{\Gamma \ts i <: dynamic}
+  \infax[\textsc{I-Dynamic}]{i <: dynamic}
 
-  \infax[\textsc{I-Static1}]{\Gamma \ts static <: static}
+  \infax[\textsc{I-Static1}]{static <: static}
 
-  \infax[\textsc{I-Static2}]{\Gamma \ts inline <: static}
+  \infax[\textsc{I-Static2}]{inline <: static}
 
-  \infax[\textsc{I-Inline}]{\Gamma \ts inline <: inline}
-
-  \infrule[\textsc{I-Ident}]
-  {X <: \j{T} \in \Gamma \ \ \ \ \Gamma \ts i <: j}
-  {\Gamma \ts i <: X}
+  \infax[\textsc{I-Inline}]{inline <: inline}
 \end{multicols}
 \caption{Binding-time subtyping.}
 \end{figure}
@@ -182,6 +176,29 @@ Integration between binding-time information and subtyping on regular types is e
 
 \subsection{Generics}
 
+Crucial consequence of our design choices made in the system manifests in ability to use
+regular generics as means to abstract over binding-time without any additional language constructs.
+
+For example given a generic identity function:
+\begin{equation}\nonumber
+  identity: \static{([X <: Any] \ra \static{(X \ra X)})} \in \Gamma
+\end{equation}
+
+We can instantiate it to both in static and dynamic contexts through corresponding
+type application:
+\begin{align}\nonumber
+  identity[\static{Int}] &: \static{(\static{Int} \ra \static{Int})} \\
+  identity[Int]          &: \static{(Int \ra Int)}
+\end{align}
+
+In practice this allows us to write code that is polymorphic in the binding time without
+any code duplication which is quite common in other partial evaluation systems.
+
+This is possible due to the fact that we've integrated binding time information into types
+and augmented subtyping relation with subtyping 
+
+\subsection{Typing}
+
 \begin{figure}
 \begin{multicols}{2}
   \infrule[\textsc{T-Ident}]
@@ -193,7 +210,7 @@ Integration between binding-time information and subtyping on regular types is e
   {\Gamma \ts \i{\{ \seq{x = t} \}} : \i{\{\seq{x: \j{T}}\}}}
 
   \infrule[\textsc{T-App}]
-  {\Gamma \ts t_1: \i{(\j{T_1} \ra \k{T_2})} \ \ \ \ \Gamma \ts t_2: \j{T_2}}
+  {\Gamma \ts t_1: \i{(\j{T_1} \ra \k{T_2})} \ \ \ \ \Gamma \ts t_2: \j{T_1}}
   {\Gamma \ts t_1 (t_2) : \k{T_2}}
 
   \infrule[\textsc{T-Sel}]
