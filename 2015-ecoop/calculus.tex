@@ -10,7 +10,8 @@
   \gap t(t)                         & \mbox{application}                 \\
   \gap \{ \seq{x = t} \}            & \mbox{record}                      \\
   \gap t.x                          & \mbox{selection}                   \\
-  \gap \ct t                        & \mbox{inlining request}            \\
+  \gap \inline{t}                   & \mbox{}                            \\
+  \gap \dynamic{t}                  & \mbox{}                            \\
   \gap [X <: \i{T}] \ra t           & \mbox{type abstraction}            \\
   \gap t [\i{T}]                    & \mbox{type application}            \\
   \Gamma ::=                        & \lindent{\mbox{Contexts:}}         \\
@@ -105,9 +106,9 @@ to disallow nesting of more specific binding times into less specific ones.
 
 This restiction allows us to reject programs that have inconsistent annotations.
 
-For example the following function has incorrectly annotated parameter:
+For example the following function has incorrectly annotated parameter binding time:
 \begin{equation}\nonumber
-    (x: \inline{Int}) => x + 1
+    (x: \inline{Int}) \ra x + 1
 \end{equation}
 
 This is inconsistent because the body of the function might not be evaluated at compile-time
