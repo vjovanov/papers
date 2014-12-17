@@ -3,8 +3,8 @@
 
 \emph{Partial evaluation}~\cite{jones1993partial} is an optimization technique
 that identifies \emph{statically known} program parts and pre-computes them at
-compile time. Partial evaluation has been intensively studied \cite{}, and
-successfully applied:  for removing abstraction overheads in high-level
+compile time. Partial evaluation has been intensively studied and
+successfully applied: for removing abstraction overheads in high-level
 programs~\cite{carette2005multi,rompf2012lightweight}, for domain-specific
 languages~\cite{brady2010,jonnalagedda2014staged}, and for converting language
 interpreters into compilers~\cite{futamura1999partial,lancet,wurthinger2013one}.
@@ -13,7 +13,7 @@ by several orders of magnitude~\cite{shali2011Hybrid,brady2010}.
 
 
 To achieve \emph{predictable} and \emph{safe} partial evaluation, however, a
-partial evaluator must be controlled by the
+partial evaluator must be instructed by the
 programmer~\cite{brady2010,le2004specialization}. Unlike other compiler
 optimizations, due to compile-time execution, partial evaluation might not
 \emph{terminate}. Furthermore, \emph{code explosion} is possible as the final
@@ -23,8 +23,8 @@ partial evaluators \cite{brady2010,taha_multi-stage_1997,rompf2012lightweight,wu
 are programmer controlled.
 
 To show how programmers can control partial evaluation we define a function
-\code{dot}  for computing a dot-product of two vectors that contain numeric
-values\footnotetext{We use Scala for all examples in this paper. In order to
+\code{dot} for computing a dot-product of two vectors that contain numeric
+values\footnotetext{We use Scala for all code examples in this paper. In order to
 comprehend the paper the reader is required to know the mere basics of the
 language}.
 \vspace{1.8mm}
@@ -36,20 +36,20 @@ language}.
 \end{listing}
 \vspace{1.8mm}
 
-To remove the abstraction overhead of \code{zip} and \code{foldLeft} the partial evaluator
-must apply extensive analysis conclude that vectors are static in size and
-that this can be later used to unroll the \code{foldLeft}. Even if the analysis
-is successful the evaluator must be conservative about unrolling the \code{foldLeft}
-as vector sizes, and thus the produced code, can be very large. What if we know
-vector sizes and we want to predictably unroll \code{dot} into a flat sum of
-products?
+In order to remove the abstraction overhead of \code{zip} and \code{foldLeft} the partial evaluator
+must apply extensive analysis to conclude that vectors are static in size and
+that this can be later used to unroll the recursion inside \code{foldLeft}.
+Even if the analysis is successful the evaluator must be conservative about
+unrolling the \code{foldLeft} as vector sizes, and thus the produced code, can be
+ very large. What if we know that vector sizes are relatively small and we would like to predictably unroll \code{dot}
+ into a flat sum of products?
 
-Ideally the programmer would, with the minimal number of annotations, be able to: \emph{i)} require
-that \code{v1} \code{v2} vectors are of statically known size, \emph{ii)} require that all operations on
+Ideally, the programmer would with a minimal number of annotations be able to: \emph{i)} require
+that input vectors are of statically known size, \emph{ii)} require that all operations on
 vector arguments should be further partially evaluated, \emph{iii)} allow elements of
-vectors to be generic, and \emph{iv)} do not require the programmer to re-implement
-the whole \code{Vector} data structure to achieve partial evaluation.
+vectors to be generic, and \emph{iv)} reuse the existing implementation of the \code{Vector} data structure.
 
+\todo{expand}
 The main idea of this paper is to explicitly capture the user intent about partial
 evaluation in the types. We annotate every type in the language with one of the three values:
 \begin{itemize}
@@ -59,7 +59,7 @@ evaluation in the types. We annotate every type in the language with one of the 
 \end{itemize}
 
 With our partial evaluator, to require that vectors \code{v1} and \code{v2} are static and
-to partially evaluate the function the programmer would need to make a simple modification of
+to partially evaluate the function, a programmer would need to make a simple modification of
 the \code{dot} signature:
 \vspace{1.8mm}
 \begin{listing}
@@ -83,11 +83,11 @@ This, in effect, requires that only vector arguments (not their elements) are st
 \end{listing}
 \vspace{1.8mm}
 
-Predictable partial evaluation has been a goal of many projects, however, to the best of our knowledge each solution has limitations:
+Predictable partial evaluation has been a goal of many projects (\sct{sct:related-work}) which can be roughly categorized into following categories:
 \begin{itemize}
 \item Programming languages Idris and D provide annotations \code{static} that can be placed on function arguments. In these systems static parameters are required to be deeply static and, thus, the \code{dot} function could not be expressed.
 \item Type-directed partial evaluation~\cite{danvy1999type} and LMS~\cite{rompf2012lightweight} use types to communicate the programmers intent about partial evaluation and, thus, can express \code{dot} function. These approaches, however, require the programmer to implement two versions of \code{Vector} and other operations. This fosters, costly and hardly maintainable, code duplication.
-\item MetaOCaml
+\item MetaOCaml~\cite{taha_multi-stage_1997}
 \end{itemize}
 
 Contributions:
