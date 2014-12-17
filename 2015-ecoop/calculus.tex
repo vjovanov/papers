@@ -231,7 +231,11 @@ and augmented subtyping relation with subtyping
 
   \infrule[\textsc{T-Inline}]
   {t $ is not literal$ \ \ \ \ \Gamma \ts t: \static{T}}
-  {\Gamma \ts \ct{t}: \inline{T}}
+  {\Gamma \ts \inline{t}: \inline{T}}
+
+  \infrule[\textsc{T-Inline}]
+  {t $ is not literal$ \ \ \ \ \Gamma \ts t: \i{T}}
+  {\Gamma \ts \dynamic{t}: \dynamic{T}}
 
   \infrule[\textsc{T-Sub}]
   {\Gamma \ts t: \i{S} \ \ \ \ \Gamma \ts \i{S} <: \j{T}}
@@ -266,26 +270,33 @@ Assumption is that types are erased and therefore there is no type abstraction o
     {\pe{\seq{t}}{\seq{t'}}}
     {\pe{\{ \seq{x = t} \}}{\{ \seq{x = t'} \}}}
 
-  \infrule[\textsc{PE-Inline}]
-    {\pe{t}{t'}}
-    {\pe{\ct{t}}{{\ct{t'}}}}
-
   \infrule[\textsc{PE-ISel}]
-    {\pe{t}{\ct{\{x = f, \seq{y = f_i}\}}}}
+    {\pe{t}{\inline{\{x = f, \seq{y = f_i}\}}}}
     {\pe{t.x}{f}}
 
+  \infrule[\textsc{PE-Inline}]
+    {\pe{t}{t'}}
+    {\pe{\inline{t}}{{\inline{t'}}}}
+
+  \infrule[\textsc{PE-Dynamic1}]
+    {\pe{t}{\inline{t'}}}
+    {\pe{\dynamic{t}}{{t'}}}
+
+  \infrule[\textsc{PE-Dynamic2}]
+    {\pe{t}{t'} \ \ \ t' \neq \inline{t''}}
+    {\pe{\dynamic{t}}{{\dynamic{t'}}}}
 \end{multicols}
 \vspace{4pt}
 
   \infrule[\textsc{PE-Sel}]
-    {\pe{t}{t'} \ \ \ t' \neq \ct{\{x = f, \seq{y = f_i}\}}}
+    {\pe{t}{t'} \ \ \ t' \neq \inline{\{x = f, \seq{y = f_i}\}}}
     {\pe{t.x}{t'.x}}
 
   \infrule[\textsc{PE-IApp}]
-    {\pe{t_1}{\ct{x \ra b}} \ \ \ \pe{t_2}{t'_2} \ \ \ \pe{[x \rightarrow t'_2] \; b}{b'} }
+    {\pe{t_1}{\inline{x \ra b}} \ \ \ \pe{t_2}{t'_2} \ \ \ \pe{[x \rightarrow t'_2] \; b}{b'} }
     {\pe{t_1 (t_2)}{b'}}
   \infrule[\textsc{PE-App}]
-    {\pe{t_1}{t'_1} \ \ \ \pe{t_2}{t'_2} \ \ \ t'_1 \neq \ct{x \ra b}}
+    {\pe{t_1}{t'_1} \ \ \ \pe{t_2}{t'_2} \ \ \ t'_1 \neq \inline{x \ra b}}
     {\pe{t_1 (t_2)}{t'_1 (t'_2)}}
 
 \caption{Reduction rules for the partial evaluator.}
