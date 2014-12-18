@@ -43,14 +43,19 @@ One of the core assumptions of the calculus is that all \code{static} terms can
 \subsection{Making Object Oriented Constructs Partially Evaluated}
 \label{sct:promotion}
 
+
+
 \begin{figure}
-  $ [[ let\ x: T_x = t_x\ in\ t ]] = \\ $
-  $ ((x: T_x) \ra t)(t_x) \\ \\$
-  $ [[ let\ type\ T_1 = T_2\ in\ t ]] = \\ $
-  $ ([T_1 <: T_2] \ra t)[T_2] \\ \\ $
-  $ [[ let\ class\ C[A](x: T_x) \{ def\ f[B](y: T_y) = t_f \}\ in\ t ]] = \\ $
-  $ \ let\ type\  C = [A] \ra \{ x: T_x, f: [B] \ra T_y \ra T_f \}\ in \\ $
-  $ \ let\ C: [A] \ra (x: T_x) \ra C[A] = [A] \ra (x: T_x) \ra \{ x = x, f = [B] \ra (y: T_y) \ra t_f \}\ in\ t$
+\begin{alignat*}{2}
+   & [\![ \klet\ x: T_x = t_x\ \kin \ t ]\!] = ((x: T_x) \ra t)(t_x)\\
+   & [\![ \klet\ type\ T_1 = T_2\ \kin\ t ]\!] =  ([T_1 <: T_2] \ra t)[T_2] \\
+   & [\![ \klet\ class\ C[A](x: T_x) \{ def\ f[B](y: T_y) = t_f \}\ \kin\ t ]\!]  =  \\
+   & \quad   \klet\ type\  C = [A] \ra \{ x: T_x, f: [B] \ra T_y \ra T_f \}\ \kin  \\
+   & \quad \quad \klet\ C: [A] \ra (x: T_x) \ra C[A]  =  \\
+   & \quad \quad \quad [A] \ra (x: T_x) \ra \{ x = x, f = [B] \ra (y: T_y) \ra t_f \}\ \kin\ t
+\end{alignat*}
+\caption{Desugaring of classes into \calculus.}
+\lable{fig:desugaring-classes}
 \end{figure}
 
 \begin{figure}
