@@ -40,9 +40,9 @@
 \end{figure}
 
 We formalize the essence of our inlining system in a minimalistic calculus based
-on $F_{<:}$ with records. To accommodate predictable partial evaluation we introduce
-binding-time annotations into the type system as first-class types that represent
-three kinds of bindings:
+on $F_{<:}$ with lazy records. To accommodate predictable partial evaluation we
+introduce binding-time annotations into the type system as first-class types that
+represent three kinds of bindings:
 
 \begin{enumerate}
   \item \textbf{Dynamic binding}. These are the types which express computation at runtime.
@@ -282,7 +282,6 @@ In order to simplify partial evaluation rules we erase all of the type informati
 This means that all functions become function values, type abstraction and application are complete eliminated.
 
 \begin{figure}
-\begin{multicols}{2}[]
 
   \infrule[\textsc{PE-Func}]
     {\pe{t}{t'}}
@@ -293,8 +292,8 @@ This means that all functions become function values, type abstraction and appli
     {\pe{\{ \seq{x = t} \}}{\{ \seq{x = t'} \}}}
 
   \infrule[\textsc{PE-ISel}]
-    {\pe{t}{\inline{\{x = f, \seq{y = f_i}\}}}}
-    {\pe{t.x}{f}}
+    {\pe{t}{\inline{\{x = t_x,\ \seq{y = t_y}\}}} \ \ \ \pe{t_x}{t_x'}}
+    {\pe{t.x}{t_x'}}
 
   \infrule[\textsc{PE-Inline}]
     {\pe{t}{t'}}
@@ -307,11 +306,9 @@ This means that all functions become function values, type abstraction and appli
   \infrule[\textsc{PE-Dynamic2}]
     {\pe{t}{t'} \ \ \ t' \neq \inline{t''}}
     {\pe{\dynamic{t}}{{\dynamic{t'}}}}
-\end{multicols}
-\vspace{4pt}
 
   \infrule[\textsc{PE-Sel}]
-    {\pe{t}{t'} \ \ \ t' \neq \inline{\{x = f, \seq{y = f_i}\}}}
+    {\pe{t}{t'} \ \ \ t' \neq \inline{\{x = t_x,\ \seq{y = t_y}\}}}
     {\pe{t.x}{t'.x}}
 
   \infrule[\textsc{PE-IApp}]
@@ -321,12 +318,35 @@ This means that all functions become function values, type abstraction and appli
     {\pe{t_1}{t'_1} \ \ \ \pe{t_2}{t'_2} \ \ \ t'_1 \neq \inline{x \ra b}}
     {\pe{t_1 (t_2)}{t'_1 (t'_2)}}
 
-\caption{Reduction rules for the partial evaluator.}
+\caption{Partial evaluation $\pe{t}{t'}$}
 \label{fig:partial-evaluation}
 \end{figure}
 
 \subsection{Evaluation}
 Once partial evaluation is complete we strip all binding-time terms and use regular untyped
-lambda calculus evaluation rules to perform runtime evalution.
+lambda calculus evaluation rules extended with lazy records.
+
+\begin{figure}
+  \infax[\textsc{E-Value}]
+  {v \e v}
+
+  \infrule[\textsc{E-App}]
+  {t_1 \e x \ra t \ \ \ \ t_2 \e v \ \ \ \ [x \mapsto v] t \e t'}
+  {t_1(t_2) \e t'}
+
+  \infrule[\textsc{E-Sel}]
+  {t \e \{ x = t_x,\ \seq{y = t_y}\} \ \ \ \ t_x \e t_x'}
+  {t.x \e t_x'}
+\caption{Evaluation $t \e v$}
+\end{figure}
+
+\subsection{Conjectures}
+
+\begin{enumerate}
+  \item Progress.
+  \item Preservation.
+  \item Static terms are closed over statically bound variables.
+  \item Inline terms will be replaced with canonical value of corresponding type after partial evaluation.
+\end{enumerate}
 
 \clearpage
