@@ -2,7 +2,7 @@
 \section{Formalization \calculus}
 \label{sct:formalization}
 
-\begin{figure}
+\begin{figure}[H]
 \begin{multicols}{2}
 \syntaxfig{
   t ::=                             & \lindent{\mbox{Terms:}}              \\
@@ -91,8 +91,7 @@ through $dynamic$ view.
 Not all type and binding time combinations are correct though. We restrict types
 to disallow nesting of more specific binding times into less specific ones.
 
-\begin{figure}
-\begin{multicols}{2}
+\begin{figure}[H]
   \infax[\textsc{W-Any}]
   {\wff{\i{Any}}}
 
@@ -107,7 +106,6 @@ to disallow nesting of more specific binding times into less specific ones.
   \infrule[\textsc{W-Rec}]
   {\forall j. \ \ \ \ i <: j \ \ \ \ \seq{\wff{\j{T}}}}
   {\wff{\i{\{\seq{x: \j{T}}\}}}}
-\end{multicols}
 \caption {Well formed types $\wff{\i{T}}$}
 \end{figure}
 
@@ -148,7 +146,6 @@ We proceed by threading binding time information throughout regular $F_{<:}$ sub
 augmented with standard record types.
 
 \begin{figure}[H]
-\begin{multicols}{2}
   \infax[\textsc{S-Top}]
   {\Gamma \ts \i{S} <: Any}
 
@@ -177,12 +174,11 @@ augmented with standard record types.
   \infrule[\textsc{S-Inline}]
   {i <: j \ \ \ \ \Gamma \ts S <: T}
   {\Gamma \ts \i{S} <: \j{T}}
-\end{multicols}
-  \vspace{6pt}
+
   \infrule[\textsc{S-All}]
   {\Gamma,\ X <: \i{U_1} \ts \j{S_2} <: \k{T_2}}
   {\Gamma \ts [X <: \i{U_1}] \ra \j{S_2} <: [X <: \i{U_1}] \ra \k{T_2}}
-  \vspace{6pt}
+
   \infrule[\textsc{S-Perm}]
   {\{ x_p : i_p S_p\ ^{p \in 1..n}\} $ is permutation of $ \{ y_p: j_p T_p\ ^{p \in 1..n} \}}
   {\{ x_p : i_p S_p\ ^{p \in 1..n}\} <: \{ y_p: j_p T_p\ ^{p \in 1..n} \} }
@@ -221,7 +217,6 @@ To enforce well-formedness of types in a context of partial evaluation we custom
 standard typing rules with additional constraints with respect to binding time.
 
 \begin{figure}[H]
-\begin{multicols}{2}
   \infrule[\textsc{T-Ident}]
   {x: \i{T} \in \Gamma}
   {\Gamma \ts x: \i{T}}
@@ -249,16 +244,15 @@ standard typing rules with additional constraints with respect to binding time.
   \infrule[\textsc{T-Sub}]
   {\Gamma \ts t: \i{S} \ \ \ \ \Gamma \ts \i{S} <: \j{T}}
   {\Gamma \ts t: \j{T}}
-\end{multicols}
-  \vspace{4pt}
+
   \infrule[\textsc{T-Func}]
   {\Gamma,\ x: \j{T_1} \ts t: \k{T_2} \ \ \ \ \wff{\i{(\j{T_1} \ra \k{T_2})}}}
   {\Gamma \ts \i{((x: \j{T_1}) \ra t)} : \i{(\j{T_1} \ra \k{T_2})}}
-  \vspace{4pt}
+
   \infrule[\textsc{T-TAbs}]
   {\Gamma,\ X <: \j{T_1} \ts t_2: \k{T_2} \ \ \ \ \wff{\i{([X <: \j{T_1}] \ra \k{T_2})}}}
   {\Gamma \ts \i([X <: \j{T_1}] \ra t_2): \i{([X <: \j{T_1}] \ra \k{T_2})}}
-  \vspace{4pt}
+
   \infrule[\textsc{T-TApp}]
   {\Gamma \ts t_1: \i{([X <: \j{T_{11}}] \ra \k{T_{12}})}  \ \ \ \ \Gamma \ts \l{T_2} <: \j{T_{11}}}
   {\Gamma \ts t_1[\l{T_2}] : [X \mapsto \l{T_2}] \k{T_{12}}}
@@ -281,44 +275,35 @@ The most significant changes lie in:
 In order to simplify partial evaluation rules we erase all of the type information before partial evaluation.
 This means that all functions become function values, type abstraction and application are complete eliminated.
 
-\begin{figure}
-
+\begin{figure}[H]
   \infrule[\textsc{PE-Func}]
-    {\pe{t}{t'}}
-    {\pe{x \ra t}{x \ra t'}}
+  {t \pe t'}
+  {x \ra t \pe x \ra t'}
 
   \infrule[\textsc{PE-Rec}]
-    {\pe{\seq{t}}{\seq{t'}}}
-    {\pe{\{ \seq{x = t} \}}{\{ \seq{x = t'} \}}}
+  {\seq{t} \pe \seq{t'}}
+  {\{ \seq{x = t} \} \pe \{ \seq{x = t'} \}}
 
-  \infrule[\textsc{PE-ISel}]
-    {\pe{t}{\inline{\{x = t_x,\ \seq{y = t_y}\}}} \ \ \ \pe{t_x}{t_x'}}
-    {\pe{t.x}{t_x'}}
-
-  \infrule[\textsc{PE-Inline}]
-    {\pe{t}{t'}}
-    {\pe{\inline{t}}{{\inline{t'}}}}
-
-  \infrule[\textsc{PE-Dynamic1}]
-    {\pe{t}{\inline{t'}}}
-    {\pe{\dynamic{t}}{{t'}}}
-
-  \infrule[\textsc{PE-Dynamic2}]
-    {\pe{t}{t'} \ \ \ t' \neq \inline{t''}}
-    {\pe{\dynamic{t}}{{\dynamic{t'}}}}
-
-  \infrule[\textsc{PE-Sel}]
-    {\pe{t}{t'} \ \ \ t' \neq \inline{\{x = t_x,\ \seq{y = t_y}\}}}
-    {\pe{t.x}{t'.x}}
+  \infrule[\textsc{PE-App}]
+  {t_1 \pe t_1' \ \ \ \ t_1' $ is not inline$ \ \ \ \ t_2 \pe t_2'}
+  {t_1(t_2) \pe t_1'(t_2')}
 
   \infrule[\textsc{PE-IApp}]
-    {\pe{t_1}{\inline{x \ra b}} \ \ \ \pe{t_2}{t'_2} \ \ \ \pe{[x \rightarrow t'_2] \; b}{b'} }
-    {\pe{t_1 (t_2)}{b'}}
-  \infrule[\textsc{PE-App}]
-    {\pe{t_1}{t'_1} \ \ \ \pe{t_2}{t'_2} \ \ \ t'_1 \neq \inline{x \ra b}}
-    {\pe{t_1 (t_2)}{t'_1 (t'_2)}}
+  {t_1 \pe \inline{x \ra t} \ \ \ \ t_2 \pe t_2' \ \ \ \ [x \mapsto t_2'] t \pe t'}
+  {t_1(t_2) \pe t'}
 
-\caption{Partial evaluation $\pe{t}{t'}$}
+  \infrule[\textsc{PE-Sel}]
+  {t \pe t' \ \ \ \ t' $ is not inline$}
+  {t.x \pe t'.x}
+
+  \infrule[\textsc{PE-ISel}]
+  {t \pe \inline{\{x = t_x,\ \seq{y = t_y}\}} \ \ \ \ t_x \pe t_x'}
+  {t.x \pe t_x'}
+
+  \infrule[\textsc{PE-Inline}]
+  {t $ is not literal$ \ \ \ \ t \pe t' \ \ \ \ t' \e v }
+  {\inline{t} \pe \inline{v}}
+\caption{Partial evaluation $t \pe t'$}
 \label{fig:partial-evaluation}
 \end{figure}
 
@@ -326,7 +311,7 @@ This means that all functions become function values, type abstraction and appli
 Once partial evaluation is complete we strip all binding-time terms and use regular untyped
 lambda calculus evaluation rules extended with lazy records.
 
-\begin{figure}
+\begin{figure}[H]
   \infax[\textsc{E-Value}]
   {v \e v}
 
@@ -348,5 +333,3 @@ lambda calculus evaluation rules extended with lazy records.
   \item Static terms are closed over statically bound variables.
   \item Inline terms will be replaced with canonical value of corresponding type after partial evaluation.
 \end{enumerate}
-
-\clearpage
