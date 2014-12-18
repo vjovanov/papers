@@ -56,36 +56,43 @@ One of the core assumptions of the calculus is that all \code{static} terms can
 \begin{figure}
 \begin{multicols}{2}[]
 
-  % \infrule[\textsc{I-Inline}]
-  %   {\Pi \ts \pe{t}{t'}}
-  %   {\Pi \ts \pe{\inline{t}}{{\inline{t'}}}}
-
-
-  \infrule[\textsc{I-TVar}]
+  \infrule[\textsc{CT-TVar}]
     {\Pi \ts T \in \Pi}
     {\Pi \ts \pe{iT}{iT}}
 
-  \infrule[\textsc{I-Rec}]
-    {\Pi \ts \pe{\seq{t}}{\seq{t'}}}
-    {\Pi \ts \pe{\{ \seq{x = t} \}}{\inline{\{ \seq{x = t'} \}}}}
-
-  \infrule[\textsc{I-T}]
+  \infrule[\textsc{CT-T-Var}]
     {\Pi \ts T \not\in \Pi}
     {\Pi \ts \pe{iT}{\inline{T}}}
 
 \end{multicols}
 \vspace{4pt}
 
-  \infrule[\textsc{I-Func}]
-    {\Pi \ts \pe{t}{t'} \ \ \ \ \Pi \ts \pe{iT}{jT}}
-    {\Pi \ts \pe{(x: iT) \ra t}{\inline{(x: jT) \ra t'}}}
+  \infrule[\textsc{CT-Rec}]
+    {\seq{\Pi \ts \pe{t}{t'}}}
+    {\Pi \ts \pe{\i\{ \seq{x = t} \}}{\inline{\{ \seq{x = t'} \}}}}
 
-  \infrule[\textsc{I-TAbs}]
+  \infrule[\textsc{CT-T-Rec}]
+    {\seq{\Pi \ts \pe{\i{T}}{\j{T}}}}
+    {\Pi \ts \pe{\{\seq{x : \i{T}}\}}{\inline{\{ \seq{x : \j{T}}}\}}}}
+
+  \infrule[\textsc{CT-T-Arrow}]
+    {\Pi \ts \pe{\i{T}}{\j{T}} \ \ \ \  \Pi \ts \pe{\k{S}}{\l{S}} }
+    {\Pi \ts \pe{\i{T} \Rightarrow \k{S}}{\j{T} \Rightarrow \l{S}}}
+
+  \infrule[\textsc{CT-T-Univ}]
+    {\Pi \ts \pe{\j{T}}{\k{T}}}
+    {\Pi \ts \pe{[X <: \i{S}] \ra \j{T}}{[X <: \i{S}] \ra \k{T}}}
+
+  \infrule[\textsc{CT-Func}]
+    {\Pi \ts \pe{t}{t'} \ \ \ \ \Pi \ts \pe{iT}{jT}}
+    {\Pi \ts \pe{\i(x: iT) \ra t}{\inline{(x: jT) \ra t'}}}
+
+  \infrule[\textsc{CT-TAbs}]
     {\Pi,\ X \ts \pe{t}{t'}}
     {\Pi \ts \pe{\i([X <: \j{T_1}] \ra t)}{\inline{([X <: \j{T_1}] \ra t'})}}
 
-  \infrule[\textsc{I-TApp}]
-    {\Pi \ts \pe{t}{t'} \ \ \ \ \Pi \ts \pe{iT}{jT}}
+  \infrule[\textsc{CT-TApp}]
+    {\Pi \ts \pe{t}{t'} \ \ \ \ \Pi \ts \pe{\i{T}}{\j{T}}}
     {\Pi \ts \pe{t[\i{T}]}{t'[\j{T}]}}
 
 \caption{Translation of a regular class to a compile-time version.}
