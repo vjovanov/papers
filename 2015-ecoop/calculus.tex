@@ -5,41 +5,44 @@
 \begin{figure}
 \begin{multicols}{2}
 \syntaxfig{
-  t ::=                             & \lindent{\mbox{Terms:}}            \\
-  \gap x, y                         & \mbox{identifier}                  \\
-  \gap (x: \i{T}) \ra t             & \mbox{function}                    \\
-  \gap t(t)                         & \mbox{application}                 \\
-  \gap \{ \seq{x = t} \}            & \mbox{record}                      \\
-  \gap t.x                          & \mbox{selection}                   \\
-  \gap \inline{t}                   & \mbox{}                            \\
-  \gap \dynamic{t}                  & \mbox{}                            \\
-  \gap [X <: \i{T}] \ra t           & \mbox{type abstraction}            \\
-  \gap t [\i{T}]                    & \mbox{type application}            \\
-  \Gamma ::=                        & \lindent{\mbox{Contexts:}}         \\
-  \gap \emptyset                    & \mbox{empty context}               \\
-  \gap \Gamma,\ x: iT               & \mbox{term binding}                \\
-  \gap \Gamma,\ X <: iT             & \mbox{type binding}                \\
+  t ::=                             & \lindent{\mbox{Terms:}}              \\
+  \gap x,\ y                        & \mbox{identifier}                    \\
+  \gap (x: \i{T}) \ra t             & \mbox{function}                      \\
+  \gap t(t)                         & \mbox{application}                   \\
+  \gap \{ \seq{x = t} \}            & \mbox{record}                        \\
+  \gap t.x                          & \mbox{selection}                     \\
+  \gap [X <: \i{T}] \ra t           & \mbox{type abstraction }             \\
+  \gap t [\i{T}]                    & \mbox{type application}              \\
+  \gap \inline{t}                   & \mbox{inline view}                   \\
+  \gap \dynamic{t}                  & \mbox{dynamic view}                  \\
+  v ::=                             & \lindent{\mbox{Values:}}             \\
+  \gap x \ra t                      & \mbox{function value}                \\
+  \gap \{ \seq{x = t} \}            & \mbox{record value}                  \\
 }
 \syntaxfig{
-  S,\ T,\ U ::=                     & \lindent{\mbox{Types:}}            \\
-  \gap \i{S} \ra \j{T}              & \mbox{function type}               \\
-  \gap \{ \seq{x: \i{S}} \}         & \mbox{record type}                 \\
-  \gap [X <: \i{S}] \ra \j{T}       & \mbox{universal type}              \\
-  \gap Any                          & \mbox{top type}                    \\
-  \i{T},\ \j{T},\ \k{T},\ \l{T} ::= & \lindent{\mbox{Inlineable Types:}} \\
-  \gap X                            & \mbox{type identifier}             \\
-  \gap T,\ \dynamic{T}              & \mbox{dynamic type}                \\
-  \gap \static{T}                   & \mbox{static type}                 \\
-  \gap \inline{T}                   & \mbox{must inline type}            \\
+  S,\ T,\ U ::=                     & \lindent{\mbox{Types:}}              \\
+  \gap \i{S} \ra \j{T}              & \mbox{function type}                 \\
+  \gap \{ \seq{x: \i{S}} \}         & \mbox{record type}                   \\
+  \gap [X <: \i{S}] \ra \j{T}       & \mbox{universal type}                \\
+  \gap Any                          & \mbox{top type}                      \\
+  \i{T},\ \j{T},\ \k{T},\ \l{T} ::= & \lindent{\mbox{Binding-Time Types:}} \\
+  \gap X                            & \mbox{type identifier}               \\
+  \gap T,\ \dynamic{T}              & \mbox{dynamic type}                  \\
+  \gap \static{T}                   & \mbox{static type}                   \\
+  \gap \inline{T}                   & \mbox{inline type}                   \\
+  \Gamma ::=                        & \lindent{\mbox{Contexts:}}           \\
+  \gap \emptyset                    & \mbox{empty context}                 \\
+  \gap \Gamma,\ x: iT               & \mbox{term binding}                  \\
+  \gap \Gamma,\ X <: iT             & \mbox{type binding}                  \\
 }
 \end{multicols}
 \caption{Syntax of $F_{i<:}$}
 \end{figure}
 
 We formalize the essence of our inlining system in a minimalistic calculus based
-on $F_{<:}$ with records. To accommodate inlining we introduce binding-time annotations
-into the type system as first-class type production rules that represent three kinds
-of bindings:
+on $F_{<:}$ with records. To accommodate predictable partial evaluation we introduce
+binding-time annotations into the type system as first-class types that represent
+three kinds of bindings:
 
 \begin{enumerate}
   \item \textbf{Dynamic binding}. These are the types which express computation at runtime.
@@ -82,6 +85,9 @@ on the other hand will return dynamic values despite the fact that record is sta
 In practice this can be used to specialize a particular execution path in the application to
 a particular representation by selectively inlining statically known parts.
 
+Once you have inline view of the term it's also possible to demote it back to runtime evaluation
+through $dynamic$ view.
+
 Not all type and binding time combinations are correct though. We restrict types
 to disallow nesting of more specific binding times into less specific ones.
 
@@ -106,7 +112,6 @@ to disallow nesting of more specific binding times into less specific ones.
 \end{figure}
 
 This restiction allows us to reject programs that have inconsistent annotations.
-
 For example the following function has incorrectly annotated parameter binding time:
 \begin{equation}\nonumber
     (x: \inline{Int}) \ra x + 1
@@ -123,7 +128,7 @@ Another notable feature of our binding-time analysis system is deep integration 
 We believe that such integration is crucial for an object-oriented language that wants to
 incorporate partial evaluation.
 
-At core of the subtyping relation we have a natural subtyping on binding-time information
+At core of the subtyping relation we have a subtyping relation on binding-time information
 with $dynamic$ as top binding-time.
 
 \begin{figure}[H]
@@ -184,8 +189,8 @@ augmented with standard record types.
 \caption{Subtyping.}
 \end{figure}
 
-Integration between binding-time information and subtyping on regular types is expressed through
-(\textsc{S-Inline}) rule that merges the two into one coherent relation.
+Integration between binding-time subtyping and subtyping on regular types is expressed through
+(\textsc{S-Inline}) rule that merges the two into one coherent relation on binding-time types.
 
 \subsection{Generics}
 
@@ -212,6 +217,9 @@ and augmented subtyping relation with subtyping
 
 \subsection{Typing}
 
+To enforce well-formedness of types in a context of partial evaluation we customize
+standard typing rules with additional constraints with respect to binding time.
+
 \begin{figure}[H]
 \begin{multicols}{2}
   \infrule[\textsc{T-Ident}]
@@ -234,7 +242,7 @@ and augmented subtyping relation with subtyping
   {t $ is not literal$ \ \ \ \ \Gamma \ts t: \static{T}}
   {\Gamma \ts \inline{t}: \inline{T}}
 
-  \infrule[\textsc{T-Inline}]
+  \infrule[\textsc{T-Dynamic}]
   {t $ is not literal$ \ \ \ \ \Gamma \ts t: \i{T}}
   {\Gamma \ts \dynamic{t}: \dynamic{T}}
 
@@ -257,8 +265,21 @@ and augmented subtyping relation with subtyping
 \caption{Typing.}
 \end{figure}
 
+The most significant changes lie in:
+\begin{itemize}
+  \item Additional checks in literal typing that ensure that constructed
+        values correspond to well-formed types (\textsc{T-Func, T-Rec, T-TAbs}).
+        To do this we typecheck literals together with possible binding-time term
+        that might enclose it.
+  \item New typing rules for binding-time views (\textsc{T-Inline, T-Dynamic}).
+        These rules only cover non-literal terms as composition of binding-time view
+        and literal itself is handled in corresponding typing rule for given literal.
+\end{itemize}
+
 \subsection{Partial Evaluation}
-Assumption is that types are erased and therefore there is no type abstraction or type application and there are no types in lambdas.
+
+In order to simplify partial evaluation rules we erase all of the type information before partial evaluation.
+This means that all functions become function values, type abstraction and application are complete eliminated.
 
 \begin{figure}
 \begin{multicols}{2}[]
@@ -303,5 +324,9 @@ Assumption is that types are erased and therefore there is no type abstraction o
 \caption{Reduction rules for the partial evaluator.}
 \label{fig:partial-evaluation}
 \end{figure}
+
+\subsection{Evaluation}
+Once partial evaluation is complete we strip all binding-time terms and use regular untyped
+lambda calculus evaluation rules to perform runtime evalution.
 
 \clearpage
