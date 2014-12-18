@@ -1,2 +1,45 @@
 \section{Translating Scala to the Core Calculus}
 \label{sct:scala-translation}
+
+% Description of the chapter
+
+The core calculus \sct{sct:formalization} captures the essence of user-controlled
+ predictable partial-evaluation. In practice, though, it requires an inconveniently large number
+ of \code{inline} calls. Moreover, the calculus does not provide a way to define
+ data structures that would correspond to \emph{classes} in modern multi-paradigm languages.
+ In this section we formalize convenient implicit conversions for the calculus \sct{sct:conversions}, a scheme for
+ translating classes into the calculus how to promote constructs classes and \emph{methods} into their
+ partially-evaluated versions \sct{sct:promotion}.
+
+% Restricted Language
+
+The core rules of the calculus do not support effect-full computations and each
+ \code{inline} term is trivially converted to a dynamic term after erasure.
+ In case of languages that do support mutable state and side-effects this needs to
+ be treated specially. For simplicity, we omit side-effects from our discussion and
+ assume that all partially evaluated code is side-effect free and that each
+ \code{inline} term can be converted to dynamic code.
+
+\subsection{Implicit Conversions}
+\label{sct:conversions}
+
+% Translated
+One of the core assumptions of the calculus is that all \code{static} terms can
+ always be promoted to \code{inline}. In case of function interfaces, e.g. the \code{dot} function in \sct{sct:introduction},
+ that user should not manually promote all arguments to \code{inline}. As a convenience for a library user
+ we provide a type-driven conversion by default (C-StaticInline in \figref{fig:conversions}).
+
+\begin{figure}
+
+  \infrule[\textsc{C-StaticInline}]
+    {\Gamma \ts t_1: \i{(\inline{T_1} \ra \k{T_2})} \ \ \ \ \Gamma \ts t_2: \static{T_1}}
+    {\Gamma \ts \pe{t_1 (t_2) : \k{T_2}}{t_1 (\inline{t_2}) : \k{T_2}}}
+
+\caption{Type-driven conversions from \code{static} terms to \code{inline} terms.}
+\label{fig:conversions}
+\end{figure}
+
+% Do not know how to achieve the second formula.
+\subsection{Making Object Oriented Constructs Partially Evaluated}
+\label{sct:promotion}
+
