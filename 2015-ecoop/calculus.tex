@@ -331,12 +331,12 @@ lambda calculus evaluation rules extended with lazy records.
   {v \e v}
 
   \infrule[\textsc{E-App}]
-  {t_1 \e x \ra t \ \ \ \ t_2 \e v \ \ \ \ [x \mapsto v] t \e t'}
-  {t_1(t_2) \e t'}
+  {t_1 \e x \ra t \ \ \ \ t_2 \e v \ \ \ \ [x \mapsto v] t \e v'}
+  {t_1(t_2) \e v'}
 
   \infrule[\textsc{E-Sel}]
-  {t \e \{ x = t_x,\ \seq{y = t_y}\} \ \ \ \ t_x \e t_x'}
-  {t.x \e t_x'}
+  {t \e \{ x = t_x,\ \seq{y = t_y}\} \ \ \ \ t_x \e v}
+  {t.x \e v}
 \caption{Evaluation $t \e v$}
 \end{figure}
 
