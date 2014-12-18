@@ -25,8 +25,9 @@ The core rules of the calculus do not support effect-full computations and each
 
 % Translated
 One of the core assumptions of the calculus is that all \code{static} terms can
- always be promoted to \code{inline}. In case of function interfaces, e.g. the \code{dot} function in \sct{sct:introduction},
- that user should not manually promote all arguments to \code{inline}. As a convenience for a library user
+ always be promoted to \code{inline}. In case of function interfaces, e.g. the
+ \code{dot} function in \sct{sct:introduction}, that user should not manually
+ promote all arguments to \code{inline}. As a convenience for a library user
  we provide a type-driven conversion by default (C-StaticInline in \figref{fig:conversions}).
 
 \begin{figure}
@@ -39,7 +40,54 @@ One of the core assumptions of the calculus is that all \code{static} terms can
 \label{fig:conversions}
 \end{figure}
 
-% Do not know how to achieve the second formula.
 \subsection{Making Object Oriented Constructs Partially Evaluated}
 \label{sct:promotion}
 
+\begin{figure}
+  $ [[ let\ x: T_x = t_x\ in\ t ]] = \\ $
+  $ ((x: T_x) \ra t)(t_x) \\ \\$
+  $ [[ let\ type\ T_1 = T_2\ in\ t ]] = \\ $
+  $ ([T_1 <: T_2] \ra t)[T_2] \\ \\ $
+  $ [[ let\ class\ C[A](x: T_x) \{ def\ f[B](y: T_y) = t_f \}\ in\ t ]] = \\ $
+  $ \ let\ type\  C = [A] \ra \{ x: T_x, f: [B] \ra T_y \ra T_f \}\ in \\ $
+  $ \ let\ C: [A] \ra (x: T_x) \ra C[A] = [A] \ra (x: T_x) \ra \{ x = x, f = [B] \ra (y: T_y) \ra t_f \}\ in\ t$
+\end{figure}
+
+\begin{figure}
+\begin{multicols}{2}[]
+
+  % \infrule[\textsc{I-Inline}]
+  %   {\Pi \ts \pe{t}{t'}}
+  %   {\Pi \ts \pe{\inline{t}}{{\inline{t'}}}}
+
+
+  \infrule[\textsc{I-TVar}]
+    {\Pi \ts T \in \Pi}
+    {\Pi \ts \pe{iT}{iT}}
+
+  \infrule[\textsc{I-Rec}]
+    {\Pi \ts \pe{\seq{t}}{\seq{t'}}}
+    {\Pi \ts \pe{\{ \seq{x = t} \}}{\inline{\{ \seq{x = t'} \}}}}
+
+  \infrule[\textsc{I-T}]
+    {\Pi \ts T \not\in \Pi}
+    {\Pi \ts \pe{iT}{\inline{T}}}
+
+\end{multicols}
+\vspace{4pt}
+
+  \infrule[\textsc{I-Func}]
+    {\Pi \ts \pe{t}{t'} \ \ \ \ \Pi \ts \pe{iT}{jT}}
+    {\Pi \ts \pe{(x: iT) \ra t}{\inline{(x: jT) \ra t'}}}
+
+  \infrule[\textsc{I-TAbs}]
+    {\Pi,\ X \ts \pe{t}{t'}}
+    {\Pi \ts \pe{\i([X <: \j{T_1}] \ra t)}{\inline{([X <: \j{T_1}] \ra t'})}}
+
+  \infrule[\textsc{I-TApp}]
+    {\Pi \ts \pe{t}{t'} \ \ \ \ \Pi \ts \pe{iT}{jT}}
+    {\Pi \ts \pe{t[\i{T}]}{t'[\j{T}]}}
+
+\caption{Translation of a regular class to a compile-time version.}
+\label{fig:partial-evaluation}
+\end{figure}
