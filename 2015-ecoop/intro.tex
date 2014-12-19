@@ -13,7 +13,7 @@ interpreters into compilers~\cite{futamura1999partial,lancet,wurthinger2013one}.
 Applying partial evaluation in these domains often improves program performance
 by several orders of magnitude~\cite{shali2011Hybrid,brady2010}.
 
-Unlike other compiler optimizations partial evaluation is not \emph{safe} as it
+Unlike other compiler optimizations partial evaluation is not \emph{safe}: it
  might lead to \emph{code explosion} and might not \emph{terminate}. Due to
  compile-time execution,  computing \code{fold}s and loops over data structures
  of static size can produce arbitrarily  large programs. Furthermore, in a
@@ -21,10 +21,11 @@ Unlike other compiler optimizations partial evaluation is not \emph{safe} as it
 
 Automatically assuring safety of partial evaluators necessarily leads to
  lack of \emph{predictability}. To illustrate, let us define a function
- \code{dot} for computing a dot-product of two vectors that contain numeric values
- \footnotetext{We use Scala for all code examples in this paper. In order to
+ \code{dot} for computing a dot-product of two vectors that contain numeric values\footnotemark[1].
+
+ \footnotetext[1]{We use Scala for all code examples in this paper. In order to
  comprehend the paper the reader is required to know the mere basics of the
- language}.
+ language}
 
 \vspace{1.8mm}
 \begin{listing}
@@ -60,7 +61,7 @@ Lack of predictability and danger of code explosion are the reason that
   vector parameters are static in size.
 
  \item Type-directed partial evaluation~\cite{danvy1999type} and
-  Lightweight Modular Staging~\cite{rompf2012lightweight} use types to communicate
+  Lightweight Modular Staging (LMS)~\cite{rompf2012lightweight} use types to communicate
   the programmer's intent about partial evaluation. By changing the types of parameters
   to be (\eg \code{Vector[Rep[T]]} these approaches can express that parameter vectors
   are statically known.However, they still require existence of two data structures
@@ -83,42 +84,64 @@ Ideally, a programmer would with a minimal number of annotations be able to:
   of vectors to be generic, and \emph{iv)} reuse the existing implementation of
   the \code{Vector} data structure.
 
-The main idea of this paper is to explicitly capture the user's intent about partial
-evaluation in the types. We annotate every type in the language with one of the three values:
+The main idea of this paper is to provide a statically typed \emph{compile-time
+ view} of existing data types. The compile-time view makes all operations and
+ non-generic fields partially evaluated on a type. The compile-time view allows
+ programmers to define a single definition of a type. Then the existing types
+ can be promoted to their compile-time duals with the \code{@ct} annotation at
+ the type level, and with the \code{ct} function on the term level.
+ Consequently, due to the integration with the type system, the control over
+ partial evaluation is fine-grained and polymorphic and term level promotions
+ obviate code duplication for static data structures.
 
-\begin{itemize}
- \item $dynamic$ signifies that the value of the type is not known at compile-time. In code $dynamic$ is represented as \code{@d}.
- \item $static$ signifies that the value is known at compile-time. In code $static$ is represented as \code{@s}.
- \item $inline$ requires that the type is statically known and guarantees that operations on the term will be partially evaluated. In code $inline$ is represented as \code{@i}.
-\end{itemize}
 
-With our partial evaluator, to require that vectors \code{v1} and \code{v2} are static and
-to partially evaluate the function, a programmer would need to make a simple modification of
-the \code{dot} signature:
+With our partial evaluator, to require that vectors \code{v1} and \code{v2} are
+ static and to partially evaluate the function, a programmer would need to make
+ a simple modification of the \code{dot} signature:
+
 \vspace{1.8mm}
 \begin{listing}
-  def dot[V: Numeric](v1: Vector[V] @i, v2: Vector[V] @i): V
+  def dot[V: Numeric](v1: Vector[V] @ct, v2: Vector[V] @ct): V
 \end{listing}
 \vspace{1.8mm}
-This, in effect, requires that only vector arguments (not their elements) are statically known and that all operations will be inlined and further partially evaluated. Residual programs of \code{dot} application in different cases are:
+
+This, in effect, requires that only vector arguments (not their elements) are
+ statically known and that all operations on vector arguments will be executed
+ at compile time (partially evaluated). Since, values are polymorphic the result
+ of the function will either be a dynamic value or a compile-time value. Residual
+ programs of \code{dot} application for different arguments:
 
 \vspace{1.8mm}
 \begin{listing}[mathescape]
   // [el1, el2, el3, el4] are dynamic
-  dot(Vector(el1, el2), Vector(el3, el4))
+  dot(ct(Vector)(el1, el2), ct(Vector)(el3, el4))
     $\hookrightarrow$ el1 * el3 + el2 * el4
 
-  dot(Vector(2, 4), Vector(1, 10))
+  dot(ct(Vector)(2, 4), ct(Vector)(1, 10))
     $\hookrightarrow$ 2 * 1 + 4 * 10
 
-  // inline promotes static terms into inline
-  dot(Vector(inline(2), inline(4)), Vector(inline(1), inline(10)))
+  // ct promotes static terms to compile-time
+  dot(ct(Vector)(ct(2), ct(4)), ct(Vector)(ct(1), ct(10)))
     $\hookrightarrow$ 42
 \end{listing}
 \vspace{1.8mm}
 
-Contributions:
+In this paper we make the following contributions to the state-of-the-art:
+\begin{itemize}
 
-Evaluation:
+ \item By introducing the \calculus calculus (\sct{sct:calculus}) that in a fine-
+ grained way captures the user's intent about partial evaluation. The calculus
+ is based on $F_{<:}$ with records which makes it suitable for representing
+ modern multi-paradigm languages. Finally, we formally define a partial
+ evaluator for \calculus.
 
-Sections:
+ \item By providing a translation scheme from data types in object oriented languages (polymorphic  classes and methods into the dual views in the \calculus calculus (\sct{sct:scala-translation}).
+
+ \item By demonstrating the usefulness of compile-time views in four case
+ studies (\sct{sct:case-studies}): partially evaluating recursion, removing
+ overheads of variable arguments functions, removing overheads of
+ type-classes~\cite{oliveira2010type}, and simulating value classes~\cite{value-classes}.
+
+\end{itemize}
+
+We have implemented a partial evaluator according to the \calculus calculus and the desugaring rules (\sct{sct:scala-translation}). The partial evaluator is implemented for Scala and open-sourced (\url{https://github.com/scala-inline/}). We have evaluated the performance gains and validity of the partial evaluator on all case studies (\sct{sct:case-studies}) and compared them to LMS. In all benchmarks our evaluator gives significant performance gains compared to original programs and performs equivalently to LMS.
