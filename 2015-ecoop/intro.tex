@@ -3,30 +3,29 @@
 
 \emph{Partial evaluation}~\cite{jones1993partial} is an optimization technique
 that identifies \emph{statically known} program parts and pre-computes them at
-compile time. Partial evaluation has been intensively studied and
-successfully applied: for removing abstraction overheads in high-level
-programs~\cite{carette2005multi,rompf2012lightweight}, for domain-specific
-languages~\cite{brady2010,jonnalagedda2014staged}, and for converting language
+compile time. The compile-time computation yields a \emph{residual program} that
+does not contain the, previously identified, statically known parts of the
+program.  Partial evaluation has been intensively studied and successfully
+applied for: removing abstraction overheads in high-level
+programs~\cite{carette2005multi,rompf2012lightweight}, domain-specific
+languages~\cite{brady2010,jonnalagedda2014staged}, and converting language
 interpreters into compilers~\cite{futamura1999partial,lancet,wurthinger2013one}.
 Applying partial evaluation in these domains often improves program performance
 by several orders of magnitude~\cite{shali2011Hybrid,brady2010}.
 
+Unlike other compiler optimizations partial evaluation is not \emph{safe} as it
+ might lead to \emph{code explosion} and might not \emph{terminate}. Due to
+ compile-time execution,  computing \code{fold}s and loops over data structures
+ of static size can produce arbitrarily  large programs. Furthermore, in a
+ Turing-complete language assuring termination is undecidable.
 
-To achieve \emph{predictable} and \emph{safe} partial evaluation, however, a
-partial evaluator must be instructed by the
-programmer~\cite{brady2010,le2004specialization}. Unlike other compiler
-optimizations, due to compile-time execution, partial evaluation might not
-\emph{terminate}. Furthermore, \emph{code explosion} is possible as the final
-program can be arbitrarily large due to compile-time execution. Lack of
-predictability and danger of code explosion are the reason that successful
-partial evaluators \cite{brady2010,taha_multi-stage_1997,rompf2012lightweight,wurthinger2013one}
-are programmer controlled.
+Automatically assuring safety of partial evaluators necessarily leads to
+ lack of \emph{predictability}. To illustrate, let us define a function
+ \code{dot} for computing a dot-product of two vectors that contain numeric values
+ \footnotetext{We use Scala for all code examples in this paper. In order to
+ comprehend the paper the reader is required to know the mere basics of the
+ language}.
 
-To show how programmers can control partial evaluation we define a function
-\code{dot} for computing a dot-product of two vectors that contain numeric
-values\footnotetext{We use Scala for all code examples in this paper. In order to
-comprehend the paper the reader is required to know the mere basics of the
-language}.
 \vspace{1.8mm}
 \begin{listing}
   def dot[V:Numeric](v1: Vector[V], v2: Vector[V]): V =
@@ -36,21 +35,54 @@ language}.
 \end{listing}
 \vspace{1.8mm}
 
-In order to remove the abstraction overhead of \code{zip} and \code{foldLeft} the partial evaluator
-must apply extensive analysis to conclude that vectors are static in size and
-that this can be later used to unroll the recursion inside \code{foldLeft}.
-Even if the analysis is successful the evaluator must be conservative about
-unrolling the \code{foldLeft} as vector sizes, and thus the produced code, can be
- very large. What if we know that vector sizes are relatively small and we would like to predictably unroll \code{dot}
- into a flat sum of products?
+When \code{dot} is called with vectors of static size (\eg \code{dot(Vector(2,
+ 4), Vector(1, 10))}) the abstraction overhead of \code{zip} and \code{foldLeft}
+ can be completely removed. However, the partial evaluator must apply extensive
+ analysis to conclude that vectors are static in size and that this can be later
+ used to unroll the recursion inside \code{foldLeft}. Even if the analysis is
+ successful the evaluator must be conservative about unrolling the
+ \code{foldLeft}. The vector sizes, and thus the produced code, can unacceptably
+ large in a general case. What if we know that vector sizes are relatively small
+ and we would like to predictably unroll \code{dot}  into a flat sum of products?
 
-Ideally, the programmer would with a minimal number of annotations be able to: \emph{i)} require
-that input vectors are of statically known size, \emph{ii)} require that all operations on
-vector arguments should be further partially evaluated, \emph{iii)} allow elements of
-vectors to be generic, and \emph{iv)} reuse the existing implementation of the \code{Vector} data structure.
 
-\todo{expand}
-The main idea of this paper is to explicitly capture the user intent about partial
+Lack of predictability and danger of code explosion are the reason that
+ successful partial evaluators
+ \cite{brady2010,taha_multi-stage_1997,rompf2012lightweight,wurthinger2013one,le2004specialization}
+  are programmer controlled. We categorize the existing solutions in three categories
+ (for further discussion \cf \sct{sct:related-work}):
+
+\begin{itemize}
+ \item Programming languages Idris and D provide allow placing the \code{static}
+  annotation on function arguments. Since \code{static} is placed on terms, it
+  denotes that the \emph{whole term} is static. This restricts the number of programs
+  that can be expressed, \eg, we could not express in the signature of \emph{dot} that
+  vector parameters are static in size.
+
+ \item Type-directed partial evaluation~\cite{danvy1999type} and
+  Lightweight Modular Staging~\cite{rompf2012lightweight} use types to communicate
+  the programmer's intent about partial evaluation. By changing the types of parameters
+  to be (\eg \code{Vector[Rep[T]]) these approaches can express that parameter vectors
+  are statically known.However, they still require existence of two data structures
+  (\eg \code{Rep[Vector]} and \code{Vector}. This fosters, costly and hardly maintainable, code duplication.
+
+ \item MetaOCaml~\cite{taha_multi-stage_1997} places terms in, possibly nested,
+   quotes. Depth of the term in the quotes denotes the stage of the computation
+   where it will be executed. In MetaOCaml we can express the \code{dot} function,
+   but we have to modify the code of the \code{dot} function which might not be desirable.
+\end{itemize}
+
+
+% To show how programmers can control partial evaluation we
+
+Ideally, a programmer would with a minimal number of annotations be able to:
+ \emph{i)} require that input vectors are of statically known size but polymorphic
+  in their elements, \emph{ii)} without modifying the terms require that all operations
+  on vector arguments are further partially evaluated, \emph{iii)} allow elements
+  of vectors to be generic, and \emph{iv)} reuse the existing implementation of
+  the \code{Vector} data structure.
+
+The main idea of this paper is to explicitly capture the user's intent about partial
 evaluation in the types. We annotate every type in the language with one of the three values:
 \begin{itemize}
  \item $dynamic$ signifies that the value of the type is not known at compile-time. In code $dynamic$ is represented as \code{@d}.
@@ -82,13 +114,6 @@ This, in effect, requires that only vector arguments (not their elements) are st
     $\hookrightarrow$ 42
 \end{listing}
 \vspace{1.8mm}
-
-Predictable partial evaluation has been a goal of many projects (\sct{sct:related-work}) which can be roughly categorized into following categories:
-\begin{itemize}
-\item Programming languages Idris and D provide annotations \code{static} that can be placed on function arguments. In these systems static parameters are required to be deeply static and, thus, the \code{dot} function could not be expressed.
-\item Type-directed partial evaluation~\cite{danvy1999type} and LMS~\cite{rompf2012lightweight} use types to communicate the programmers intent about partial evaluation and, thus, can express \code{dot} function. These approaches, however, require the programmer to implement two versions of \code{Vector} and other operations. This fosters, costly and hardly maintainable, code duplication.
-\item MetaOCaml~\cite{taha_multi-stage_1997}
-\end{itemize}
 
 Contributions:
 
