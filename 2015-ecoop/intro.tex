@@ -62,7 +62,7 @@ Lack of predictability and danger of code explosion are the reason that
  \item Type-directed partial evaluation~\cite{danvy1999type} and
   Lightweight Modular Staging~\cite{rompf2012lightweight} use types to communicate
   the programmer's intent about partial evaluation. By changing the types of parameters
-  to be (\eg \code{Vector[Rep[T]]) these approaches can express that parameter vectors
+  to be (\eg \code{Vector[Rep[T]]} these approaches can express that parameter vectors
   are statically known.However, they still require existence of two data structures
   (\eg \code{Rep[Vector]} and \code{Vector}. This fosters, costly and hardly maintainable, code duplication.
 
@@ -70,6 +70,7 @@ Lack of predictability and danger of code explosion are the reason that
    quotes. Depth of the term in the quotes denotes the stage of the computation
    where it will be executed. In MetaOCaml we can express the \code{dot} function,
    but we have to modify the code of the \code{dot} function which might not be desirable.
+
 \end{itemize}
 
 
@@ -84,6 +85,7 @@ Ideally, a programmer would with a minimal number of annotations be able to:
 
 The main idea of this paper is to explicitly capture the user's intent about partial
 evaluation in the types. We annotate every type in the language with one of the three values:
+
 \begin{itemize}
  \item $dynamic$ signifies that the value of the type is not known at compile-time. In code $dynamic$ is represented as \code{@d}.
  \item $static$ signifies that the value is known at compile-time. In code $static$ is represented as \code{@s}.
