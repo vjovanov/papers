@@ -14,11 +14,13 @@ annotations \code{inline} and \code{ct} and the \code{ct} function.
 \begin{figure}
 \begin{listing}
 package object scalainline {
+
   final class ct extends StaticAnnotation
+  final class inline extends StaticAnnotation
 
   @compileTimeOnly def ct[T](body: => T): T = ???
+  @compileTimeOnly def inline[T](body: => T): T = ???
 
-  final class inline extends StaticAnnotation
 }
 \end{listing}
 \label{fig:interface}
@@ -59,7 +61,7 @@ package object scalainline {
  at compile-time. However, the return type of the function \code{map} can still be
  a compile-time view - due to the type parameter \code{U}.
 
-\smartparagraph{Function ct} is used at the term level for promoting Scala objects
+\smartparagraph{Functions \code{ct} and \code{inline}} is used at the term level for promoting Scala objects
  and functions into their compile-time views. Without \code{ct} we would not be able
  to instantiate compile-time views of the types. \tabref{tbl:ct-type} shows how
  different types of terms are promoted to their compile-time views.
@@ -74,14 +76,22 @@ package object scalainline {
   Promoted Term        \quad \quad \quad & Term's Promoted Type             \\
   \code{ct(Vector)(1, 2, 3)            } & \code{: Vector[Int]@ct        }  \\
   \code{ct(Vector)(ct(1), ct(2), ct(3))} & \code{: Vector[Int@ct]@ct     }  \\
-  \code{ct((x: Int) => x)              } & \code{: (Int => Int)@ct       }  \\
-  \code{ct((x: Int@ct) => x)           } & \code{: (Int@ct => Int@ct)@ct }  \\
   \code{new (Cons@ct)(1, Nil)          } & \code{: Cons[Int]@ct          }  \\
   \code{new (Cons@ct)(ct(1), ct(Nil))  } & \code{: Cons[Int@ct]@ct       }  \\
+  \code{ct((x: Int) => x)              } & \code{: (Int@ct => Int@ct)@ct   }  \\
+  \code{inline((x: Int) => x)       } & \code{: (Int => Int)@ct }  \\
 
 \bottomrule
 \end{tabularx}
 \end{table}
+
+\todo{footnote about Scala objects}
+\todo{static promotion of lambdas}
+Function \code{ct} can be applied to objects (\eg \code{Vector}) to provide a compile-time
+ view over their methods. When those objects have generic parameters, \code{ct} be used
+ to promote the arguments, and thus, the result types of these functions. When applied,
+ on functions \code{ct} promotes the compile-time view as well as its arguments
+ and the return type. \todo{inline}
 
 \smartparagraph{Annotation inline} can be used only on methods and functions. This function
 uses partial evaluation to achieve inlining\todo{cite}. This is not the first time that
