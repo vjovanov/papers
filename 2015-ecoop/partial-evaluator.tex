@@ -1,15 +1,15 @@
 \section{The Partial Evaluator for Scala}
 \label{sct:interface}
 
-\todo{cite github}
-We have implemented a prototype partial evaluator \sct{sct:partial-evaluation} and
- the desugaring \sct{sct:scala-translation} for the Scala language. The partial evaluator
- is a compiler plugin that executes in a phase after the Scala type checker. The plugin starts
- with pre-typed Scala programs and uses a type annotations \todo{cite} to track and verify
- information about the biding-time of terms.
+We have implemented a prototype partial evaluator, formally defined in \sct{sct:partial-evaluation}, and
+ according to the \calculus calculus (formally define in \sct{sct:calculus}).
+ The partial evaluator is a compiler plugin that executes in a phase after the
+ Scala type checker. The plugin starts with pre-typed Scala programs and uses a
+ type annotations \todo{cite} to track and verify information about the biding-time
+ of terms.
 
 To the user, the partial evaluator exposes a minimal interface (\figref{fig:interface}) with
-\code{inline} and \code{ct} annotations and the \code{ct} function.
+annotations \code{inline} and \code{ct} and the \code{ct} function.
 
 \begin{figure}
 \begin{listing}
@@ -25,12 +25,12 @@ package object scalainline {
 \caption{Interface of the Scala partial evaluator.}
 \end{figure}
 
-Annotation \code{@ct} is used at the type level and denotes that one expects a
+\smartparagraph{Annotation ct} is used at the type level and denotes that one expects a
  compile-time view of a type. The annotation is integrated in the Scala's type system
  and, therefore, can be arbitrarily nested in different variants of types. Table
  \ref{tbl:ct-type} shows how the \code{@ct} annotation can be placed on types
  and how it, due to the translation to the compile-time views (\figref{ct-translation}),
- changes method signature.
+ changes method signatures.
 
 \begin{table}[h]
 \caption{Types and corresponding method signatures after the translation to the compile-time view.}
@@ -49,23 +49,20 @@ Annotation \code{@ct} is used at the type level and denotes that one expects a
 \bottomrule
 \end{tabularx}
 \end{table}
-
-In \tabref{tbl:ct-type}, \code{Int@ct} is a non-polymorphic type and therefore
+ In \tabref{tbl:ct-type}, \code{Int@ct} is a non-polymorphic type and therefore
  according to the translation to the compile-time view (\ref{fig:ct-translation})
- all arguments of all methods will be compile-time. On the other hand, \code{Vector[Int]@ct} will
- have all arguments of all methods transformed except the generic ones. Function \code{f}
- passed to \code{map} accepts a dynamic value as input.
+ all arguments of all methods will be executed at compile-time. On the other hand,
+ \code{Vector[Int]@ct} will have all arguments of all methods transformed except
+ the generic ones. In effect, this, makes higher order combinators of \code{Vector}
+ operate on dynamic values, thus, function \code{f} passed to \code{map} accepts
+ the dynamic value as input. Type \code{Vector[Int@ct]@ct} is has all parts executed
+ at compile-time. However, the return type of the function \code{map} can still be
+ a compile-time view - due to the type parameter \code{U}.
 
-\begin{lstparagraph}
-& All operations on Int executed at compile-time.
-& \code{map} executed at compile-time, over dynamic values.
-& Length is executed at compile-time; result is compile-time.
-& \code{map} executed at compile-time over compile-time values. The result can still be both dynamic and @ct.
-& Map
-\end{lstparagraph}
-
-Method \code{ct} is used at the term level for promoting Scala objects and functions into
- their compile-time views.
+\smartparagraph{Function ct} is used at the term level for promoting Scala objects
+ and functions into their compile-time views. Without \code{ct} we would not be able
+ to instantiate compile-time views of the types. \tabref{tbl:ct-type} shows how
+ different types of terms are promoted to their compile-time views.
 
 \begin{table}[h]
 \caption{Types and corresponding method signatures after the translation to the compile-time view.}
@@ -86,11 +83,7 @@ Method \code{ct} is used at the term level for promoting Scala objects and funct
 \end{tabularx}
 \end{table}
 
- \begin{lstparagraph}
-
-\end{lstparagraph}
-
-Annotation \code{@inline} can be used only on methods and functions. This function
+\smartparagraph{Annotation inline} can be used only on methods and functions. This function
 uses partial evaluation to achieve inlining\todo{cite}. This is not the first time that
 inlining is achieved through partial evaluation\todo{cite}, however, partial evaluation is
 trivially added to the system. It directly corresponds to adding \code{inline} from
