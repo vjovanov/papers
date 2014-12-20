@@ -39,16 +39,23 @@ Annotation \code{@ct} is used at the type level and denotes that one expects a
 \begin{tabularx}{\linewidth}{ X X X }
 \toprule
 
-  Type                     \quad \quad \quad & Method Signatures                                   &  \\
-  \code{Int@ct}           \quad \quad \quad & \code{+(rhs: Int @ct): Int@ct}                       &  \\
+  Annotated Type             \quad \quad \quad & Type's Method Signatures                          &  \\
+  \code{Int@ct}              \quad \quad \quad & \code{+(rhs: Int@ct): Int@ct}                     &  \\
   \code{Vector[Int]@ct}      \quad \quad \quad & \code{map[U](f: (Int => U)@ct): Vector[U]@ct}     &  \\
-                           \quad \quad \quad & \code{length: Int@ct}                               &  \\
+                             \quad \quad \quad & \code{length: Int@ct}                             &  \\
   \code{Vector[Int@ct]@ct}   \quad \quad \quad & \code{map[U](f: (Int@ct => U)@ct): Vector[U]@ct}  &  \\
-  \code{Map[Int@ct, Int]@ct} \quad \quad \quad & \code{get(key: Int): Int@ct}                      &  \\
+  \code{Map[Int@ct, Int]@ct} \quad \quad \quad & \code{get(key: Int@ct): Option[Int]@ct}           &  \\
 
 \bottomrule
 \end{tabularx}
 \end{table}
+
+In \tabref{tbl:ct-type}, \code{Int@ct} is a non-polymorphic type and therefore
+ according to the translation to the compile-time view (\ref{fig:ct-translation})
+ all arguments of all methods will be compile-time. On the other hand, \code{Vector[Int]@ct} will
+ have all arguments of all methods transformed except the generic ones. Function \code{f}
+ passed to \code{map} accepts a dynamic value as input.
+
 \begin{lstparagraph}
 & All operations on Int executed at compile-time.
 & \code{map} executed at compile-time, over dynamic values.
@@ -58,8 +65,29 @@ Annotation \code{@ct} is used at the type level and denotes that one expects a
 \end{lstparagraph}
 
 Method \code{ct} is used at the term level for promoting Scala objects and functions into
- their compile-time views. For example:\begin{lstparagraph}
-  ct(Vector)(1, 2, 3) : List[]@ct
+ their compile-time views.
+
+\begin{table}[h]
+\caption{Types and corresponding method signatures after the translation to the compile-time view.}
+\label{tbl:ct-type}
+\centering
+\begin{tabularx}{\linewidth}{ X X }
+\toprule
+
+  Promoted Term        \quad \quad \quad & Term's Promoted Type             \\
+  \code{ct(Vector)(1, 2, 3)            } & \code{: Vector[Int]@ct        }  \\
+  \code{ct(Vector)(ct(1), ct(2), ct(3))} & \code{: Vector[Int@ct]@ct     }  \\
+  \code{ct((x: Int) => x)              } & \code{: (Int => Int)@ct       }  \\
+  \code{ct((x: Int@ct) => x)           } & \code{: (Int@ct => Int@ct)@ct }  \\
+  \code{new (Cons@ct)(1, Nil)          } & \code{: Cons[Int]@ct          }  \\
+  \code{new (Cons@ct)(ct(1), ct(Nil))  } & \code{: Cons[Int@ct]@ct       }  \\
+
+\bottomrule
+\end{tabularx}
+\end{table}
+
+ \begin{lstparagraph}
+
 \end{lstparagraph}
 
 Annotation \code{@inline} can be used only on methods and functions. This function
