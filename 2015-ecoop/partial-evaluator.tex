@@ -6,23 +6,66 @@ We have implemented a prototype partial evaluator \sct{sct:partial-evaluation} a
  the desugaring \sct{sct:scala-translation} for the Scala language. The partial evaluator
  is a compiler plugin that executes in a phase after the Scala type checker. The plugin starts
  with pre-typed Scala programs and uses a type annotations \todo{cite} to track and verify
- information about the biding time of terms.
+ information about the biding-time of terms.
 
-To the user the partial evaluator exposes a minimal interface (\figref{fig:interface}) consisting of
+To the user, the partial evaluator exposes a minimal interface (\figref{fig:interface}) with
 \code{inline} and \code{ct} annotations and the \code{ct} function.
 
 \begin{figure}
 \begin{listing}
 package object scalainline {
+  final class ct extends StaticAnnotation
+
   @compileTimeOnly def ct[T](body: => T): T = ???
 
-  protected class dynamic extends StaticAnnotation
-
   final class inline extends StaticAnnotation
-
-  final class ct extends dynamic
 }
 \end{listing}
 \label{fig:interface}
 \caption{Interface of the Scala partial evaluator.}
 \end{figure}
+
+Annotation \code{@ct} is used at the type level and denotes that one expects a
+ compile-time view of a type. The annotation is integrated in the Scala's type system
+ and, therefore, can be arbitrarily nested in different variants of types. Table
+ \ref{tbl:ct-type} shows how the \code{@ct} annotation can be placed on types
+ and how it, due to the translation to the compile-time views (\figref{ct-translation}),
+ changes method signature.
+
+\begin{table}[h]
+\caption{Types and corresponding method signatures after the translation to the compile-time view.}
+\label{tbl:ct-type}
+\centering
+\begin{tabularx}{\linewidth}{ X X X }
+\toprule
+
+  Type                     \quad \quad \quad & Method Signatures                                   &  \\
+  \code{Int@ct}           \quad \quad \quad & \code{+(rhs: Int @ct): Int@ct}                       &  \\
+  \code{Vector[Int]@ct}      \quad \quad \quad & \code{map[U](f: (Int => U)@ct): Vector[U]@ct}     &  \\
+                           \quad \quad \quad & \code{length: Int@ct}                               &  \\
+  \code{Vector[Int@ct]@ct}   \quad \quad \quad & \code{map[U](f: (Int@ct => U)@ct): Vector[U]@ct}  &  \\
+  \code{Map[Int@ct, Int]@ct} \quad \quad \quad & \code{get(key: Int): Int@ct}                      &  \\
+
+\bottomrule
+\end{tabularx}
+\end{table}
+\begin{lstparagraph}
+& All operations on Int executed at compile-time.
+& \code{map} executed at compile-time, over dynamic values.
+& Length is executed at compile-time; result is compile-time.
+& \code{map} executed at compile-time over compile-time values. The result can still be both dynamic and @ct.
+& Map
+\end{lstparagraph}
+
+Method \code{ct} is used at the term level for promoting Scala objects and functions into
+ their compile-time views. For example:\begin{lstparagraph}
+  ct(Vector)(1, 2, 3) : List[]@ct
+\end{lstparagraph}
+
+Annotation \code{@inline} can be used only on methods and functions. This function
+uses partial evaluation to achieve inlining\todo{cite}. This is not the first time that
+inlining is achieved through partial evaluation\todo{cite}, however, partial evaluation is
+trivially added to the system. It directly corresponds to adding \code{inline} from
+\calculus in front of the function or method definition.
+
+\subsection{Interaction with the Scala Language}

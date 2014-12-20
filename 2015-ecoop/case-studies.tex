@@ -16,13 +16,10 @@ In this section we present selected use-cases for compile-time views that demons
 
 The canonical example in partial evaluation is the computation of the integer power
  function:
-
 \begin{lstparagraph}
 def pow(base: Double, exp: Int): Double =
   if (exp == 0) 1 else base * pow(base, exp)
-\end{lstparagraph}
-
-When the exponent (\code{exp}) is statically known this function can be partially
+\end{lstparagraph} When the exponent (\code{exp}) is statically known this function can be partially
 evaluated into \code{exp} multiplications of the \code{base} argument, significantly
 improving performance~\cite{}.
 
@@ -115,13 +112,10 @@ class DoubleNumeric[T <: Double] extends Numeric[Double] {
   @inline def times(x: T, y: T): T = x * y
   @inline def zero: T = 0.0
 }
-
 \end{listing}
 \caption{\label{fig:numeric} Function for computing the non-negative power of a real number.}
 \end{figure}
 
-
-With compile-time views we
 
 \subsection{Dot Product}
 \label{sct:dot-product}
@@ -130,5 +124,4 @@ With compile-time views we
   are @i? and how they will completely evaluate if they are passed a static value.
   \item Comparison to other approaches.
 \end{itemize}
-
 
