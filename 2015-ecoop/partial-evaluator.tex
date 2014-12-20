@@ -1,0 +1,28 @@
+\section{The Partial Evaluator for Scala}
+\label{sct:interface}
+
+\todo{cite github}
+We have implemented a prototype partial evaluator \sct{sct:partial-evaluation} and
+ the desugaring \sct{sct:scala-translation} for the Scala language. The partial evaluator
+ is a compiler plugin that executes in a phase after the Scala type checker. The plugin starts
+ with pre-typed Scala programs and uses a type annotations \todo{cite} to track and verify
+ information about the biding time of terms.
+
+To the user the partial evaluator exposes a minimal interface (\figref{fig:interface}) consisting of
+\code{inline} and \code{ct} annotations and the \code{ct} function.
+
+\begin{figure}
+\begin{listing}
+package object scalainline {
+  @compileTimeOnly def ct[T](body: => T): T = ???
+
+  protected class dynamic extends StaticAnnotation
+
+  final class inline extends StaticAnnotation
+
+  final class ct extends dynamic
+}
+\end{listing}
+\label{fig:interface}
+\caption{Interface of the Scala partial evaluator.}
+\end{figure}

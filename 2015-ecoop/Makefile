@@ -10,6 +10,7 @@ TEX_SRCS=\
 	intro.tex \
 	calculus.tex \
   scala-translation.tex \
+  partial-evaluator.tex \
   case-studies.tex \
   evaluation.tex \
   related.tex \
