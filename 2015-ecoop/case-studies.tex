@@ -8,57 +8,120 @@ In this section we present selected use-cases for compile-time views that demons
  the abstraction overhead of the \code{dot} function and all associated type-classes
  can be removed (\sct{sct:dot-product}).
 
+\subsection{Inlining Expressed Through Partial-Evaluation}
+\label{sct:inlining}
+
 \subsection{Recursion}
 \label{sct:recursion}
 
 The canonical example in partial evaluation is the computation of the integer power
  function:
 
-\begin{listing}
+\begin{lstparagraph}
 def pow(base: Double, exp: Int): Double =
   if (exp == 0) 1 else base * pow(base, exp)
-\end{listing}
+\end{lstparagraph}
 
 When the exponent (\code{exp}) is statically known this function can be partially
 evaluated into \code{exp} multiplications of the \code{base} argument, significantly
 improving performance~\cite{}.
 
-With compile-time views making \code{pow} partially evaluated requires adding two annotations:
 
-\begin{listing}
+With compile-time views making\code{pow} partially evaluated requires adding two annotations:
+
+\begin{lstparagraph}
 @inline def pow(base: Double, exp: Int @ct): Double =
   if (exp == 0) 1 else base * pow(base, exp)
-\end{listing}
+\end{lstparagraph}
 
-\code{@inline} denotes that the \code{pow} function it self must be inline and
- \code{@ct} requires that the \code{exp} argument is a compile-time view of \code{Int}.
+\code{@inline} denotes that the \code{pow} function it self must be inlined at application
+ and \code{@ct} requires that the \code{exp} argument is a compile-time view of \code{Int}.
+ The application of the function \code{pow} with a constant exponent will produce:
+
+\begin{lstparagraph}
+pow(base, 4)
+  $\hookrightarrow$ base * base * base * base * 1
+\end{lstparagraph}
+
+Here, in the function application, constant 4 is promoted to \code{ct} by the automatic
+conversions. \todo{ref}
 
 \subsection{Variable Argument Functions}
 \label{sct:varargs}
 
-\begin{itemize}
-  \item \code{@i?} in argument position is a macro that expands the function to an underlying function \code{@i? def min_underlying[T: Numeric](values:Seq[T]@i?): T} and a macro that will call it according to the input parameters.
-  \item Comparison to other approaches.
-\end{itemize}
+% Variable argument functions
+Variable argument functions appear in widely used languages like Java, C\#, and Scala.
+ Such arguments are typically passed in the function body inside of the data structure
+ (\eg \code{Seq[T]} in Scala). When applied with variable arguments the size of the
+ data-structure is statically known and all operations on them can be partially
+ evaluated. However, sometimes, the function is called with arguments of dynamic size.
+ For example, function \code{min} that accepts multiple integers\begin{lstparagraph}
+def min(vs: Int*): Int =
+  vs.tail.foldLeft(vs.head){ (min, el) => if (el < min) el else min }
+\end{lstparagraph}can be called either with statically known arguments
+ (\eg \code{min(1,2)}) or with dynamic arguments:\begin{lstparagraph}
+val values: Seq[Int] = ... // dynamic value
+min(values: _*)
+\end{lstparagraph}
+
+Ideally, we would be able to achieve partial evaluation if the arguments are of statically
+known size and avoid partial evaluation in case of dynamic arguments. To this end we translate
+the method \code{min} into a partially evaluated version and a dynamic version. The call to these
+methods is dispatched, at compile-time, by the \code{min} method which checks if
+arguments are statically known. Desugaring of \code{min} is shown in \figref{fig:min}.
 
 \begin{figure}
 \begin{listing}
-def min[T: Numeric](@ct values:T*): T =
-  values.tail.foldLeft(values.head)((min, el) => if (el < min) el else min)
+def min(vs: Int*): Int = macro
+  if (isVarargs(vs)) q"min_CT(vs)"
+  else q"min_D(vs)"
+
+def min_CT(vs: Seq[Int] @ct): Int =
+  vs.tail.foldLeft(vs.head){ (min, el) => if (el < min) el else min }
+def min_D(vs: Seq[Int]): Int =
+  vs.tail.foldLeft(vs.head){ (min, el) => if (el < min) el else min }
 \end{listing}
-\caption{\label{lst:vector_deep_ir} Function for computing the non-negative power of a real number.}
+\caption{Function \code{min} is desugared into a \code{min} macro that based on the
+binding time of the arguments dispatches to the partially evaluated version (\code{min_CT})
+for statically known varargs or to the original min function for dynamic arguments \code{min_D}.}
+\label{fig:min}
+\end{figure}
+
+\subsection{Removing Abstraction Overhead of Type-Classes}
+\label{sct:type-classes-removal}
+\todo{not-sure how to achieve this!}
+\todo{cite}
+Type-classes are omnipresent in everyday programming as they provide allow abstraction over
+ generic parameters (\eg Numeric abstracts over numeric values). Unfortunately,
+ type-classes are a source of abstraction overheads during execution\todo{cite}. Type-classes
+ are in most of the cases statically known. Ideally, we would be able to
+ deterministically remove abstraction overheads of type classes.
+
+\begin{figure}
+\begin{listing}
+object Numeric {
+  @inline implicit def dnum: Numeric[Double] = DoubleNumeric
+  @inline def zero[T](implicit num: Numeric[T]): T = num.zero
+}
+
+trait Numeric[T] {
+  def plus(x: T, y: T): T
+  def times(x: T, y: T): T
+  def zero: T
+}
+
+class DoubleNumeric[T <: Double] extends Numeric[Double] {
+  @inline def plus(x: T, y: T): T = x + y
+  @inline def times(x: T, y: T): T = x * y
+  @inline def zero: T = 0.0
+}
+
+\end{listing}
+\caption{\label{fig:numeric} Function for computing the non-negative power of a real number.}
 \end{figure}
 
 
-
-\subsection{Inline Classes: Butterfly Networks}
-\begin{itemize}
-  \item Reference LMS. Discuss @i! annotation on classes. Works for both dynamic and static inputs.
-  \item Comparison to LMS. Mention a pervasive number of annotations. Discuss duality of Exp[T] and @i!.
-\end{itemize}
-
-
-
+With compile-time views we
 
 \subsection{Dot Product}
 \label{sct:dot-product}
@@ -69,31 +132,3 @@ def min[T: Numeric](@ct values:T*): T =
 \end{itemize}
 
 
-\begin{figure}
-\begin{listing}
-object Numeric {
-  @i! implicit def dnum: Numeric[Double] @i! = DoubleNumeric
-  @i! def zero[T](implicit num: Numeric[T]): T = num.zero
-  object Implicits {
-    @i! implicit def infixNumericOps[T](x: T)(implicit num: Numeric[T]): Numeric[T]#Ops = new num.Ops(x)
-  }
-}
-trait Numeric[T] {
-  def plus(x: T, y: T): T
-  def times(x: T, y: T): T
-  def zero: T
-
-  @i! class Ops(lhs: T) {
-    @i! def +(rhs: T) = plus(lhs, rhs)
-    @i! def *(rhs: T) = times(lhs, rhs)
-  }
-}
-
-object DoubleNumeric extends Numeric[Double] {
-  @i! def plus(x: Double @i?, y: Double @i?): Double = x + y
-  @i! def times(x: Double @i?, y: Double @i?): Double = x * y
-  @i! def zero: Double = 0.0
-}
-\end{listing}
-\caption{\label{lst:vector_deep_ir} Function for computing the non-negative power of a real number.}
-\end{figure}
