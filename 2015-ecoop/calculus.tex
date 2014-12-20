@@ -38,7 +38,7 @@
 \end{figure}
 
 We formalize the essence of our partial evaluation system in a minimalistic calculus
-based on $F_{<:}$ with lazy records. To accommodate predictable partial evaluation we
+based on kernel \fsub \cite{tapl} with lazy records. To accommodate predictable partial evaluation we
 introduce binding-time annotations into the type system as types that
 represent two kinds of bindings:
 
@@ -158,7 +158,7 @@ subtypes and if they have the same binding time.
 
 \subsection{Type polymorphism}
 
-Our system retains traditional type abstraction means inherited from $F_{<:}$.
+Our system retains traditional type abstraction means inherited from \fsub.
 We extend it to accomodate encoding of binding-times into types. This allows
 us to specify binding type of the abstracted generic type:
 \begin{equation}\nonumber
@@ -267,7 +267,7 @@ user have well-formed types.
 
 Once partial evaluation is complete we strip all binding-time annotations on types
 and convert inline terms into corresponding dynamic ones. After that we can use
-standard $F_{<:}$ evaluation rules augmented with lazy records semantics (\textsc{E-Sel}).
+standard \fsub evaluation rules augmented with lazy records semantics (\textsc{E-Sel}).
 
 \begin{figure}[H]
   \infax[\textsc{E-Value}]
