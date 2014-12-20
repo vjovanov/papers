@@ -117,7 +117,7 @@ Furthermore, rules of \calculus do not support effect-full computations and each
 
 \caption{Translation of a type abstractions, function, and record values into a compile-time view. The translation
  is used for promoting types into their compile time versions.}
-\label{fig:partial-evaluation}
+\label{fig:ct-translation}
 \end{figure}
 
 \subsection{Implicit Conversions}
@@ -131,7 +131,7 @@ According to \calculus rules if method signatures contain compile-time views of 
  affect user code - users should not be aware of the internal operation of the library.
 
 To address this issue we introduce implicit conversions from all language literals, and
- straight class constructor calls of non-inline type into their compile-time views.
+ direct class constructor calls of non-inline type into their compile-time views.
  For example, for a factorial function \begin{lstparagraph}
 def fact(n: Int @ct) = if (n == 0) 1 else fact(n - 1)
  \end{lstparagraph} we will not require annotations on literals \code{0}, and \code{1}. Furthermore,
