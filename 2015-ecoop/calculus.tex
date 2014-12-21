@@ -27,7 +27,7 @@ t\clearpage
   \gap t(t)                         & \mbox{application}                   \\
   \gap t.x                          & \mbox{selection}                     \\
   \gap t [\i{T}]                    & \mbox{type application}              \\
-  \i{v} ::=                         & \mbox{Literals}                      \\
+  \i{v} ::=                         & \mbox{Literals:}                     \\
   \gap v                            & \mbox{dynamic literal}               \\
   \gap \inline{v}                   & \mbox{inline literal}                \\
   v ::=                             & \lindent{\mbox{Values:}}             \\
@@ -71,7 +71,7 @@ into less specific ones.
   {\wft{\i{Any}}}
 
   \infrule[\textsc{W-Abs}]
-  {i \leq j \ \ \ \ i \leq k \ \ \ \ \wft{\j{T_1}} \ \ \ \ \wff{\k{T_2}}}
+  {i \leq j \ \ \ \ i \leq k \ \ \ \ \wft{\j{T_1}} \ \ \ \ \wft{\k{T_2}}}
   {\wft{\i{(\j{T_1} \ra \k{T_2})}}}
 
   \infrule[\textsc{W-TAbs}]
