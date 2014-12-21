@@ -1,24 +1,9 @@
-t\clearpage
+\clearpage
 \section{The \calculus Calculus}
 \label{sct:calculus}
 
-\begin{figure}[H]
+\begin{figure}
 \begin{multicols}{2}
-\syntaxfig{
-  S,\ T,\ U ::=                     & \lindent{\mbox{Types:}}              \\
-  \gap \i{S} \ra \j{T}              & \mbox{function type}                 \\
-  \gap \{ \seq{x: \i{S}} \}         & \mbox{record type}                   \\
-  \gap [X <: \i{S}] \ra \j{T}       & \mbox{universal type}                \\
-  \gap Any                          & \mbox{top type}                      \\
-  \i{T},\ \j{T},\ \k{T},\ \l{T} ::= & \lindent{\mbox{Binding-Time Types:}} \\
-  \gap X                            & \mbox{type identifier}               \\
-  \gap \dynamic{T}                  & \mbox{dynamic type}                  \\
-  \gap \inline{T}                   & \mbox{inline type}                   \\
-  \Gamma ::=                        & \lindent{\mbox{Contexts:}}           \\
-  \gap \emptyset                    & \mbox{empty context}                 \\
-  \gap \Gamma,\ x: \i{T}            & \mbox{term binding}                  \\
-  \gap \Gamma,\ X <: \i{T}          & \mbox{type binding}                  \\
-}
 \syntaxfig{
   t ::=                             & \lindent{\mbox{Terms:}}              \\
   \gap x,\ y                        & \mbox{identifier}                    \\
@@ -35,6 +20,21 @@ t\clearpage
   \gap \{ \seq{x = t} \}            & \mbox{record value}                  \\
   \gap [X <: \i{T}] \ra t           & \mbox{type abstraction value}        \\
 }
+\syntaxfig{
+  S,\ T,\ U ::=                     & \lindent{\mbox{Types:}}              \\
+  \gap \i{S} \ra \j{T}              & \mbox{function type}                 \\
+  \gap \{ \seq{x: \i{S}} \}         & \mbox{record type}                   \\
+  \gap [X <: \i{S}] \ra \j{T}       & \mbox{universal type}                \\
+  \gap Any                          & \mbox{top type}                      \\
+  \i{T},\ \j{T},\ \k{T},\ \l{T} ::= & \lindent{\mbox{Binding-Time Annotated Types:}} \\
+  \gap X                            & \mbox{type identifier}               \\
+  \gap \dynamic{T}                  & \mbox{dynamic type}                  \\
+  \gap \inline{T}                   & \mbox{inline type}                   \\
+  \Gamma ::=                        & \lindent{\mbox{Contexts:}}           \\
+  \gap \emptyset                    & \mbox{empty context}                 \\
+  \gap \Gamma,\ x: \i{T}            & \mbox{term binding}                  \\
+  \gap \Gamma,\ X <: \i{T}          & \mbox{type binding}                  \\
+}
 \end{multicols}
 \caption{Syntax of \calculus}
 \end{figure}
@@ -42,7 +42,7 @@ t\clearpage
 We formalize the essence of our partial evaluation system in a minimalistic calculus
 based on kernel \fsub \cite{tapl} with lazy records. To accommodate predictable partial evaluation we
 introduce binding-time annotations into the type system as types that
-represent two kinds of bindings:
+represent two kinds of binding times:
 
 \begin{enumerate}
   \item \textbf{Dynamic}. Corresponds to terms that are expected to be evaluted at runtime.
@@ -56,8 +56,6 @@ we get $i = inline$ and $T = Any$.
 
 Similarly we abstract over binding times of literals through $\i{v}$ notation that has analogous
 interpretation to the one we use for types.
-
-\subsection{Type composition}
 
 \subsection{Well-formed types}
 
@@ -85,7 +83,7 @@ into less specific ones.
 \end{figure}
 
 We represent notion of more specific binding-times through
-a simple partial order on binding time annotations.
+a simple partial order on binding-time annotations.
 
 \begin{figure}[H]
   \begin{center}
@@ -107,10 +105,26 @@ As described in \textsc{W-Abs} functions may only have parameters that are at mo
 as function binding-time. In our example this doesn't hold as $inline$ is more
 specific than $dynamic$.
 
-\subsection{Subtyping}
+\subsection{Type polymorphism}
 
-\calculus integrates binding-time annotation into subtyping relation on regular types by
-threading inlining information throughout all of the standard subtyping rules.
+Our system retains traditional type abstraction means inherited from \fsub.
+We extend it to accomodate encoding of binding-times into types. This allows
+us to specify binding type of the abstracted generic type:
+\begin{equation}\nonumber
+  [T <: \dynamic{Any}] \ra (x: T) \ra x
+\end{equation}
+
+For this particular identity function we need to restrict subset of all admissible
+types to only allow $dynamic$ ones. Passing an $inline$ type would not make sense
+as the resulting type would have not been well-formed. For example if we substitute
+$X$ with $\inline{Any}$ we get:
+\begin{equation}\nonumber
+   (x: \inline{Any}) \ra x
+\end{equation}
+
+Which is not a well-formed term as described earlier.
+
+\subsection{Subtyping}
 
 \begin{figure}[H]
   \infax[\textsc{S-Top}]
@@ -144,7 +158,8 @@ threading inlining information throughout all of the standard subtyping rules.
 \caption{Subtyping $\Gamma \ts T_1 <: T_2$.}
 \end{figure}
 
-Apart from that we also introduce subtyping on binding-time types.
+\calculus integrates binding-time annotation into subtyping relation on regular types by
+threading inlining information throughout all of the standard subtyping rules.
 
 \begin{figure}[H]
   \infrule[\textsc{S-TVar}]
@@ -154,24 +169,11 @@ Apart from that we also introduce subtyping on binding-time types.
   \infrule[\textsc{S-Inline}]
   {i = j \ \ \ \ \Gamma \ts S <: T}
   {\Gamma \ts \i{S} <: \j{T}}
-\caption{Subtyping of binding-time types $\Gamma \ts \i{T_1} <: \j{T_2}$.}
+\caption{Subtyping of binding-time annotated types $\Gamma \ts \i{T_1} <: \j{T_2}$.}
 \end{figure}
 
-Two binding-time types are subtypes if their underlying types are
-subtypes and if they have the same binding time.
-
-\subsection{Type polymorphism}
-
-Our system retains traditional type abstraction means inherited from \fsub.
-We extend it to accomodate encoding of binding-times into types. This allows
-us to specify binding type of the abstracted generic type:
-\begin{equation}\nonumber
-  [T <: \dynamic{Any}] \ra (x: T) \ra x
-\end{equation}
-
-For this particular identity function we need to restrict subset of all admissible
-types to only allow $dynamic$ ones. Passing an $inline$ type would not make sense
-as the resulting type would have not been well-formed.
+We also introduce subtyping on binding-time annotated types. Two binding-time annotated
+types are subtypes if their underlying types are subtypes and if they have the same binding time.
 
 \subsection{Typing}
 
@@ -215,12 +217,24 @@ as the resulting type would have not been well-formed.
 \end{figure}
 
 Similarly to the changes made to the subtyping relation we thread binding-time information
-throughout typing relation. Apart from that we also ensure that all literals produced by the
-user have well-formed types.
+throughout typing relation with extra preconditions that verify that all constructed types
+are well-formed.
+
+We also introduce a new rule to accomodate typing of $dynamic$ coercion terms that may
+only accept inline terms as input and produce dynamic output as the result.
 
 \subsection{Partial Evaluation}
 
+We specify partial evaluation rules as big-step reduction over well-typed terms.
+Partial evaluation consists of deep traversal of non-inline terms, partial evaluation of
+operations on inline terms and inline to dynamic coercion semantics.
+
+For sake of simplicity our partial evaluator doesn't perform
+deep traversal and reduction of inline literals. Required reduction of the corresponding
+literal contents is performed only if one performs an operation on it.
+
 \begin{figure}[H]
+  \begin{multicols}{2}
   \infrule[\textsc{PE-Abs}]
   {t \pe t'}
   {(x: \i{T}) \ra t \pe (x: T) \ra t'}
@@ -229,9 +243,9 @@ user have well-formed types.
   {\seq{t} \pe \seq{t'}}
   {\{\seq{x = t}\} \pe \{\seq{x = t'}\}}
 
-  \infrule[\textsc{PE-TAbs}]
-  {t \pe t'}
-  {[X <: \i{T}] \ra t \pe [X <: \i{T}] \ra t'}
+  \infrule[\textsc{PE-TApp}]
+  {t_1 \pe t_1' \ \ \ \ t_1' \ne \inline{t_3}}
+  {t_1[\i{T_1}] \pe t_1'[\i{T_1}]}
 
   \infrule[\textsc{PE-App}]
   {t_1 \pe t_1' \ \ \ \ t_1 \ne \inline{t_3} \ \ \ \ t_2 \pe t_2'}
@@ -241,9 +255,19 @@ user have well-formed types.
   {t \pe t' \ \ \ \ t' \ne \inline{t_3}}
   {t.x \pe t'.x}
 
-  \infrule[\textsc{PE-TApp}]
-  {t_1 \pe t_1' \ \ \ \ t_1' \ne \inline{t_3}}
-  {t_1[\i{T_1}] \pe t_1'[\i{T_1}]}
+
+  \infrule[\textsc{PE-Dynamic}]
+  {t \pe \inline{t'} \ \ \ \ t' \pe t''}
+  {\dynamic{t} \pe t''}
+
+  \infax[\textsc{PE-InlineValue}]
+  {\inline{v} \pe \inline{v}}
+
+  \end{multicols}
+  \vspace{8pt}
+  \infrule[\textsc{PE-TAbs}]
+  {t \pe t'}
+  {[X <: \i{T}] \ra t \pe [X <: \i{T}] \ra t'}
 
   \infrule[\textsc{PE-InlineApp}]
   {t_1 \pe \inline{(x: \i{T}) \ra t} \ \ \ \ t_2 \pe t_2' \ \ \ \ [x \mapsto t_2'] t \pe t'}
@@ -256,13 +280,6 @@ user have well-formed types.
   \infrule[\textsc{PE-InlineTApp}]
   {t_1 \pe \inline [X <: \i{T_2}] \ra t_2 \ \ \ \ [X \mapsto \i{T_1}] t_2 \pe t_2'}
   {t_1[\i{T_1}] \pe t_2'}
-
-  \infax[\textsc{PE-InlineValue}]
-  {\inline{v} \pe \inline{v}}
-
-  \infrule[\textsc{PE-Dynamic}]
-  {t \pe \inline{t'} \ \ \ \ t' \pe t''}
-  {\dynamic{t} \pe t''}
 \caption{Partial evaluation $t \pe t'$}
 \label{fig:partial-evaluation}
 \end{figure}
