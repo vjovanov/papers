@@ -1,4 +1,4 @@
-\clearpage
+t\clearpage
 \section{The \calculus Calculus}
 \label{sct:calculus}
 
@@ -22,12 +22,14 @@
 \syntaxfig{
   t ::=                             & \lindent{\mbox{Terms:}}              \\
   \gap x,\ y                        & \mbox{identifier}                    \\
-  \gap v                            & \mbox{dynamic value}                 \\
-  \gap \inline{v}                   & \mbox{inline value}                  \\
+  \gap \i{v}                        & \mbox{literal}                       \\
   \gap \dynamic{t}                  & \mbox{dynamic coercion}              \\
   \gap t(t)                         & \mbox{application}                   \\
   \gap t.x                          & \mbox{selection}                     \\
   \gap t [\i{T}]                    & \mbox{type application}              \\
+  \i{v} ::=                         & \mbox{Literals}                      \\
+  \gap v                            & \mbox{dynamic literal}               \\
+  \gap \inline{v}                   & \mbox{inline literal}                \\
   v ::=                             & \lindent{\mbox{Values:}}             \\
   \gap (x: \i{T}) \ra t             & \mbox{function value}                \\
   \gap \{ \seq{x = t} \}            & \mbox{record value}                  \\
@@ -43,17 +45,19 @@ introduce binding-time annotations into the type system as types that
 represent two kinds of bindings:
 
 \begin{enumerate}
-  \item \textbf{Dynamic binding}. Corresponds to terms that are expected to be evaluted at runtime.
-  \item \textbf{Inline binding}. Corresponds to terms that must be evaluated at compile-time.
+  \item \textbf{Dynamic}. Corresponds to terms that are expected to be evaluted at runtime.
+  \item \textbf{Inline}. Corresponds to terms that must be evaluated at compile-time.
 \end{enumerate}
 
 To simplify judgments in our formalization we use concise $\i{T}$ syntax to abstract over
-binding-times of types. Here $i$ signifies the bit of information that says if type is inline
+binding times of types. Here $i$ signifies the bit of information that says if type is inline
 or not and $T$ carries underlying type that is being annotated. So for example in $\inline{Any}$
 we get $i = inline$ and $T = Any$.
 
-Similarly we abstract over binding time of terms through $\i{t}$ notation that has analogous
-to the one we use for types.
+Similarly we abstract over binding times of literals through $\i{v}$ notation that has analogous
+interpretation to the one we use for types.
+
+\subsection{Type composition}
 
 \subsection{Well-formed types}
 
@@ -64,20 +68,20 @@ into less specific ones.
 
 \begin{figure}[H]
   \infax[\textsc{W-Any}]
-  {\wff{\i{Any}}}
+  {\wft{\i{Any}}}
 
   \infrule[\textsc{W-Abs}]
-  {i \leq j \ \ \ \ i \leq k \ \ \ \ \wff{\j{T_1}} \ \ \ \ \wff{\k{T_2}}}
-  {\wff{\i{(\j{T_1} \ra \k{T_2})}}}
+  {i \leq j \ \ \ \ i \leq k \ \ \ \ \wft{\j{T_1}} \ \ \ \ \wff{\k{T_2}}}
+  {\wft{\i{(\j{T_1} \ra \k{T_2})}}}
 
   \infrule[\textsc{W-TAbs}]
-  {i \leq k \ \ \ \ \wff{[X \mapsto \i{S}] \k{T}}}
-  {\wff{\i{([X <: \i{S}] \ra \k{T})}}}
+  {i \leq j \ \ \ \ i \leq k \ \ \ \ \wft{[X \mapsto \j{S}] \k{T}}}
+  {\wft{\i{([X <: \j{S}] \ra \k{T})}}}
 
   \infrule[\textsc{W-Rec}]
-  {i \leq \seq{j} \ \ \ \ \seq{\wff{\j{T}}}}
-  {\wff{\i{\{\seq{x: \j{T}}\}}}}
-\caption{Well-formed types $\wff{\i{T}}$.}
+  {i \leq \seq{j} \ \ \ \ \seq{\wft{\j{T}}}}
+  {\wft{\i{\{\seq{x: \j{T}}\}}}}
+\caption{Well-formed types $\wft{\i{T}}$.}
 \end{figure}
 
 We represent notion of more specific binding-times through
@@ -92,7 +96,7 @@ a simple partial order on binding time annotations.
 \caption{Partial order on binding-time $i \leq j$}
 \end{figure}
 
-This restiction allows us to reject programs that have inconsistent binding-time annotations.
+This restriction allows us to reject programs that have inconsistent binding-time annotations.
 For example the following function has incorrectly annotated parameter binding time:
 \begin{equation}\nonumber
     (x: \inline{Int}) \ra x + 1
@@ -110,7 +114,7 @@ threading inlining information throughout all of the standard subtyping rules.
 
 \begin{figure}[H]
   \infax[\textsc{S-Top}]
-  {\Gamma \ts \i{S} <: Any}
+  {\Gamma \ts \i{S} <: \i{Any}}
 
   \infax[\textsc{S-Refl}]
   {\Gamma \ts \i{S} <: \i{S}}
@@ -129,14 +133,14 @@ threading inlining information throughout all of the standard subtyping rules.
 
   \infrule[\textsc{S-Perm}]
   {\{ x_p : i_p S_p\ ^{p \in 1..n}\} $ is permutation of $ \{ y_p: j_p T_p\ ^{p \in 1..n} \}}
-  {\{ x_p : i_p S_p\ ^{p \in 1..n}\} <: \{ y_p: j_p T_p\ ^{p \in 1..n} \} }
+  {\Gamma \ts \{ x_p : i_p S_p\ ^{p \in 1..n}\} <: \{ y_p: j_p T_p\ ^{p \in 1..n} \} }
 
   \infrule[\textsc{S-Depth}]
-  {\forall p \in 1..n.\ i_p S_p <: j_p T_p}
-  {\{ x_p: i_p S_p\ ^{p \in 1..n}\} <: \{ x_p: j_p T_p\ ^{p \in 1..n} \}}
+  {\forall p \in 1..n.\ \Gamma \ts i_p S_p <: j_p T_p}
+  {\Gamma \ts \{ x_p: i_p S_p\ ^{p \in 1..n}\} <: \{ x_p: j_p T_p\ ^{p \in 1..n} \}}
 
   \infax[\textsc{S-Width}]
-  {\{ x_p: i_p T_p\ ^{p \in 1..n+m} \} <: \{ x_p: i_p T_p\ ^{p \in 1..n} \}}
+  {\Gamma \ts \{ x_p: i_p T_p\ ^{p \in 1..n+m} \} <: \{ x_p: i_p T_p\ ^{p \in 1..n} \}}
 \caption{Subtyping $\Gamma \ts T_1 <: T_2$.}
 \end{figure}
 
@@ -165,7 +169,7 @@ us to specify binding type of the abstracted generic type:
   [T <: \dynamic{Any}] \ra (x: T) \ra x
 \end{equation}
 
-For this particular identity function we need to restrict subset of all admissable
+For this particular identity function we need to restrict subset of all admissible
 types to only allow $dynamic$ ones. Passing an $inline$ type would not make sense
 as the resulting type would have not been well-formed.
 
@@ -177,7 +181,7 @@ as the resulting type would have not been well-formed.
   {\Gamma \ts x: \i{T}}
 
   \infrule[\textsc{T-Rec}]
-  {\Gamma \ts \seq{t}: \seq{\j{T}} \ \ \ \ \wff{\i{\{\seq{x: \j{T}}\}}}}
+  {\Gamma \ts \seq{t}: \seq{\j{T}} \ \ \ \ \wft{\i{\{\seq{x: \j{T}}\}}}}
   {\Gamma \ts \i{\{ \seq{x = t} \}} : \i{\{\seq{x: \j{T}}\}}}
 
   \infrule[\textsc{T-App}]
@@ -192,17 +196,17 @@ as the resulting type would have not been well-formed.
   {\Gamma \ts t: \i{S} \ \ \ \ \Gamma \ts \i{S} <: \j{T}}
   {\Gamma \ts t: \j{T}}
 
-  \infrule[\textsc{T-Func}]
-  {\Gamma,\ x: \j{T_1} \ts t: \k{T_2} \ \ \ \ \wff{\i{(\j{T_1} \ra \k{T_2})}}}
+  \infrule[\textsc{T-Abs}]
+  {\Gamma,\ x: \j{T_1} \ts t: \k{T_2} \ \ \ \ \wft{\i{(\j{T_1} \ra \k{T_2})}}}
   {\Gamma \ts \i{((x: \j{T_1}) \ra t)} : \i{(\j{T_1} \ra \k{T_2})}}
 
   \infrule[\textsc{T-TAbs}]
-  {\Gamma,\ X <: \j{T_1} \ts t_2: \k{T_2} \ \ \ \ \wff{\i{([X <: \j{T_1}] \ra \k{T_2})}}}
+  {\Gamma,\ X <: \j{T_0} \ts t_2: \k{T_2} \ \ \ \ \wft{\i{([X <: \j{T_1}] \ra \k{T_2})}}}
   {\Gamma \ts \i([X <: \j{T_1}] \ra t_2): \i{([X <: T_1] \ra \k{T_2})}}
 
   \infrule[\textsc{T-TApp}]
-  {\Gamma \ts t: \i{([X <: T_1] \ra \k{T_2})}  \ \ \ \ \Gamma \ts T <: T_1}
-  {\Gamma \ts t[T] : [X \mapsto T] \k{T_2}}
+  {\Gamma \ts t: \i{([X <: \j{T_1}] \ra \k{T_2})}  \ \ \ \ \Gamma \ts \l{T} <: \j{T_1}}
+  {\Gamma \ts t[\l{T}] : [X \mapsto \l{T}] \k{T_2}}
 
   \infrule[\textsc{T-Dynamic}]
   {\Gamma \ts t: \inline{T}}
@@ -211,13 +215,13 @@ as the resulting type would have not been well-formed.
 \end{figure}
 
 Similarly to the changes made to the subtyping relation we thread binding-time information
-throughout typing relation. Apart from that we also ensure that all literals produces by the
+throughout typing relation. Apart from that we also ensure that all literals produced by the
 user have well-formed types.
 
 \subsection{Partial Evaluation}
 
 \begin{figure}[H]
-  \infrule[\textsc{PE-Func}]
+  \infrule[\textsc{PE-Abs}]
   {t \pe t'}
   {(x: \i{T}) \ra t \pe (x: T) \ra t'}
 
@@ -239,7 +243,7 @@ user have well-formed types.
 
   \infrule[\textsc{PE-TApp}]
   {t_1 \pe t_1' \ \ \ \ t_1' \ne \inline{t_3}}
-  {t_1[T_1] \pe t_2'}
+  {t_1[\i{T_1}] \pe t_1'[\i{T_1}]}
 
   \infrule[\textsc{PE-InlineApp}]
   {t_1 \pe \inline{(x: \i{T}) \ra t} \ \ \ \ t_2 \pe t_2' \ \ \ \ [x \mapsto t_2'] t \pe t'}
@@ -257,8 +261,8 @@ user have well-formed types.
   {\inline{v} \pe \inline{v}}
 
   \infrule[\textsc{PE-Dynamic}]
-  {t \pe \inline{t'}}
-  {\dynamic{t} \pe t'}
+  {t \pe \inline{t'} \ \ \ \ t' \pe t''}
+  {\dynamic{t} \pe t''}
 \caption{Partial evaluation $t \pe t'$}
 \label{fig:partial-evaluation}
 \end{figure}
