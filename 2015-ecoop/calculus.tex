@@ -287,8 +287,8 @@ literal contents is performed only if one performs an operation on it.
 \subsection{Evaluation}
 
 Once partial evaluation is complete we strip all binding-time annotations on types
-and convert inline terms into corresponding dynamic ones. After that we can use
-standard \fsub evaluation rules augmented with lazy records semantics (\textsc{E-Sel}).
+and convert inline terms into corresponding dynamic ones. After that we use simple
+big-step reduction rules to perform runtime evaluation.
 
 \begin{figure}[H]
   \infax[\textsc{E-Value}]
