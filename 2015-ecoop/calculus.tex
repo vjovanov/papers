@@ -253,7 +253,7 @@ standard typing rules with additional constraints with respect to binding time.
   {\Gamma \ts \i([X <: \j{T_1}] \ra t_2): \i{([X <: \j{T_1}] \ra \k{T_2})}}
 
   \infrule[\textsc{T-TApp}]
-  {\Gamma \ts t_1: \i{([X <: \j{T_{11}}] \ra \k{T_{12}})}  \ \ \ \ \Gamma \ts \l{T_2} <: \j{T_{11}}}
+  {\Gamma \ts t_1: \i{([X <: \j{T_{11}}] \ra \k{T_{12}})}  \ \ \ \ \Gamma \ts \l{T_2} <: \j{T_{11}}   \ \ \ \  \Gamma \ts \i{} <: \l{}}
   {\Gamma \ts t_1[\l{T_2}] : [X \mapsto \l{T_2}] \k{T_{12}}}
 \caption{Typing.}
 \end{figure}
