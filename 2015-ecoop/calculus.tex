@@ -2,6 +2,8 @@
 \section{The \calculus Calculus}
 \label{sct:calculus}
 
+% TODO:
+% Should we at all have a non-dynamic version?
 \begin{figure}[H]
 \begin{multicols}{2}
 \syntaxfig{
@@ -90,6 +92,12 @@ through $dynamic$ view.
 Not all type and binding time combinations are correct though. We restrict types
 to disallow nesting of more specific binding times into less specific ones.
 
+% TODO Discuss:
+%  - W-TAbs is liberal. It leaves possibility for un-inhibited types:
+%    inline[X <: static Any] => dynamic(X => X) // is not inhabitable
+%    inline[X <: static Any] => dynamic Int     // would be disallowed and it is a valid type
+% This is taken care of type application later.
+% TODO discuss with Sandro the problems with monotonicity.
 \begin{figure}[H]
   \infax[\textsc{W-Any}]
   {\wff{\i{Any}}}
@@ -215,6 +223,14 @@ and augmented subtyping relation with subtyping
 To enforce well-formedness of types in a context of partial evaluation we customize
 standard typing rules with additional constraints with respect to binding time.
 
+% Questions/TODOs:
+%  - Can we push wff down to the place where we do explicit inline. This would minimize the formulaz if it works out.
+%  - Introduce a lemma that show that after reduction types remain well-formed!
+%    - For each well formed type, all nested types have inlinity greater than the type.
+%    - After a step of evaluation all types are well formed. Do we need this lemma? Is it subsumed by the preservation?
+%    - Progress: Well typed term t is either a value or is further reducible.
+%    - Term if t: T reduces to t' then t': T
+%  - Introduce what is a literal at all!
 \begin{figure}[H]
   \infrule[\textsc{T-Ident}]
   {x: \i{T} \in \Gamma}
@@ -274,6 +290,11 @@ The most significant changes lie in:
 In order to simplify partial evaluation rules we erase all of the type information before partial evaluation.
 This means that all functions become function values, type abstraction and application are complete eliminated.
 
+% TODO rules do not capture the case when t_1 in t_1(t_2) is non-trivial inline. (PE-Sel, PE-App)
+% TODO inline inline t ?
+% TODO how to evaluate staitc terms. Counter examples:
+%  - 1) Can there be dynamic rubish inside?
+%  - 2) Problem here is that you can not really just call eval! Must be an eval with a context!
 \begin{figure}[H]
   \infrule[\textsc{PE-Func}]
   {t \pe t'}
