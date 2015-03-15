@@ -16,7 +16,7 @@ TEX_SRCS=\
   related.tex \
   conclusion.tex \
   vjovanov-lib.bib \
-	llncs.cls \
+	sigplanconf.cls \
 #
 
 # expecting .dia
