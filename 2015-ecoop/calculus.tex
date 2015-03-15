@@ -163,6 +163,10 @@ augmented with standard record types.
   {\Gamma \ts \i{S} <: \j{U} \ \ \ \ \Gamma \ts \j{U} <: \k{T}}
   {\Gamma \ts \i{S} <: \j{U}}
 
+  \infrule[\textsc{S-Inline}]
+  {i <: j \ \ \ \ \Gamma \ts S <: T}
+  {\Gamma \ts \i{S} <: \j{T}}
+
   \infrule[\textsc{S-TVar}]
   {X <: \i{T} \in \Gamma}
   {\Gamma \ts X <: \i{T}}
@@ -177,10 +181,6 @@ augmented with standard record types.
   \infrule[\textsc{S-Depth}]
   {\forall p \in 1..n.\ i_p S_p <: j_p T_p}
   {\{ x_p: i_p S_p\ ^{p \in 1..n}\} <: \{ x_p: j_p T_p\ ^{p \in 1..n} \}}
-
-  \infrule[\textsc{S-Inline}]
-  {i <: j \ \ \ \ \Gamma \ts S <: T}
-  {\Gamma \ts \i{S} <: \j{T}}
 
   \infrule[\textsc{S-All}]
   {\Gamma,\ X <: \i{U_1} \ts \j{S_2} <: \k{T_2}}
@@ -305,7 +305,7 @@ This means that all functions become function values, type abstraction and appli
   {\{ \seq{x = t} \} \pe \{ \seq{x = t'} \}}
 
   \infrule[\textsc{PE-App}]
-  {t_1 \pe t_1' \ \ \ \ t_1' $ is not inline$ \ \ \ \ t_2 \pe t_2'}
+  {t_1 \pe t_1' \ \ \ \ t_1' \neq \inline{x \ra t} \ \ \ \ t_2 \pe t_2'}
   {t_1(t_2) \pe t_1'(t_2')}
 
   \infrule[\textsc{PE-IApp}]
@@ -313,7 +313,7 @@ This means that all functions become function values, type abstraction and appli
   {t_1(t_2) \pe t'}
 
   \infrule[\textsc{PE-Sel}]
-  {t \pe t' \ \ \ \ t' $ is not inline$}
+  {t \pe t' \ \ \ \ t' \neq \inline{x \ra t}}
   {t.x \pe t'.x}
 
   \infrule[\textsc{PE-ISel}]
