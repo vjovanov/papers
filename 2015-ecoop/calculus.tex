@@ -97,7 +97,7 @@ to disallow nesting of more specific binding times into less specific ones.
 %    inline[X <: static Any] => dynamic(X => X) // is not inhabitable
 %    inline[X <: static Any] => dynamic Int     // would be disallowed and it is a valid type
 % This is taken care of type application later.
-% TODO discuss with Sandro the problems with monotonicity.
+%  - Discuss with Sandro the problems with monotonicity.
 \begin{figure}[H]
   \infax[\textsc{W-Any}]
   {\wff{\i{Any}}}
@@ -224,13 +224,13 @@ To enforce well-formedness of types in a context of partial evaluation we custom
 standard typing rules with additional constraints with respect to binding time.
 
 % Questions/TODOs:
-%  - Can we push wff down to the place where we do explicit inline. This would minimize the formulaz if it works out.
-%  - Introduce a lemma that show that after reduction types remain well-formed!
+%  - Discussion: inline/static in the term position instead as a superscript on operations.
+%     - examine two level lambda calculus.
+%  - Introduce a lemma that shows that after reduction types remain well-formed!
 %    - For each well formed type, all nested types have inlinity greater than the type.
 %    - After a step of evaluation all types are well formed. Do we need this lemma? Is it subsumed by the preservation?
 %    - Progress: Well typed term t is either a value or is further reducible.
 %    - Term if t: T reduces to t' then t': T
-%  - Introduce what is a literal at all!
 \begin{figure}[H]
   \infrule[\textsc{T-Ident}]
   {x: \i{T} \in \Gamma}
