@@ -34,23 +34,24 @@ package object scalainline {
  and how it, due to the translation to the compile-time views (\figref{ct-translation}),
  changes method signatures.
 
-\begin{table}[h]
+\begin{table*}[t]
 \caption{Types and corresponding method signatures after the translation to the compile-time view.}
 \label{tbl:ct-type}
 \centering
-\begin{tabularx}{\linewidth}{ X X X }
+\begin{tabularx}{\linewidth}{ X X X X }
 \toprule
 
-  Annotated Type             \quad \quad \quad & Type's Method Signatures                          &  \\
-  \code{Int@ct}              \quad \quad \quad & \code{+(rhs: Int@ct): Int@ct}                     &  \\
-  \code{Vector[Int]@ct}      \quad \quad \quad & \code{map[U](f: (Int => U)@ct): Vector[U]@ct}     &  \\
-                             \quad \quad \quad & \code{length: Int@ct}                             &  \\
-  \code{Vector[Int@ct]@ct}   \quad \quad \quad & \code{map[U](f: (Int@ct => U)@ct): Vector[U]@ct}  &  \\
-  \code{Map[Int@ct, Int]@ct} \quad \quad \quad & \code{get(key: Int@ct): Option[Int]@ct}           &  \\
+  Annotated Type              & \ &  Type's Method Signatures                          &  \\
+  \code{Int@ct}               & \ &  \code{+(rhs: Int@ct): Int@ct}                     &  \\
+  \code{Vector[Int]@ct}       & \ &  \code{map[U](f: (Int => U)@ct): Vector[U]@ct}     &  \\
+                              & \ &  \code{length: Int@ct}                             &  \\
+  \code{Vector[Int@ct]@ct}    & \ &  \code{map[U](f: (Int@ct => U)@ct): Vector[U]@ct}  &  \\
+                              & \ &  \code{length: Int@ct}                             &  \\
+  \code{Map[Int@ct, Int]@ct}  & \ &  \code{get(key: Int@ct): Option[Int]@ct}           &  \\
 
 \bottomrule
 \end{tabularx}
-\end{table}
+\end{table*}
  In \tabref{tbl:ct-type}, \code{Int@ct} is a non-polymorphic type and therefore
  according to the translation to the compile-time view (\ref{fig:ct-translation})
  all arguments of all methods will be executed at compile-time. On the other hand,
@@ -66,8 +67,8 @@ package object scalainline {
  to instantiate compile-time views of the types. \tabref{tbl:ct-type} shows how
  different types of terms are promoted to their compile-time views.
 
-\begin{table}[h]
-\caption{Types and corresponding method signatures after the translation to the compile-time view.}
+\begin{table*}[h]
+\caption{Promotion of terms to their compile-time views.}
 \label{tbl:ct-type}
 \centering
 \begin{tabularx}{\linewidth}{ X X }
@@ -83,7 +84,7 @@ package object scalainline {
 
 \bottomrule
 \end{tabularx}
-\end{table}
+\end{table*}
 
 \todo{footnote about Scala objects}
 \todo{static promotion of lambdas}

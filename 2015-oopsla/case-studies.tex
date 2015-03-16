@@ -53,8 +53,9 @@ Variable argument functions appear in widely used languages like Java, C\#, and 
  data-structure is statically known and all operations on them can be partially
  evaluated. However, sometimes, the function is called with arguments of dynamic size.
  For example, function \code{min} that accepts multiple integers\begin{lstparagraph}
-def min(vs: Int*): Int =
-  vs.tail.foldLeft(vs.head){ (min, el) => if (el < min) el else min }
+def min(vs: Int*): Int = vs.tail.foldLeft(vs.head) {
+  (min, el) => if (el < min) el else min
+}
 \end{lstparagraph}can be called either with statically known arguments
  (\eg \code{min(1,2)}) or with dynamic arguments:\begin{lstparagraph}
 val values: Seq[Int] = ... // dynamic value
@@ -74,9 +75,13 @@ def min(vs: Int*): Int = macro
   else q"min_D(vs)"
 
 def min_CT(vs: Seq[Int] @ct): Int =
-  vs.tail.foldLeft(vs.head){ (min, el) => if (el < min) el else min }
+  vs.tail.foldLeft(vs.head) { (min, el) =>
+  if (el < min) el else min
+}
 def min_D(vs: Seq[Int]): Int =
-  vs.tail.foldLeft(vs.head){ (min, el) => if (el < min) el else min }
+  vs.tail.foldLeft(vs.head) {
+    (min, el) => if (el < min) el else min
+  }
 \end{listing}
 \caption{Function \code{min} is desugared into a \code{min} macro that based on the
 binding time of the arguments dispatches to the partially evaluated version (\code{min_CT})
@@ -97,8 +102,10 @@ Type-classes are omnipresent in everyday programming as they provide allow abstr
 \begin{figure}
 \begin{listing}
 object Numeric {
-  @inline implicit def dnum: Numeric[Double] = DoubleNumeric
-  @inline def zero[T](implicit num: Numeric[T]): T = num.zero
+  @inline implicit def dnum: Numeric[Double] =
+    DoubleNumeric
+  @inline def zero[T](implicit num: Numeric[T]): T =
+    num.zero
 }
 
 trait Numeric[T] {
