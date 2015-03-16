@@ -1,5 +1,5 @@
 \let\oldvec\vec% Store \vec in \oldvec
-\documentclass[10pt]{sigplanconf}
+\documentclass[10pt,preprint]{sigplanconf}
 
 
 % % Build
@@ -30,6 +30,7 @@
 % % Layout
  \usepackage{xspace}% space in macros
  \usepackage{float}
+ \usepackage{multicol}
 
 % % Makes tables look beautiful
  \usepackage{booktabs}
@@ -109,12 +110,19 @@
 
 \title{Compile-Time Views: Predictable Type-Directed Partial Evaluation Without Code Duplication}
 
+\authorinfo{Name1}
+           {Affiliation1}
+           {Email1}
+\authorinfo{Name2\and Name3}
+           {Affiliation2/3}
+           {Email2/3}
+
 \maketitle
 
 \begin{abstract}
 \input{abstract.tex}
 \end{abstract}
-% \category{D.3.3}{Programming Languages}{Language Constructs and Features}
+\category{D.3.3}{Programming Languages}{Language Constructs and Features}
 
 \keywords
 Multi-Stage Programming, Partial Evaluation

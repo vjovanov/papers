@@ -77,43 +77,43 @@ Furthermore, rules of \calculus do not support effect-full computations and each
 \begin{multicols}{2}[]
 
   \infrule[\textsc{CT-TVar}]
-    {\Pi \ts T \in \Pi}
-    {\Pi \ts \cd{iT}{iT}}
+    {\Pi \tsv T \in \Pi}
+    {\Pi \tsv \cd{iT}{iT}}
 
   \infrule[\textsc{CT-T-Var}]
-    {\Pi \ts T \not\in \Pi}
-    {\Pi \ts \cd{iT}{\inline{T}}}
+    {\Pi \tsv T \not\in \Pi}
+    {\Pi \tsv \cd{iT}{\inline{T}}}
 
 \end{multicols}
 \vspace{4pt}
 
   \infrule[\textsc{CT-Rec}]
-    {\seq{\Pi \ts \cd{t}{t'}}}
-    {\Pi \ts \cd{\i\{ \seq{x = t} \}}{\inline{\{ \seq{x = t'} \}}}}
+    {\seq{\Pi \tsv \cd{t}{t'}}}
+    {\Pi \tsv \cd{\i\{ \seq{x = t} \}}{\inline{\{ \seq{x = t'} \}}}}
 
   \infrule[\textsc{CT-T-Rec}]
-    {\seq{\Pi \ts \cd{\i{T}}{\j{T}}}}
-    {\Pi \ts \cd{\{\seq{x : \i{T}}\}}{\inline{\{ \seq{x : \j{T}}}\}}}
+    {\seq{\Pi \tsv \cd{\i{T}}{\j{T}}}}
+    {\Pi \tsv \cd{\{\seq{x : \i{T}}\}}{\inline{\{ \seq{x : \j{T}}}\}}}
 
   \infrule[\textsc{CT-T-Arrow}]
-    {\Pi \ts \cd{\i{T}}{\j{T}} \ \ \ \  \Pi \ts \cd{\k{S}}{\l{S}} }
-    {\Pi \ts \cd{\i{T} \Rightarrow \k{S}}{\j{T} \Rightarrow \l{S}}}
+    {\Pi \tsv \cd{\i{T}}{\j{T}} \ \ \ \  \Pi \tsv \cd{\k{S}}{\l{S}} }
+    {\Pi \tsv \cd{\i{T} \Rightarrow \k{S}}{\j{T} \Rightarrow \l{S}}}
 
   \infrule[\textsc{CT-T-Univ}]
-    {\Pi \ts \cd{\j{T}}{\k{T}}}
-    {\Pi \ts \cd{[X <: \i{S}] \ra \j{T}}{[X <: \i{S}] \ra \k{T}}}
+    {\Pi \tsv \cd{\j{T}}{\k{T}}}
+    {\Pi \tsv \cd{[X <: \i{S}] \ra \j{T}}{[X <: \i{S}] \ra \k{T}}}
 
   \infrule[\textsc{CT-Func}]
-    {\Pi \ts \cd{t}{t'} \ \ \ \ \Pi \ts \cd{iT}{jT}}
-    {\Pi \ts \cd{\i(x: iT) \ra t}{\inline{(x: jT) \ra t'}}}
+    {\Pi \tsv \cd{t}{t'} \ \ \ \ \Pi \tsv \cd{iT}{jT}}
+    {\Pi \tsv \cd{\i(x: iT) \ra t}{\inline{(x: jT) \ra t'}}}
 
   \infrule[\textsc{CT-TAbs}]
-    {\Pi,\ X \ts \cd{t}{t'}}
-    {\Pi \ts \cd{\i([X <: \j{T_1}] \ra t)}{\inline{([X <: \j{T_1}] \ra t'})}}
+    {\Pi,\ X \tsv \cd{t}{t'}}
+    {\Pi \tsv \cd{\i([X <: \j{T_1}] \ra t)}{\inline{([X <: \j{T_1}] \ra t'})}}
 
   \infrule[\textsc{CT-TApp}]
-    {\Pi \ts \cd{t}{t'} \ \ \ \ \Pi \ts \cd{\i{T}}{\j{T}}}
-    {\Pi \ts \cd{t[\i{T}]}{t'[\j{T}]}}
+    {\Pi \tsv \cd{t}{t'} \ \ \ \ \Pi \tsv \cd{\i{T}}{\j{T}}}
+    {\Pi \tsv \cd{t[\i{T}]}{t'[\j{T}]}}
 
 \caption{Translation of a type abstractions, function, and record values into a compile-time view. The translation
  is used for promoting types into their compile time versions.}

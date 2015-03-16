@@ -154,37 +154,37 @@ augmented with standard record types.
 
 \begin{figure}[H]
   \infax[\textsc{S-Top}]
-  {\Gamma \ts \i{S} <: Any}
+  {\Gamma \tsv \i{S} <: Any}
 
   \infax[\textsc{S-Refl}]
-  {\Gamma \ts \i{S} <: \i{S}}
+  {\Gamma \tsv \i{S} <: \i{S}}
 
   \infrule[\textsc{S-Trans}]
-  {\Gamma \ts \i{S} <: \j{U} \ \ \ \ \Gamma \ts \j{U} <: \k{T}}
-  {\Gamma \ts \i{S} <: \j{U}}
+  {\Gamma \tsv \i{S} <: \j{U} \ \ \ \ \Gamma \tsv \j{U} <: \k{T}}
+  {\Gamma \tsv \i{S} <: \j{U}}
 
   \infrule[\textsc{S-Inline}]
-  {i <: j \ \ \ \ \Gamma \ts S <: T}
-  {\Gamma \ts \i{S} <: \j{T}}
+  {i <: j \ \ \ \ \Gamma \tsv S <: T}
+  {\Gamma \tsv \i{S} <: \j{T}}
 
   \infrule[\textsc{S-TVar}]
   {X <: \i{T} \in \Gamma}
-  {\Gamma \ts X <: \i{T}}
+  {\Gamma \tsv X <: \i{T}}
 
   \infax[\textsc{S-Width}]
   {\{ x_p: i_p T_p\ ^{p \in 1..n+m} \} <: \{ x_p: i_p T_p\ ^{p \in 1..n} \}}
 
   \infrule[\textsc{S-Arrow}]
-  {\Gamma \ts \k{T_1} <: \i{S_1} \ \ \ \ \Gamma \ts \j{S_2} <: \l{T_2}}
-  {\Gamma \ts \i{S_1} \ra \j{S_2} <: \k{T_1} \ra \l{T_2}}
+  {\Gamma \tsv \k{T_1} <: \i{S_1} \ \ \ \ \Gamma \tsv \j{S_2} <: \l{T_2}}
+  {\Gamma \tsv \i{S_1} \ra \j{S_2} <: \k{T_1} \ra \l{T_2}}
 
   \infrule[\textsc{S-Depth}]
   {\forall p \in 1..n.\ i_p S_p <: j_p T_p}
   {\{ x_p: i_p S_p\ ^{p \in 1..n}\} <: \{ x_p: j_p T_p\ ^{p \in 1..n} \}}
 
   \infrule[\textsc{S-All}]
-  {\Gamma,\ X <: \i{U_1} \ts \j{S_2} <: \k{T_2}}
-  {\Gamma \ts [X <: \i{U_1}] \ra \j{S_2} <: [X <: \i{U_1}] \ra \k{T_2}}
+  {\Gamma,\ X <: \i{U_1} \tsv \j{S_2} <: \k{T_2}}
+  {\Gamma \tsv [X <: \i{U_1}] \ra \j{S_2} <: [X <: \i{U_1}] \ra \k{T_2}}
 
   \infrule[\textsc{S-Perm}]
   {\{ x_p : i_p S_p\ ^{p \in 1..n}\} $ is permutation of $ \{ y_p: j_p T_p\ ^{p \in 1..n} \}}
@@ -234,43 +234,43 @@ standard typing rules with additional constraints with respect to binding time.
 \begin{figure}[H]
   \infrule[\textsc{T-Ident}]
   {x: \i{T} \in \Gamma}
-  {\Gamma \ts x: \i{T}}
+  {\Gamma \tsv x: \i{T}}
 
   \infrule[\textsc{T-Rec}]
-  {\forall t. \ \ \ \ \Gamma \ts t: \j{T} \ \ \ \ \wff{\i{\{x: \j{T}\}}}}
-  {\Gamma \ts \i{\{ \seq{x = t} \}} : \i{\{\seq{x: \j{T}}\}}}
+  {\forall t. \ \ \ \ \Gamma \tsv t: \j{T} \ \ \ \ \wff{\i{\{x: \j{T}\}}}}
+  {\Gamma \tsv \i{\{ \seq{x = t} \}} : \i{\{\seq{x: \j{T}}\}}}
 
   \infrule[\textsc{T-App}]
-  {\Gamma \ts t_1: \i{(\j{T_1} \ra \k{T_2})} \ \ \ \ \Gamma \ts t_2: \j{T_1}}
-  {\Gamma \ts t_1 (t_2) : \k{T_2}}
+  {\Gamma \tsv t_1: \i{(\j{T_1} \ra \k{T_2})} \ \ \ \ \Gamma \tsv t_2: \j{T_1}}
+  {\Gamma \tsv t_1 (t_2) : \k{T_2}}
 
   \infrule[\textsc{T-Sel}]
-  {\Gamma \ts t: \i{\{ x = \j{T_1}, \seq{y = \k{T_2}} \}}}
-  {\Gamma \ts t.x : \j{T_1}}
+  {\Gamma \tsv t: \i{\{ x = \j{T_1}, \seq{y = \k{T_2}} \}}}
+  {\Gamma \tsv t.x : \j{T_1}}
 
   \infrule[\textsc{T-Inline}]
-  {t $ is not literal$ \ \ \ \ \Gamma \ts t: \static{T}}
-  {\Gamma \ts \inline{t}: \inline{T}}
+  {t $ is not literal$ \ \ \ \ \Gamma \tsv t: \static{T}}
+  {\Gamma \tsv \inline{t}: \inline{T}}
 
   \infrule[\textsc{T-Dynamic}]
-  {t $ is not literal$ \ \ \ \ \Gamma \ts t: \i{T}}
-  {\Gamma \ts \dynamic{t}: \dynamic{T}}
+  {t $ is not literal$ \ \ \ \ \Gamma \tsv t: \i{T}}
+  {\Gamma \tsv \dynamic{t}: \dynamic{T}}
 
   \infrule[\textsc{T-Sub}]
-  {\Gamma \ts t: \i{S} \ \ \ \ \Gamma \ts \i{S} <: \j{T}}
-  {\Gamma \ts t: \j{T}}
+  {\Gamma \tsv t: \i{S} \ \ \ \ \Gamma \tsv \i{S} <: \j{T}}
+  {\Gamma \tsv t: \j{T}}
 
   \infrule[\textsc{T-Func}]
-  {\Gamma,\ x: \j{T_1} \ts t: \k{T_2} \ \ \ \ \wff{\i{(\j{T_1} \ra \k{T_2})}}}
-  {\Gamma \ts \i{((x: \j{T_1}) \ra t)} : \i{(\j{T_1} \ra \k{T_2})}}
+  {\Gamma,\ x: \j{T_1} \tsv t: \k{T_2} \ \ \ \ \wff{\i{(\j{T_1} \ra \k{T_2})}}}
+  {\Gamma \tsv \i{((x: \j{T_1}) \ra t)} : \i{(\j{T_1} \ra \k{T_2})}}
 
   \infrule[\textsc{T-TAbs}]
-  {\Gamma,\ X <: \j{T_1} \ts t_2: \k{T_2} \ \ \ \ \wff{\i{([X <: \j{T_1}] \ra \k{T_2})}}}
-  {\Gamma \ts \i([X <: \j{T_1}] \ra t_2): \i{([X <: \j{T_1}] \ra \k{T_2})}}
+  {\Gamma,\ X <: \j{T_1} \tsv t_2: \k{T_2} \ \ \ \ \wff{\i{([X <: \j{T_1}] \ra \k{T_2})}}}
+  {\Gamma \tsv \i([X <: \j{T_1}] \ra t_2): \i{([X <: \j{T_1}] \ra \k{T_2})}}
 
   \infrule[\textsc{T-TApp}]
-  {\Gamma \ts t_1: \i{([X <: \j{T_{11}}] \ra \k{T_{12}})}  \ \ \ \ \Gamma \ts \l{T_2} <: \j{T_{11}}   \ \ \ \  \Gamma \ts \i{} <: \l{}}
-  {\Gamma \ts t_1[\l{T_2}] : [X \mapsto \l{T_2}] \k{T_{12}}}
+  {\Gamma \tsv t_1: \i{([X <: \j{T_{11}}] \ra \k{T_{12}})}  \ \ \ \ \Gamma \tsv \l{T_2} <: \j{T_{11}}   \ \ \ \  \Gamma \tsv \i{} <: \l{}}
+  {\Gamma \tsv t_1[\l{T_2}] : [X \mapsto \l{T_2}] \k{T_{12}}}
 \caption{Typing.}
 \end{figure}
 
