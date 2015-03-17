@@ -2,8 +2,21 @@
 \label{sct:introduction}
 
 % TODO count lines of code in LMS based DSLs (hyper) where stage distinction is relevant.
-% Staging (Nielsen, Ocaml, LMS) is a .... It was proven very useful for building
-% improving program performance, especially compilers out of interpreters etc.
+
+ Multi-stage programming (staging) is a flavor of meta-programming where compilation is
+  separated in multiple \emph{stages} of compilation. Execution of each stage outputs
+  the code that is executed in the next stage of compilation. Notable, staging frameworks
+  are MetaOCaml~\cite{taha_multi-stage_1997} and LMS~\cite{rompf2012lightweight}.
+  Staging has been mostly used for \emph{partial evaluation}~\cite{jones1993partial}
+  and successfully applied for: removing abstraction overheads in high-level
+  programs~\cite{carette2005multi,rompf2012lightweight}, domain-specific
+  languages~\cite{jonnalagedda2014staged}, and converting language
+  interpreters into compilers~\cite{futamura1999partial,lancet}.
+
+
+% For all notable common frameworks the starting stage is the runtime
+ % technique in which Staging (Nielsen, Ocaml, LMS) is a .... It was proven very useful for building
+% improving program performance, especially compilers out of interpreters etc. Means to achieve predictable partial evaluation.
 
 
 % Seldom Used -> should not change programs at run-time.
@@ -16,7 +29,6 @@
     }
  \end{lstparagraph}
 
-% Staging is Syntactically heavy.
 % The main idea of this paper is that staging should be possible for compile-time
 % values and that non-staged programs should remain unmodified.
 
