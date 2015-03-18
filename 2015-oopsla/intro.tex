@@ -6,100 +6,60 @@
 % TODO better citations metaOCaml, interpreters to compilers, DSLs
  Multi-stage programming (or \emph{staging}) is a flavor of meta-programming where compilation is
   separated in multiple \emph{stages} of compilation. Execution of each stage outputs
-  the code that is executed in the next stage of compilation. Notable, staging frameworks
-  are MetaOCaml~\cite{taha_multi-stage_1997} and LMS~\cite{rompf2012lightweight}.
-  Staging has been mostly used for \emph{partial evaluation}~\cite{jones1993partial}
-  and successfully applied for: removing abstraction overheads in high-level
-  programs~\cite{carette2005multi,rompf2012lightweight}, domain-specific
-  languages~\cite{jonnalagedda2014staged}, and converting language
+  the code that is executed in the next stage of compilation. The first stage of
+  compilation is the \emph{host language} compile-time, the second stage the host language
+  run-time that generates code, the third stage is the run-time of run-time generated code, etc.
+  Notable, staging frameworks are MetaOCaml~\cite{taha_multi-stage_1997} and LMS~\cite{rompf2012lightweight},
+  and they were successfully applied for as a \emph{partial evaluatior}~\cite{jones1993partial} for:
+  removing abstraction overheads in high-level programs~\cite{carette2005multi,rompf2012lightweight},
+  domain-specific languages~\cite{jonnalagedda2014staged}, and converting language
   interpreters into compilers~\cite{lancet}.
 
-The compilation stage in which a term is executed is determined by code
- quotations~(in MetaOCaml) or by parametric types \code{Rep}~(in LMS). We show an
- example of staging on a function for computing an inner product of
- vectors~\footnotemark[1]:\begin{lstparagraph}
+ We show an example of how staging is used for partial evaluation on a function
+ for computing a dot product of vectors~\footnotemark[1]:\begin{lstparagraph}
   def dot[V:Numeric](v1: Vector[V], v2: Vector[V]): V =
     (v1 zip v2).foldLeft(zero[V]) {
       case (prod, (cl, cr)) => prod + cl * cr
     }
  \end{lstparagraph}
 
-If the vector sizes are known during program runtime the inner product can
- be partially evaluated into a sum of products of vector components.
- In LMS~\footnotemark[2] we communicate that the vector size is known by annotating
- only vector elements with a \code{Rep} type:\begin{lstparagraph}
+If the vector sizes are statically known during program runtime the inner product can
+ be partially evaluated into a sum of products of vector components. The compilation stage in which a term will be executed is determined by code quotations~(in MetaOCaml) or by parametric types \code{Rep}~(in LMS). The
+ unqouted/unanottated code is always executed during host-language runtime and
+ quoted/type annotated code is executed after run-time compilation.
+
+% Add a notation that we need annotations
+
+ In LMS~\footnotemark[2] we communicate that the vector size is statically known
+  by annotating only vector elements with a \code{Rep} type:\begin{lstparagraph}
   def dot[V:Numeric]
     (v1: Vector[Rep[V]], v2: Vector[Rep[V]]): Rep[V]
  \end{lstparagraph}
 
 Here the \code{Rep} annotations on \code{V} denote that elements of vectors will be known
- only in the next stage (after runtime compilation). At this stage the \code{zip}
+ only in the next stage (after run-time compilation). At this stage the \code{zip}
  \code{foldLeft}, and pattern matching inside the closure will not exist
  as they were evaluated at the previous stage (host language runtime).
 
-% Host language compile-time, run-time, all frameworks execute at runtime.
-% All types/terms in future stages require annotations.
 
-What would happen if vector sizes were known at the compile-time of the host language?
-All the code that is executing in the host language executed at the program
-
-Let's observe what happens when we have multiple annotation
-%  \item Programming languages Idris and D allow placing the \code{static}
-%   annotation on function arguments. Since \code{static} is placed on terms rather
-%   then types, it denotes that the \emph{whole term} is static. This restricts the number of programs
-%   that can be expressed, \eg, we could not express that vectors in the signature of \emph{dot}
-%   are partially static.
-% MacroML
-% % For all notable common frameworks the starting stage is the runtime
+{\bf Problem.} How can we use staging for programs whose values are statically
+known at the host language compile-time? All staging frameworks treat un-annotated
+terms as run-time values and annotated terms as values from later stages. Even if we would
+consider that the starting stage is executed at host language compile-time, we would
+have to annotate all run-time values. This is inpractical and cumbersome since host
+language run-time values comprise the majority of user programs\todo{cf.}.
 
 
+Programming languages Idris and D allow placing the \code{static}
+ annotation on function arguments. Since \code{static} is placed on terms rather
+ then types, it denotes that the \emph{whole term} is static. This restricts the number of programs
+ that can be expressed, \eg, we could not express that vectors in the signature of \emph{dot}
+ are partially static.
 
-% % Seldom Used -> should not change programs at run-time.
-% % Should be able to evaluate at host-language compile-time.
-
-
-
-
-% % The main idea of this paper is that staging should be possible for compile-time
-% % values and that non-staged programs should remain unmodified.
-
-% \begin{itemize}
-%  \item Programming languages Idris and D allow placing the \code{static}
-%   annotation on function arguments. Since \code{static} is placed on terms rather
-%   then types, it denotes that the \emph{whole term} is static. This restricts the number of programs
-%   that can be expressed, \eg, we could not express that vectors in the signature of \emph{dot}
-%   are partially static.
-
-%  \item Lightweight Modular Staging (LMS)~\cite{rompf2012lightweight} uses types to communicate
-%   the programmer's intent about partial evaluation. By changing the types of parameters
-%   to be (\eg \code{Vector[Rep[T]]} these approaches can express that parameter vectors
-%   are statically known. However, they still require existence of two data structures
-%   (\eg \code{Rep[Vector]} and \code{Vector}. This fosters costly and hardly maintainable
-%   code duplication.
-
-%  \item MetaOCaml~\cite{taha_multi-stage_1997} places terms in, possibly nested,
-%    quotes. Depth of the term in the quotes denotes the stage of the computation
-%    where it will be executed. In MetaOCaml we can express the \code{dot} function,
-%    but we have to modify the code of the \code{dot} function which might not be desirable.
-
-% \end{itemize}
-
-Ideally, a programmer would with a minimal number of annotations be able to:
- \emph{i)} require that input vectors are of statically known size but polymorphic
-  in their elements, \emph{ii)} without modifying the terms require that all operations
-  on vector arguments are further partially evaluated, \emph{iii)} allow elements
-  of vectors to be generic, and \emph{iv)} reuse the existing implementation of
-  the \code{Vector} data structure.
-
-The main idea of this paper is to provide a statically typed \emph{compile-time
- view} of existing data types. The compile-time view makes all operations and
- non-generic fields partially evaluated on a type. The compile-time view allows
- programmers to define a single definition of a type. Then the existing types
- can be promoted to their compile-time duals with the \code{@ct} annotation at
- the type level, and with the \code{ct} function on the term level.
- Consequently, due to the integration with the type system, the control over
- partial evaluation is fine-grained and polymorphic and term level promotions
- obviate code duplication for static data structures.
+The main idea of this paper is that annotated types should denote computations
+that happen at the previous stage. The reason is two-fold: i) going backwards can
+express compile-time execution and ii) in staged programs the code terms appear
+more frequently, and thus, should not be annotated.
 
 With our partial evaluator, to require that vectors \code{v1} and \code{v2} are
  static and to partially evaluate the function, a programmer would need to make
@@ -158,6 +118,64 @@ We have implemented a partial evaluator according to the translation scheme (\sc
  our evaluator gives significant performance gains compared to original programs and
  performs equivalently to LMS.
 
+
+
+%  \item Programming languages Idris and D allow placing the \code{static}
+%   annotation on function arguments. Since \code{static} is placed on terms rather
+%   then types, it denotes that the \emph{whole term} is static. This restricts the number of programs
+%   that can be expressed, \eg, we could not express that vectors in the signature of \emph{dot}
+%   are partially static.
+% MacroML
+% % For all notable common frameworks the starting stage is the runtime
+
+
+
+% % Seldom Used -> should not change programs at run-time.
+% % Should be able to evaluate at host-language compile-time.
+
+
+
+
+% % The main idea of this paper is that staging should be possible for compile-time
+% % values and that non-staged programs should remain unmodified.
+
+% \begin{itemize}
+%  \item Programming languages Idris and D allow placing the \code{static}
+%   annotation on function arguments. Since \code{static} is placed on terms rather
+%   then types, it denotes that the \emph{whole term} is static. This restricts the number of programs
+%   that can be expressed, \eg, we could not express that vectors in the signature of \emph{dot}
+%   are partially static.
+
+%  \item Lightweight Modular Staging (LMS)~\cite{rompf2012lightweight} uses types to communicate
+%   the programmer's intent about partial evaluation. By changing the types of parameters
+%   to be (\eg \code{Vector[Rep[T]]} these approaches can express that parameter vectors
+%   are statically known. However, they still require existence of two data structures
+%   (\eg \code{Rep[Vector]} and \code{Vector}. This fosters costly and hardly maintainable
+%   code duplication.
+
+%  \item MetaOCaml~\cite{taha_multi-stage_1997} places terms in, possibly nested,
+%    quotes. Depth of the term in the quotes denotes the stage of the computation
+%    where it will be executed. In MetaOCaml we can express the \code{dot} function,
+%    but we have to modify the code of the \code{dot} function which might not be desirable.
+
+% \end{itemize}
+
+% Ideally, a programmer would with a minimal number of annotations be able to:
+ % \emph{i)} require that input vectors are of statically known size but polymorphic
+  % in their elements, \emph{ii)} without modifying the terms require that all operations
+  % on vector arguments are further partially evaluated, \emph{iii)} allow elements
+  % of vectors to be generic, and \emph{iv)} reuse the existing implementation of
+  % the \code{Vector} data structure.
+%
+% The main idea of this paper is to provide a statically typed \emph{compile-time
+ % view} of existing data types. The compile-time view makes all operations and
+ % non-generic fields partially evaluated on a type. The compile-time view allows
+ % programmers to define a single definition of a type. Then the existing types
+ % can be promoted to their compile-time duals with the \code{@ct} annotation at
+ % the type level, and with the \code{ct} function on the term level.
+ % Consequently, due to the integration with the type system, the control over
+ % partial evaluation is fine-grained and polymorphic and term level promotions
+ % obviate code duplication for static data structures.
 
 
 
