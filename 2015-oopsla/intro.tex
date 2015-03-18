@@ -6,11 +6,11 @@
 % TODO better citations metaOCaml, interpreters to compilers, DSLs
  Multi-stage programming (or \emph{staging}) is a flavor of meta-programming where compilation is
   separated in multiple \emph{stages} of compilation. Execution of each stage outputs
-  the code that is executed in the next stage of compilation. The first stage of
+  code that is executed in the next stage of compilation. The first stage of
   compilation is the \emph{host language} compile-time, the second stage the host language
-  run-time that generates code, the third stage is the run-time of run-time generated code, etc.
+  runtime, the third stage is the runtime of run-time generated code, etc.
   Notable, staging frameworks are MetaOCaml~\cite{taha_multi-stage_1997} and LMS~\cite{rompf2012lightweight},
-  and they were successfully applied for as a \emph{partial evaluatior}~\cite{jones1993partial} for:
+  and they were successfully applied as a \emph{partial evaluatior}~\cite{jones1993partial} for:
   removing abstraction overheads in high-level programs~\cite{carette2005multi,rompf2012lightweight},
   domain-specific languages~\cite{jonnalagedda2014staged}, and converting language
   interpreters into compilers~\cite{lancet}.
@@ -24,11 +24,11 @@
  \end{lstparagraph}
 
 If the vector sizes are statically known during program runtime the inner product can
- be partially evaluated into a sum of products of vector components. The compilation stage in which a term will be executed is determined by code quotations~(in MetaOCaml) or by parametric types \code{Rep}~(in LMS). The
+ be partially evaluated into a sum of products of vector components. The compilation stage
+in which a term will be executed is determined by code quotations~(in MetaOCaml) or by parametric types \code{Rep}~(in LMS). The
  unqouted/unanottated code is always executed during host-language runtime and
  quoted/type annotated code is executed after run-time compilation.
 
-% Add a notation that we need annotations
 
  In LMS~\footnotemark[2] we communicate that the vector size is statically known
   by annotating only vector elements with a \code{Rep} type:\begin{lstparagraph}
