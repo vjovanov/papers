@@ -1,19 +1,20 @@
-\section{The Partial Evaluator for Scala}
+\section{Compile-Time Views for Scala}
 \label{sct:interface}
 
-We have implemented a prototype partial evaluator, formally defined in \sct{sct:partial-evaluation}, and
- according to the \calculus calculus (formally define in \sct{sct:calculus}).
- The partial evaluator is a compiler plugin that executes in a phase after the
+We have implemented \tool, a staging extension for Scala based on compile-time views.It is formally defined in
+ \sct{sct:partial-evaluation}, and according to the \calculus calculus (formally defined in \sct{sct:calculus}).
+ The staging extension is a compiler plugin that executes in a phase after the
  Scala type checker. The plugin starts with pre-typed Scala programs and uses a
- type annotations \todo{cite} to track and verify information about the biding-time
- of terms.
+ type annotations~\todo{cite} to track and verify information about the biding-time
+ of terms. Currently, it supports only two stages of compilation: host language compile-time
+ (types annotated with \code{@ct}) and host language run-time (unannotated code).
 
-To the user, the partial evaluator exposes a minimal interface (\figref{fig:interface}) with
-annotations \code{inline} and \code{ct} and the \code{ct} function.
+To the user, the \tool staging extension exposes a minimal interface (\figref{fig:inter,face}) with
+annotations \code{inline} and \code{ct}, and the \code{ct} function.
 
 \begin{figure}
 \begin{listing}
-package object scalainline {
+package object scalact {
 
   final class ct extends StaticAnnotation
   final class inline extends StaticAnnotation
@@ -24,7 +25,7 @@ package object scalainline {
 }
 \end{listing}
 \label{fig:interface}
-\caption{Interface of the Scala partial evaluator.}
+\caption{Interface of the Scala staging extension.}
 \end{figure}
 
 \smartparagraph{Annotation ct} is used at the type level and denotes that one expects a
@@ -32,7 +33,7 @@ package object scalainline {
  and, therefore, can be arbitrarily nested in different variants of types. Table
  \ref{tbl:ct-type} shows how the \code{@ct} annotation can be placed on types
  and how it, due to the translation to the compile-time views (\figref{ct-translation}),
- changes method signatures.
+ changes method signatures on annotated types.
 
 \begin{table*}[t]
 \caption{Types and corresponding method signatures after the translation to the compile-time view.}
@@ -52,6 +53,7 @@ package object scalainline {
 \bottomrule
 \end{tabularx}
 \end{table*}
+
  In \tabref{tbl:ct-type}, \code{Int@ct} is a non-polymorphic type and therefore
  according to the translation to the compile-time view (\ref{fig:ct-translation})
  all arguments of all methods will be executed at compile-time. On the other hand,
@@ -60,14 +62,15 @@ package object scalainline {
  operate on dynamic values, thus, function \code{f} passed to \code{map} accepts
  the dynamic value as input. Type \code{Vector[Int@ct]@ct} is has all parts executed
  at compile-time. However, the return type of the function \code{map} can still be
- a compile-time view - due to the type parameter \code{U}.
+ a compile-time view: due to the type parameter \code{U}.
 
-\smartparagraph{Functions \code{ct} and \code{inline}} is used at the term level for promoting Scala objects
- and functions into their compile-time views. Without \code{ct} we would not be able
- to instantiate compile-time views of the types. \tabref{tbl:ct-type} shows how
- different types of terms are promoted to their compile-time views.
+\smartparagraph{Functions \code{ct} and \code{inline}} are used at the term level
+ for promoting Scala objects and functions into their compile-time views. Without
+ \code{ct} we would not be able to instantiate compile-time views of the types.
+ \tabref{tbl:ct-type} shows how different types of terms are promoted to their
+ compile-time views.
 
-\begin{table*}[h]
+\begin{table*}[t]
 \caption{Promotion of terms to their compile-time views.}
 \label{tbl:ct-type}
 \centering
@@ -100,4 +103,6 @@ inlining is achieved through partial evaluation\todo{cite}, however, partial eva
 trivially added to the system. It directly corresponds to adding \code{inline} from
 \calculus in front of the function or method definition.
 
-\subsection{Interaction with the Scala Language}
+% TODO discuss inline as @ct
+% TODO discuss automatic conversions
+% TODO discuss more usability things.
