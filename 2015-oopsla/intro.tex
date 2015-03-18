@@ -5,7 +5,7 @@
 
 % TODO better citations metaOCaml, interpreters to compilers, DSLs
  Multi-stage programming (or \emph{staging}) is a flavor of meta-programming where compilation is
-  separated in multiple \emph{stages} of compilation. Execution of each stage outputs
+  separated in multiple \emph{stages}. Execution of each stage outputs
   code that is executed in the next stage of compilation. The first stage of
   compilation is the \emph{host language} compile-time, the second stage the host language
   runtime, the third stage is the runtime of run-time generated code, etc.
@@ -23,15 +23,14 @@
     }
  \end{lstparagraph}
 
-If the vector sizes are statically known during program runtime the inner product can
- be partially evaluated into a sum of products of vector components. The compilation stage
-in which a term will be executed is determined by code quotations~(in MetaOCaml) or by parametric types \code{Rep}~(in LMS). The
- unqouted/unanottated code is always executed during host-language runtime and
- quoted/type annotated code is executed after run-time compilation.
-
-
- In LMS~\footnotemark[2] we communicate that the vector size is statically known
-  by annotating only vector elements with a \code{Rep} type:\begin{lstparagraph}
+If the vector sizes are static during program runtime the inner product can
+ be partially evaluated into a sum of products of vector components. To achieve partial evaluation,
+ we communicate to the staging framework that operations on vectors should be executed in
+ the current stage (host language runtime). The compilation stage
+ in which a term will be executed is determined by code quotations~(in MetaOCaml)
+ or by parametric types \code{Rep}~(in LMS). In LMS~\footnotemark[2] we communicate
+ that the vector size is statically known by annotating only vector elements with
+ a \code{Rep} type:\begin{lstparagraph}
   def dot[V:Numeric]
     (v1: Vector[Rep[V]], v2: Vector[Rep[V]]): Rep[V]
  \end{lstparagraph}
@@ -39,27 +38,30 @@ in which a term will be executed is determined by code quotations~(in MetaOCaml)
 Here the \code{Rep} annotations on \code{V} denote that elements of vectors will be known
  only in the next stage (after run-time compilation). At this stage the \code{zip}
  \code{foldLeft}, and pattern matching inside the closure will not exist
- as they were evaluated at the previous stage (host language runtime).
+ as they were evaluated at the previous stage (host language runtime). Note that
+ the unquoted/unannotated code is always executed during host-language runtime
+ and quoted/type annotated code is executed after run-time compilation.
 
 
 {\bf Problem.} How can we use staging for programs whose values are statically
-known at the host language compile-time? All staging frameworks treat un-annotated
-terms as run-time values and annotated terms as values from later stages. Even if we would
-consider that the starting stage is executed at host language compile-time, we would
-have to annotate all run-time values. This is inpractical and cumbersome since host
-language run-time values comprise the majority of user programs\todo{cf.}.
+ known at the host language compile-time? All staging frameworks treat unannotated
+ terms as run-time values and annotated terms as values from later stages. Even if we would
+ consider that the starting stage is executed at host language compile-time, we would
+ have to annotate all run-time values. Annotating all values is cumbersome since host
+ language run-time values comprise the majority of user programs~\todo{cf.}.
 
-
-Programming languages Idris and D allow placing the \code{static}
- annotation on function arguments. Since \code{static} is placed on terms rather
- then types, it denotes that the \emph{whole term} is static. This restricts the number of programs
- that can be expressed, \eg, we could not express that vectors in the signature of \emph{dot}
- are partially static.
+Programming languages Idris and D allow placing the \code{static} annotation on
+ function arguments. The static denotes that the term is static and that all operations
+ on that term should be executed at compile-time. However, since \code{static} is
+ placed on terms rather then types, it can mark only \emph{whole terms} as static.
+ This restricts the number of programs that can be expressed, \eg, we could not
+ express that vectors in the signature of \emph{dot} are static only in size.
 
 The main idea of this paper is that annotated types should denote computations
-that happen at the previous stage. The reason is two-fold: i) going backwards can
-express compile-time execution and ii) in staged programs the code terms appear
-more frequently, and thus, should not be annotated.
+ that happen at the \emph{previous stage} instead of the future stage.
+ The reason is two-fold: \emph{i)} going backwards can succinctly express compile-time
+ execution and \emph{ii)} in staged programs the static terms appear less frequently
+ than run-time terms, and in order to bear minimum overhead for the users, they should be annotated.
 
 With our partial evaluator, to require that vectors \code{v1} and \code{v2} are
  static and to partially evaluate the function, a programmer would need to make
