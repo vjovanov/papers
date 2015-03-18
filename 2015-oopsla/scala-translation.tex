@@ -56,7 +56,7 @@ Furthermore, rules of \calculus do not support effect-full computations and each
 \subsection{Desugaring Object Oriented Constructs to \calculus}
 \label{sct:desugaring}
 
-\begin{figure}
+\begin{figure*}
 \begin{alignat*}{2}
    & [\![ \klet\ x: T_x = t_x\ \kin \ t ]\!] = ((x: T_x) \ra t)(t_x)\\
    & [\![ \klet\ type\ T_1 = T_2\ \kin\ t ]\!] =  ([T_1 <: T_2] \ra t)[T_2] \\
@@ -67,7 +67,7 @@ Furthermore, rules of \calculus do not support effect-full computations and each
 \end{alignat*}
 \caption{Desugaring of classes into \calculus.}
 \label{fig:desugaring-classes}
-\end{figure}
+\end{figure*}
 
 
 \subsection{Compile-Time View of the Terms}

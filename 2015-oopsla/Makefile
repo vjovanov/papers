@@ -12,6 +12,7 @@ TEX_SRCS=\
   scala-translation.tex \
   partial-evaluator.tex \
   case-studies.tex \
+  limitations.tex \
   evaluation.tex \
   related.tex \
   conclusion.tex \
