@@ -14,6 +14,7 @@ TEX_SRCS=\
   case-studies.tex \
   limitations.tex \
   evaluation.tex \
+  discussion.tex \
   related.tex \
   conclusion.tex \
   vjovanov-lib.bib \

@@ -1,21 +1,26 @@
 \section{Case Studies}
 \label{sct:case-studies}
 
-In this section we present selected use-cases for compile-time views that demonstrate
- the core functionality. We start with a canonical example of the power function
- (\sct{sct:recursion}), then we demonstrate how variable argument functions can be
- desugared into the core functionality (\sct{sct:varargs}). Finally, we demonstrate how
- the abstraction overhead of the \code{dot} function and all associated type-classes
- can be removed (\sct{sct:dot-product}).
+In this section we present selected use-cases for compile-time views that at the
+same  time demonstrate step-by-step the mechanics behind \tool and the
+interesting applications.  We start by inlining a simple function with staging
+(\sct{sct:inlining}), then do the canonical staging  example of the power function
+(\sct{sct:recursion}), then we demonstrate how variable argument functions can
+be  desugared into the core functionality (\sct{sct:varargs}). Finally, we
+demonstrate how the abstraction overhead of the \code{dot} function and all
+associated type-class related abstraction an be removed (\sct{sct:dot-product}).
 
-\subsection{Inlining Expressed Through Partial-Evaluation}
+\subsection{Inlining Expressed Through Staging}
 \label{sct:inlining}
+
+
+
 
 \subsection{Recursion}
 \label{sct:recursion}
 
-The canonical example in partial evaluation is the computation of the integer power
- function:
+The canonical example in staging literature is partial evaluation of the power function
+ where exponent is integer:
 \begin{lstparagraph}
 def pow(base: Double, exp: Int): Double =
   if (exp == 0) 1 else base * pow(base, exp)
@@ -23,17 +28,17 @@ def pow(base: Double, exp: Int): Double =
 evaluated into \code{exp} multiplications of the \code{base} argument, significantly
 improving performance~\cite{}.
 
-
 With compile-time views making\code{pow} partially evaluated requires adding two annotations:
 
 \begin{lstparagraph}
-@inline def pow(base: Double, exp: Int @ct): Double =
+@inline def pow(base: Double, exp: Int@ct): Double =
   if (exp == 0) 1 else base * pow(base, exp)
 \end{lstparagraph}
 
-\code{@inline} denotes that the \code{pow} function it self must be inlined at application
- and \code{@ct} requires that the \code{exp} argument is a compile-time view of \code{Int}.
- The application of the function \code{pow} with a constant exponent will produce:
+\code{@inline} denotes that the \code{pow} function it self must be executed at
+ compile time and \code{@ct} requires that the \code{exp} argument is a compile-time
+ view of \code{Int}. The application of the function \code{pow} with a constant
+ exponent will produce:
 
 \begin{lstparagraph}
 pow(base, 4)
@@ -57,7 +62,7 @@ def min(vs: Int*): Int = vs.tail.foldLeft(vs.head) {
   (min, el) => if (el < min) el else min
 }
 \end{lstparagraph}can be called either with statically known arguments
- (\eg \code{min(1,2)}) or with dynamic arguments:\begin{lstparagraph}
+ (\eg, \code{min(1,2)}) or with dynamic arguments:\begin{lstparagraph}
 val values: Seq[Int] = ... // dynamic value
 min(values: _*)
 \end{lstparagraph}
@@ -91,7 +96,6 @@ for statically known varargs or to the original min function for dynamic argumen
 
 \subsection{Removing Abstraction Overhead of Type-Classes}
 \label{sct:type-classes-removal}
-\todo{not-sure how to achieve this!}
 \todo{cite}
 Type-classes are omnipresent in everyday programming as they provide allow abstraction over
  generic parameters (\eg Numeric abstracts over numeric values). Unfortunately,
@@ -102,9 +106,9 @@ Type-classes are omnipresent in everyday programming as they provide allow abstr
 \begin{figure}
 \begin{listing}
 object Numeric {
-  @inline implicit def dnum: Numeric[Double] =
-    DoubleNumeric
-  @inline def zero[T](implicit num: Numeric[T]): T =
+  @inline implicit def dnum: Numeric[Double]@ct =
+    ct(DoubleNum)
+  @inline def zero[T](implicit num: Numeric[T]@ct): T =
     num.zero
 }
 
@@ -114,10 +118,10 @@ trait Numeric[T] {
   def zero: T
 }
 
-class DoubleNumeric[T <: Double] extends Numeric[Double] {
-  @inline def plus(x: T, y: T): T = x + y
-  @inline def times(x: T, y: T): T = x * y
-  @inline def zero: T = 0.0
+object DoubleNum[T <: Double] extends Numeric[Double] {
+  def plus(x: T, y: T): T = x + y
+  def times(x: T, y: T): T = x * y
+  def zero: T = 0.0
 }
 \end{listing}
 \caption{\label{fig:numeric} Function for computing the non-negative power of a real number.}

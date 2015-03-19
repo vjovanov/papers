@@ -114,8 +114,9 @@ This, in effect, requires that only vector arguments (not their elements) are
 \begin{listing}[mathescape]
   // [el1, el2, el3, el4] are dynamic decimals
   dot(ct(Vector)(el1, el2), ct(Vector)(el3, el4))
-    $\hookrightarrow$ (el1 * el3 + el2 * el4): Double@dynamic
+    $\hookrightarrow$ (el1 * el3 + el2 * el4): Double
 
+  // static terms are internally tracked through types
   dot(ct(Vector)(2.0, 4.0), ct(Vector)(1.0, 10.0))
     $\hookrightarrow$ (2.0 * 1.0 + 4.0 * 10.0): Double@static
 
