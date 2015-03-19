@@ -1,11 +1,10 @@
 \section{Compile-Time Views for Scala}
 \label{sct:interface}
 
-We have implemented \tool, a staging extension for Scala based on compile-time views.It is formally defined in
- \sct{sct:partial-evaluation}, and according to the \calculus calculus (formally defined in \sct{sct:calculus}).
- The staging extension is a compiler plugin that executes in a phase after the
+We have implemented \tool, a staging extension for Scala based on compile-time views.
+ \tool is a compiler plugin that executes in a phase after the
  Scala type checker. The plugin starts with pre-typed Scala programs and uses a
- type annotations~\todo{cite} to track and verify information about the biding-time
+ type annotations~\cite{odersky_1996_putting} to track and verify information about the biding-time
  of terms. Currently, it supports only two stages of compilation: host language compile-time
  (types annotated with \code{@ct}) and host language run-time (unannotated code).
 
