@@ -1,6 +1,17 @@
 \section{Compile-Time Views for Scala}
 \label{sct:interface}
 
+% TODO This is all together not good without having @inline at the term level (classes,
+% objects, traits, methods, etc.). Unfortunately, this opens up a new can of worms
+% that we are not ready for now. If the paper is ready by Tuesday evening we can take a
+% stab at it.
+
+% Motivate: data structure that whenever instantiated is already ct.
+% Example: complex number, parser ...
+% inline on classes and their methods
+% inline on traits
+% inline and inheritance
+
 We have implemented \tool, a staging extension for Scala based on compile-time views.
  \tool is a compiler plugin that executes in a phase after the
  Scala type checker. The plugin starts with pre-typed Scala programs and uses
@@ -80,20 +91,6 @@ method signatures on annotated types.
 \end{lstparagraph} that can not be written by the users. We choose the name
  \code{inline} to be consistent with the existing Scala \code{inline} annotation.
 
-% TODO This is all total crap without having @inline at the term level (classes,
-% objects, traits, methods.
-% Motivate: data structure that whenewer instantiated is already ct
-% Example: complex number
-% inline on classes and their methods
-% inline on traits
-% inline and inheritance
-% TODO traits (only if we mus)
-% TODO discuss automatic conversions
-% TODO discuss more usability things.
-
-% TODO: Well formedness of types goes here as well
-% TODO: Reducing the number of annotations (implicit conversions go here)
-
 
 \smartparagraph{Functions \code{ct} and \code{inline}} are used at the term level
  for promoting Scala objects and methods/functions into their compile-time views. Without the
@@ -126,27 +123,39 @@ Function \code{ct} can be applied to objects (\eg, \code{Vector}) to provide a c
  on functions \code{ct} promotes the compile-time view as well as its arguments
  and the return type.
 
-Function \code{inline} can be applied only on functions/methods to promote only the function
- (and not the arguments) to their compile time views. This function can be seen as a shallow
- version of \code{ct} that makes only the outer type a compile-time view.
+Function \code{inline} can be applied on functions/methods to promote only the function/method
+ to their compile time views without promoting the arguments. This function can be
+ seen as a shallow version of \code{ct} that makes only the outer type a compile-time view.
 
 \subsection{Well-Formedness of Compile-Time Views}
 \label{sct:wf-ctv}
 
 % Nice description of csp and pointer to the right paper.
-Compile-time views
+Earlier stages of computation can not depend on values from later stages. This property,
+ defined as \emph{cross-stage persistence}~\cite{taha_multi-stage_1997,westbrook2010mint},
+ imposes that all operations on compile-time views must known at compile time.
 
-% Examples on types
-CTVs
+To satisfy cross-stage persistence \tool verifies that composite dynamic
+ types~(\eg, polymorphic-types, function types, record types, etc.) are not composed
+ of compile-time views. The intuition is that all method parameters~(including \code{this})
+ of compile time views must either be a compile-time view or them selves type variables. In the following example,
+ we show malformed types and examples of terms that are inconsistent with causality\begin{lstparagraph}
+xs: List[Int@ct]     => ct(Predef).println(xs.head)
+fn: (Int@ct=>Int@ct) => ct(Predef).println(fn(ct(1)))
+\end{lstparagraph}
 
-% Examples on functions
-Examples on functions.
+In the first example the program should print the head of the dynamically known list
+ at compile time. In the second example the statement should print the result of \code{fn} at
+ compile time but the body of the function is unknown.
 
 % Examples on classes
-Examples on classes (same limitations from scala).
+The \code{inline} annotation promotes only function/method bodies to compile-time views. In effect,
+ this requires only the method/function body to be known at compile time. Method bodies
+ are statically known in objects and classes with final methods, thus, the \code{inline}
+ annotation is only applicable on such methods.
+
+\subsection{Least Upper Bounds}
+\label{sct:sub}
 
 \subsection{Convenient Implicit Conversions}
 \label{sct:wf-ctv}
-
-% Examples
-
