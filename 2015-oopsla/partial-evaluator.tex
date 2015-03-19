@@ -82,8 +82,8 @@ package object scalact {
   \code{ct(Vector)(ct(1), ct(2), ct(3))} & \code{: Vector[Int@ct]@ct     }  \\
   \code{new (Cons@ct)(1, Nil)          } & \code{: Cons[Int]@ct          }  \\
   \code{new (Cons@ct)(ct(1), ct(Nil))  } & \code{: Cons[Int@ct]@ct       }  \\
-  \code{ct((x: Int) => x)              } & \code{: (Int@ct => Int@ct)@ct   }  \\
-  \code{inline((x: Int) => x)       } & \code{: (Int => Int)@ct }  \\
+  \code{ct((x: Int) => x)              } & \code{: (Int@ct => Int@ct)@ct }  \\
+  \code{inline((x: Int) => x)          } & \code{: (Int => Int)@ct       }  \\
 
 \bottomrule
 \end{tabularx}
@@ -103,6 +103,15 @@ inlining is achieved through partial evaluation\todo{cite}, however, partial eva
 trivially added to the system. It directly corresponds to adding \code{inline} from
 \calculus in front of the function or method definition.
 
-% TODO discuss inline as @ct
+% TODO classes (only if we must)
+% Motivate: data structure that whenewer instantiated is already ct
+% Example: complex number
+% inline on classes and their methods
+% inline on traits
+% inline and inheritance
+% TODO traits (only if we mus)
 % TODO discuss automatic conversions
 % TODO discuss more usability things.
+
+% TODO: Well formedness of types goes here as well
+% TODO: Reducing the number of annotations (implicit conversions go here)
