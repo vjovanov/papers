@@ -3,13 +3,13 @@
 
 We have implemented \tool, a staging extension for Scala based on compile-time views.
  \tool is a compiler plugin that executes in a phase after the
- Scala type checker. The plugin starts with pre-typed Scala programs and uses a
+ Scala type checker. The plugin starts with pre-typed Scala programs and uses
  type annotations~\cite{odersky_1996_putting} to track and verify information about the biding-time
  of terms. Currently, it supports only two stages of compilation: host language compile-time
  (types annotated with \code{@ct}) and host language run-time (unannotated code).
 
-To the user, the \tool staging extension exposes a minimal interface (\figref{fig:inter,face}) with
-annotations \code{inline} and \code{ct}, and the \code{ct} function.
+To the user, \tool exposes a minimal interface (\figref{fig:interface}) with
+annotations \code{inline} and \code{ct}, and functions \code{inline} and \code{ct}.
 
 \begin{figure}
 \begin{listing}
@@ -56,19 +56,48 @@ method signatures on annotated types.
 
  In \tabref{tbl:ct-type}, \code{Int@ct} is a non-polymorphic type and therefore
  according to the translation to the compile-time view (\ref{fig:ct-translation})
- all arguments of all methods will need to be also compile-time views. On the other hand,
- \code{Vector[Int]@ct} will have all arguments of all methods transformed except
+ parameters of all methods will also be compile-time views. On the other hand,
+ \code{Vector[Int]@ct} will have parameters of all methods transformed except
  the generic ones. In effect, this, makes higher order combinators of \code{Vector}
  operate on dynamic values, thus, function \code{f} passed to \code{map} accepts
  the dynamic value as input. Type \code{Vector[Int@ct]@ct} has all parts executed
  at compile-time. The return type of the function \code{map} can still be
  both dynamic and a compile-time view: due to the type parameter \code{U}.
 
-% TODO inline/ct as the term level annotation
+\smartparagraph{Annotation inline} can be used only at the term level on statically
+ known methods and functions. It denotes that the method/function will be inlined during
+ compilation time. \code{inline} is marking that the function application is a compile-time
+ computation and that application should be removed by partial evaluation.
+ This is not the first time that inlining is achieved through partial
+ evaluation~\cite{monnier2003inlining}.
+
+ Internally \code{inline} can be expressed in terms of \code{ct}. A method:\begin{lstparagraph}
+@inline def dot[V: Numeric]
+  (v1: Vector[V], v2: Vector[V]): V
+\end{lstparagraph}
+  will have a type method type \code{((v1: Vector[V], v2: Vector[V]) => V)@ct}. This
+  type, however, can not be written by users. We choose the name \code{inline} to
+  be consistent with the existing Scala \code{inline} annotation.
+
+
+
+% TODO classes (only if we must)
+% Motivate: data structure that whenewer instantiated is already ct
+% Example: complex number
+% inline on classes and their methods
+% inline on traits
+% inline and inheritance
+% TODO traits (only if we mus)
+% TODO discuss automatic conversions
+% TODO discuss more usability things.
+
+% TODO: Well formedness of types goes here as well
+% TODO: Reducing the number of annotations (implicit conversions go here)
+
 
 \smartparagraph{Functions \code{ct} and \code{inline}} are used at the term level
- for promoting Scala objects and functions into their compile-time views. Without
- \code{ct} we would not be able to instantiate compile-time views of the types.
+ for promoting Scala objects and functions into their compile-time views. Without the
+ the \code{ct} we would not be able to instantiate compile-time views of types.
  \tabref{tbl:ct-type} shows how different types of terms are promoted to their
  compile-time views.
 
@@ -91,32 +120,8 @@ method signatures on annotated types.
 \end{tabularx}
 \end{table*}
 
-Function \code{ct} can be applied to objects (\eg \code{Vector}) to provide a compile-time
+Function \code{ct} can be applied to objects (\eg, \code{Vector}) to provide a compile-time
  view over their methods. When those objects have generic parameters, \code{ct} be used
  to promote the arguments, and thus, the result types of these functions. When applied,
  on functions \code{ct} promotes the compile-time view as well as its arguments
  and the return type.
-
- \todo{inline}
-
-\smartparagraph{Annotation inline} can be used only on methods and functions. This function
-uses partial evaluation to achieve inlining\cite{monnier2003inlining}. This is not the first time that
-inlining is achieved through partial evaluation\todo{cite}, however, partial evaluation is
-trivially added to the system. It directly corresponds to adding \code{inline} from
-\calculus in front of the function or method definition.
-
- \todo{???}
-
-
-% TODO classes (only if we must)
-% Motivate: data structure that whenewer instantiated is already ct
-% Example: complex number
-% inline on classes and their methods
-% inline on traits
-% inline and inheritance
-% TODO traits (only if we mus)
-% TODO discuss automatic conversions
-% TODO discuss more usability things.
-
-% TODO: Well formedness of types goes here as well
-% TODO: Reducing the number of annotations (implicit conversions go here)
