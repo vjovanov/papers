@@ -1,70 +1,74 @@
 \section{Introduction}
 \label{sct:introduction}
 
- Multi-stage programming (or \emph{staging}) is a flavor of meta-programming
+ \emph{Multi-stage programming} (or \emph{staging}) is a flavor of meta-programming
   where compilation is separated in multiple \emph{stages}. Execution of each
   stage outputs code that is executed in the next stage of compilation. The first
-  stage of compilation is the \emph{host language} compile-time, the second stage
-  the host language runtime, the third stage is the runtime of run-time generated
-  code, etc. Notable, staging frameworks are MetaOCaml~\cite{taha_multi-stage_1997}
-  and LMS~\cite{rompf2012lightweight}, and they were successfully applied as a
+  stage of compilation happens at the \emph{host language} compile-time, the second
+  stage happens at the host language runtime, the third stage happens at run-time of
+  runtime generated code, etc. Different stages of compilation can be executed in the same
+  language~\cite{taha_multi-stage_1997,nielson2005two} or in different languages~\cite{brown_heterogeneous_2011,devito2013terra}.
+
+  Notable, staging systems for statically typed languages are
+  MetaOCaml~\cite{taha_multi-stage_1997,calcagno2003implementing}
+  and LMS~\cite{rompf2012lightweight}. These systems were successfully applied as a
   \emph{partial evaluatior}~\cite{jones1993partial}: for removing abstraction
   overheads in high-level programs~\cite{carette2005multi,rompf2012lightweight},
   for domain-specific languages~\cite{czarnecki_dsl_2004,jonnalagedda2014staged,taha2004gentle}, and for converting language
   interpreters into compilers~\cite{lancet,futamura1999partial}. Staging originates
-  from research on two-level~\cite{nielson2005two,davies1996temporal} and multi-level calculi~\cite{davies1996modal}.
+  from research on two-level~\cite{nielson2005two,davies1996temporal} and multi-level~\cite{davies1996modal} calculi.
 
  We show an example of how staging is used for partial evaluation of a function
- for computing the inner product of two vectors~\footnotemark[1]:\begin{lstparagraph}
+ for computing the inner product of two vectors\footnotemark[1]:\begin{lstparagraph}
 def dot[V:Numeric](v1: Vector[V], v2: Vector[V]): V =
   (v1 zip v2).foldLeft(zero[V]) {
     case (prod, (cl, cr)) => prod + cl * cr
   }
  \end{lstparagraph}
 
-In function \code{dot}, if the vector sizes are static during program runtime the inner product can
+In function \code{dot}, if the vector sizes are invariant during program runtime the inner product can
  be partially evaluated into a sum of products of vector components. To achieve partial evaluation,
  we must communicate to the staging framework that the operations on values of vector components
- should be executed in the next stage (after language runtime). The compilation stage
+ should be executed in the next stage (after run-time compilation). The compilation stage
  in which a term will be executed is determined by \emph{code quotation}~(in MetaOCaml)
- or by specific parametric types \code{Rep}~(in LMS). In LMS~\footnotemark[2] we mark
+ or by specific parametric types \code{Rep}~(in LMS). In LMS we mark
  that the vector size is statically known by annotating only vector elements with
- a \code{Rep} type:\begin{lstparagraph}
+ a \code{Rep} type\footnotemark[2]:\begin{lstparagraph}
 def dot[V:Numeric]
   (v1: Vector[Rep[V]], v2: Vector[Rep[V]]): Rep[V]
  \end{lstparagraph}
 
 Here the \code{Rep} annotations on \code{V} denote that elements of vectors will be known
- only in the next stage (after run-time compilation). At this stage the \code{zip}
+ only in the next stage (after run-time compilation). At this stage the \code{zip},
  \code{foldLeft}, and pattern matching inside the closure will not exist
- as they were evaluated at the previous stage (host language runtime). Note that
+ as they were evaluated in the previous stage of compilation (host language runtime). Note that
  the unquoted/unannotated code is always executed during host-language runtime
- and quoted/type annotated code is executed after run-time compilation.
+ and quoted/type-annotated code is executed after run-time compilation.
 
 {\bf First Problem.} How can we use staging for programs whose values are statically
  known at the host language compile-time (the first stage)? All staging frameworks
- treat unannotated terms as host language runtime values and annotated terms as
- values of later stages. Even if we would start staging one stage earlier (at host language compile-time),
+ treat unannotated terms as runtime values of the host language and annotated terms as
+ values of in stages of compilation. Even if we would start staging one stage earlier (at the host language compile-time),
  we would have to annotate all run-time values. Annotating all values is cumbersome
- since host language run-time values comprise the majority of user programs~(cf.\sct{sct:discussion}).
+ since host language run-time values comprise the majority of user programs~(\cf, \sct{sct:discussion}).
 
-\footnotetext[1]{All code examples are written in \emph{Scala}. For comprehension
-of the paper basic knowledge of Scala is necessary.}
+\footnotetext[1]{All code examples are written in \emph{Scala}. It is necessary to
+know the basics of Scala to comprehend the paper.}
 \footnotetext[2]{In this work we use LMS as it is the only staging framework in Scala.}
 
-Programming languages Idris and D allow try to solve this problem by allowing
+Programming languages Idris~\cite{brady2010scrapping} and D~\cite{dlang} try to solve this problem by allowing
  the \code{static} annotation on function arguments. Annotation \code{static} denotes
  that the term is statically known and that all operations on that term should
  be executed at compile-time. However, since \code{static} is placed on terms rather
  then types, it can mark only \emph{whole terms} as static. This restricts the number
  of programs that can be expressed, \eg, we could not express that vectors in the
  signature of \emph{dot} are static only in size. Finally, information about \code{static}
- terms can not be propagated through return types of functions, so \code{static}
- in Idris and D is more a partial evaluation construct.
+ terms can not be deterministically propagated through return types of functions so \code{static}
+ in Idris and D is a partial evaluation construct.
 
 {\bf Second Problem.} Staging systems based on type annotations (e.g., LMS and type-directed
-partial evaluation~\cite{danvy1999type}) inherently require duplication of code as
-,a priory, no operations are defined on \code{Rep} annotated types. For example,
+partial evaluation~\cite{danvy1999type}) inherently require duplication of code as,
+a priory, no operations are defined on \code{Rep} annotated types. For example,
 in the \code{dot} function all numerical types (\eg, \code{Rep[Int]}, \code{Rep[Double]}, etc.)
 must be re-implemented in order to typecheck the programs and achieve code generation
 for the next stage.
@@ -76,22 +80,22 @@ Suereth et al.~\cite{forge} and Jovanovic et al.~\cite{yin-yang}
  require a large machinery for code generation,
  and support only restricted parts of Scala.
 
-The main idea of this paper is that annotated types should denote computations
- that happen at the \emph{previous stage} instead of the next stage.
- The reason is two-fold: \emph{i)} annotating code of previous stages succinctly
- express compile-time execution and \emph{ii)} in staged programs the static terms
- appear less frequently than run-time terms, and in order to bear minimum overhead
- for the users, it is better to add annotation overhead to static terms.
+The main idea of this paper is that \emph{annotated types} should denote computations
+ that happen during the \emph{previous stage} of compilation instead of the
+ next stage of compilation. The reason is two-fold: \emph{i)} annotating code
+ of previous stages succinctly express compile-time execution and \emph{ii)} in
+ staged programs the static terms appear less frequently than run-time terms,
+ and in order to bear minimum overhead for the users, it is better to add annotation
+ overhead to static terms.
 
-Further, annotated types are simply a\emph{compile-time view}
+We treat annotated types as a \emph{compile-time view}s
  of existing data types and therefore no code duplication is necessary.
- The compile-time view makes all operations and non-generic fields executed in
- the host language compile time. The compile-time view requires programmers to
- define a single definition of a type. Then, the existing types can be promoted
+ Compile-time views make all operations on types executed in
+ the host language compile time. Existing types can be promoted
  to their compile-time duals with the \code{@ct} annotation at the type level,
  and with the \code{ct} function on the term level. Consequently, due to the
  integration with the type system, the control over staging is
- fine-grained and polymorphic, and term level promotions obviate code duplication
+ fine-grained and polymorphic, thus, term level promotions obviate code duplication
  for static data structures.
 
 % Restricted to compile-time, but just techincal.
@@ -102,26 +106,24 @@ def dot[V: Numeric@ct]
   (v1: Vector[V]@ct, v2: Vector[V]@ct): V
 \end{lstparagraph}
 
-This, in effect, requires that only vector arguments (not their elements) are
- statically known and that all operations on vector arguments will be executed
- at compile time (partially evaluated). Since, values are polymorphic the result
- of the function will either be a dynamic value, static value, or a compile-time value
- that can be further used for partial evaluation. Residual programs of calling \code{dot}
- with arguments from different stages:
+Since, vector elements are polymorphic the result
+ of the function can be a dynamic value, static value, or a compile-time value
+ that can be further used for compile time computations. The binding time of the return type
+ of \code{dot} will match the binding time of vector elements:
 
 \vspace{1.8mm}
 \begin{listing}[mathescape]
   // [el1, el2, el3, el4] are dynamic decimals
-  dot(ct(Vector)(el1, el2), ct(Vector)(el3, el4))
+  dot(Vector(el1, el2), Vector(el3, el4))
     $\hookrightarrow$ (el1 * el3 + el2 * el4): Double
 
   // static terms are internally tracked through types
-  dot(ct(Vector)(2.0, 4.0), ct(Vector)(1.0, 10.0))
+  dot(Vector(2.0, 4.0), Vector(1.0, 10.0))
     $\hookrightarrow$ (2.0 * 1.0 + 4.0 * 10.0): Double@static
 
   // ct promotes static terms to compile-time
-  dot(ct(Vector)(ct(2), ct(4)),
-      ct(Vector)(ct(1), ct(10)))
+  dot(Vector(ct(2), ct(4)),
+      Vector(ct(1), ct(10)))
     $\hookrightarrow$ 42: Double@ct
 \end{listing}
 \vspace{1.8mm}
@@ -129,9 +131,14 @@ This, in effect, requires that only vector arguments (not their elements) are
 In this paper we contribute to the state of the art:
 \begin{itemize}
 
- \item By introducing compile-time views as means to: \emph{i)} succinctly achieve staging
- at host language compile-time and to \emph{ii)} avoid code duplication in type based
- staging systems.
+ \item By introducing compile-time views~(\sct{sct:interface}) as means to: \emph{i)} succinctly achieve staging
+  at host language compile-time and to \emph{ii)} avoid code duplication in type based
+  staging systems.
+
+ \item By demonstrating the usefulness of compile-time views in four case
+  studies (\sct{sct:case-studies}): inlining, partially evaluating recursion,
+  removing overheads of variable argument functions, and removing overheads of
+  type-classes~\cite{wadler1989make,hall_type_1996,oliveira_type_2010}.
 
  \item By introducing the \calculus calculus (\sct{sct:calculus}) that in a
   fine-grained way captures the user's intent about partial evaluation. The calculus
@@ -143,20 +150,15 @@ In this paper we contribute to the state of the art:
   (polymorphic classes and methods) into their dual compile-time views in the
   \calculus calculus (\sct{sct:scala-translation}).
 
- \item By demonstrating the usefulness of compile-time views in four case
- studies (\sct{sct:case-studies}): inlining, partially evaluating recursion,
- removing overheads of variable argument functions, and removing overheads of
- type-classes~\cite{wadler1989make,hall_type_1996,oliveira_type_2010}.
-
 \end{itemize}
 
-We have implemented \tool according to the translation
- scheme~(\sct{sct:scala-translation}) from object oriented features of Scala to
- the \calculus calculus. The prototype implemented for Scala and
- open-sourced\footnotemark[3]. It has a minimal Scala
- interface (\sct{sct:interface}) based on type annotations. We have evaluated
- performance gains and the validity of the partial evaluator on all case
+We have implemented and open-sourced\footnotemark[3] a staging extension for Scala \tool.
+ \tool has a minimal interface (\sct{sct:interface}) based on type annotations.
+ We have evaluated performance gains and the validity of the partial evaluator on all case
  studies~(\sct{sct:case-studies}) and compared them to LMS. In all benchmarks
  our evaluator gives significant performance gains compared to original programs and
- performs equivalently to LMS.
+ performs equivalently to LMS. \tool is implemented according to the formal translation
+ scheme~(\sct{sct:scala-translation}) from object oriented features of Scala to
+ the \calculus calculus.
+
 \footnotetext[3]{Source code: \url{https://github.com/scala-inline/scala-inline}.}
