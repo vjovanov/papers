@@ -1,4 +1,4 @@
-\section{Compile-Time Views for Scala}
+\section{Compile-Time Views in Scala}
 \label{sct:interface}
 
 % TODO This is all together not good without having @inline at the term level (classes,
@@ -47,7 +47,7 @@ the translation to the compile-time views (\figref{ct-translation}), changes
 method signatures on annotated types.
 
 \begin{table*}[t]
-\caption{Types and corresponding method signatures after the translation to the compile-time view.}
+\caption{Types and corresponding method signatures after translation to their compile-time views.}
 \label{tbl:ct-type}
 \centering
 \begin{tabularx}{\linewidth}{ X X X X }
@@ -127,9 +127,51 @@ Function \code{inline} can be applied on functions/methods to promote only the f
  to their compile time views without promoting the arguments. This function can be
  seen as a shallow version of \code{ct} that makes only the outer type a compile-time view.
 
-\subsection{Tracking Static Terms}
+\subsection{Tracking Binding-Time of Terms}
 \label{sct:static}
 
+
+ Internally \tool has additional type annotations for tracking the binding-time of terms.
+  Type of each term is annotated with either \code{dynamic}, \code{static}, or \code{ct}. \code{dynamic} denotes
+  that the term can only be known at runtime, \code{static} that the term is known
+  at compile-time but it will not be computed at compile time, and \code{ct} that
+  the term will be computed at compile-time.
+ % TODO Cite better the tracking of static terms in static languages (polymorphic version e.g.)
+ Tracking static terms was studied in the context of binding-time analysis
+  in partial evaluation for typed~\cite{nielson_1988_automatic} and
+  untyped~\cite{gomard1991partial} languages. We use similar techniques
+  (described in~\sct{sct:calculus}), however, unlike in partial evaluation we
+  do not evaluate static terms at compile time. Static terms are evaluated only
+  when they are explicitly marked by the programmer with \code{ct}.
+
+  % What are the static terms
+\subsection{Least Upper Bounds}
+\label{sct:lub}
+
+ We use subtyping of Scala to simplify tracking of binding times by introducing a
+ subtyping relation between \code{dynamic}, \code{static}, and \code{ct}. We argue that
+ a \code{static} type is a more specific \code{dynamic} as it is statically known
+ and that \code{ct} is more specific than \code{static} as its operations are executed
+ at compile time. Therefore we establish that\begin{lstparagraph}
+                 ct <: static <: dynamic
+\end{lstparagraph}
+
+ The use of subtyping simplifies verification of validty of function calls and helps computing the
+ least upper bounds of terms. For example, validity of function calls:\begin{lstparagraph}
+   ct(List)(1, ct(2)): List[Int@static]@ct
+   ct(List)(ct(1), ct(2)): List[Int@ct]@ct
+   ct(List)((x: Int@dynamic), ct(2)): List[Int@dynamic]@ct
+\end{lstparagraph}
+
+ % todo cite literature (who else does this)
+ Notable exception are control flow constructs for which the original Scala least
+ upper bound rules do not hold. The binding-time of control flow constructs does not
+ depend only on return type of the body but also the conditional~\cite{}. For example, if
+ both branches of an \code{if} construct are \code{static} the result can still be \code{dynamic}
+ if the condition is \code{dynamic}. Here subtyping also helps as the binding type of the
+ return value is simply calculated as \code{lub(c, thn, elz)} where \code{lub} is a function
+ for computing least upper bounds, and \code{c}, \code{thn}, \code{elz} are respectively
+ binding times of the condition, the then branch, and the else branch.
 
 \subsection{Well-Formedness of Compile-Time Views}
 \label{sct:wf-ctv}
@@ -158,8 +200,7 @@ The \code{inline} annotation promotes only function/method bodies to compile-tim
  are statically known in objects and classes with final methods, thus, the \code{inline}
  annotation is only applicable on such methods.
 
-\subsection{Least Upper Bounds}
-\label{sct:lub}
 
 \subsection{Convenient Implicit Conversions}
 \label{sct:implicits}
+% tracking of values with static terms.
