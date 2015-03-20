@@ -1,8 +1,6 @@
 \section{Introduction}
 \label{sct:introduction}
 
-% TODO count lines of code in LMS based DSLs (hyper) where stage distinction is relevant.
-% TODO better citations metaOCaml, interpreters to compilers, DSLs
  Multi-stage programming (or \emph{staging}) is a flavor of meta-programming
   where compilation is separated in multiple \emph{stages}. Execution of each
   stage outputs code that is executed in the next stage of compilation. The first
@@ -100,7 +98,7 @@ Further, annotated types are simply a\emph{compile-time view}
 With compile-time views, to require that vectors \code{v1} and \code{v2} are
  static and to partially evaluate the function, a programmer would need to make
  a simple modification of the \code{dot} signature:\begin{lstparagraph}
-def dot[V: Numeric]
+def dot[V: Numeric@ct]
   (v1: Vector[V]@ct, v2: Vector[V]@ct): V
 \end{lstparagraph}
 

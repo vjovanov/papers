@@ -17,7 +17,8 @@ For formal partial evaluation rules refer \cf \sct{fig:partial-evaluation}.
 Function inlining can be expressed as staged computation~\cite{monnier2003inlining}.
  Inlining is achieved when a statically known function body is applied with symbolic
  arguments. In \tool we use the \code{inline} annotation on functions and methods to achieve inlining:\begin{lstparagraph}
-@inline def zero(implicit num: Numeric) = num.zero
+@inline def zero[T](implicit num: Numeric[T]) = num.zero
+
 zero[Double]
   $\hookrightarrow$ num.zero
 \end{lstparagraph}
@@ -38,13 +39,20 @@ improving performance~\cite{calcagno2003implementing}.
 With compile-time views making\code{pow} partially evaluated requires adding two annotations:
 
 \begin{lstparagraph}
-@inline def pow(base: Double, exp: Int@ct): Double =
+def pow(base: Double, exp: Int@ct): Double =
   if (exp == 0) 1 else base * pow(base, exp)
 \end{lstparagraph}
 
-\code{@inline} denotes that the \code{pow} function it self must be executed at
- compile time and \code{@ct} requires that the \code{exp} argument is a compile-time
- view of \code{Int}. The application of the function \code{pow} with a constant
+% TODO cite infinite recursion
+To satisfy cross-stage persistence (\sct{sct:wf-ctv}) the \code{pow} must be \code{@inline}.
+However, to make reduce the number of required annotations we implicitly add the \code{inline} annotation
+when at least one parameter or the result type is marked as \code{ct}. In the example
+ the \code{ct} annotation on \code{exp} requires that the function must be called with
+ a compile-time view of \code{Int}. \tool ensures that the definiton of the \code{pow} function
+ does not cause infinite recursion at compile-time~\cite{} by invoking the power function
+ only when the value of the \code{ct} arguments is known.
+
+ The application of the function \code{pow} with a constant
  exponent will produce:
 
 \begin{lstparagraph}
@@ -52,8 +60,7 @@ pow(base, 4)
   $\hookrightarrow$ base * base * base * base * 1
 \end{lstparagraph}
 
-Here, in the function application, constant 4 is promoted to \code{ct} by the implicit
-conversions (\sct{sct:implicits}).
+Constant 4 is promoted to \code{ct} by the implicit conversions (\sct{sct:implicits}).
 
 \subsection{Variable Argument Functions}
 \label{sct:varargs}
@@ -86,7 +93,7 @@ def min(vs: Int*): Int = macro
   if (isVarargs(vs)) q"min_CT(vs)"
   else q"min_D(vs)"
 
-def min_CT(vs: Seq[Int] @ct): Int =
+def min_CT(vs: Seq[Int]@ct): Int =
   vs.tail.foldLeft(vs.head) { (min, el) =>
   if (el < min) el else min
 }
@@ -119,9 +126,9 @@ as an implicit argument \code{dnum} to all methods that use it (\eg, \code{zero}
 \begin{figure}
 \begin{listing}
 object Numeric {
-  @inline implicit def dnum: Numeric[Double]@ct =
+  implicit def dnum: Numeric[Double]@ct =
     ct(DoubleNumeric)
-  @inline def zero[T](implicit num: Numeric[T]@ct): T =
+  def zero[T](implicit num: Numeric[T]@ct): T =
     num.zero
 }
 
@@ -140,12 +147,16 @@ object DoubleNumeric extends Numeric[Double] {
 \caption{\label{fig:numeric} Removing abstraction overheads of type classes.}
 \end{figure}
 
-When \code{zero} is applied first the implicit argument (\code{dnum}) gets inlined due to the \code{inline} annotation,
-then the function zero gets inlined. Since \code{dnum} returns the compile-time view
-of \code{DoubleNumerc} the method \code{zero} is evaluated at compile time. The constant
-\code{0.0} is promoted to \code{ct} since \code{DoubleNumeric} is a compile time view (formally defined in \sct{sct:compile-views}).
-Finally the \code{ct(0.0)} result is coerced to a dynamic value by the signature of \code{Numeric.zero}. The
-compile-time execution is shown in the following snippet\begin{lstparagraph}
+When \code{zero} is applied first the implicit argument (\code{dnum}) gets
+inlined due to the \code{inline} annotation, then the function zero gets
+inlined. Since \code{dnum} returns the compile-time view of \code{DoubleNumerc}
+the method \code{zero} is evaluated at compile time. The constant \code{0.0} is
+promoted to \code{ct} since \code{DoubleNumeric} is a compile time view
+(formally defined in \sct{sct:compile-views}). Finally the \code{ct(0.0)} result
+is coerced to a dynamic value by the signature of \code{Numeric.zero}. The
+compile-time execution is shown in the following snippet
+
+\begin{lstparagraph}
 Numeric.zero[Double]
   $\hookrightarrow$ Numeric.zero[Double](DoubleNumeric)
   $\hookrightarrow$ ct(DoubleNumeric).zero
@@ -155,4 +166,15 @@ Numeric.zero[Double]
 
 \subsection{Inner Product of Vectors}
 \label{sct:dot-product}
+
+Here we demonstrate how the introductory example (\sct{sct:introduction}) is
+partially evaluated through staging. We start with the desugared \code{dot} function
+
+\begin{lstparagraph}
+def dot[V](v1: Vector[V]@ct, v2: Vector[V]@ct)
+  (implicit num: Numeric[V]@ct): V =
+  (v1 zip v2).foldLeft(zero[V](num)) {
+    case (prod, (cl, cr)) => prod + cl * cr
+  }
+\end{lstparagraph}
 
