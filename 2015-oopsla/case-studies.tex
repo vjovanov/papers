@@ -9,24 +9,31 @@ interesting applications.  We start by inlining a simple function with staging
 be  desugared into the core functionality (\sct{sct:varargs}). Finally, we
 demonstrate how the abstraction overhead of the \code{dot} function and all
 associated type-class related abstraction an be removed (\sct{sct:dot-product}).
+For formal partial evaluation rules refer \cf \sct{fig:partial-evaluation}.
 
 \subsection{Inlining Expressed Through Staging}
 \label{sct:inlining}
 
-
+Function inlining can be expressed as staged computation~\cite{monnier2003inlining}.
+ Inlining is achieved when a statically known function body is applied with symbolic
+ arguments. In \tool we use the \code{inline} annotation on functions and methods to achieve inlining:\begin{lstparagraph}
+@inline def zero(implicit num: Numeric) = num.zero
+zero[Double]
+  $\hookrightarrow$ num.zero
+\end{lstparagraph}
 
 
 \subsection{Recursion}
 \label{sct:recursion}
 
 The canonical example in staging literature is partial evaluation of the power function
- where exponent is integer:
+ where exponent is an integer:
 \begin{lstparagraph}
 def pow(base: Double, exp: Int): Double =
   if (exp == 0) 1 else base * pow(base, exp)
 \end{lstparagraph} When the exponent (\code{exp}) is statically known this function can be partially
 evaluated into \code{exp} multiplications of the \code{base} argument, significantly
-improving performance~\cite{}.
+improving performance~\cite{calcagno2003implementing}.
 
 With compile-time views making\code{pow} partially evaluated requires adding two annotations:
 
@@ -96,18 +103,24 @@ for statically known varargs or to the original min function for dynamic argumen
 
 \subsection{Removing Abstraction Overhead of Type-Classes}
 \label{sct:type-classes-removal}
-\todo{cite}
+
 Type-classes are omnipresent in everyday programming as they provide allow abstraction over
- generic parameters (\eg Numeric abstracts over numeric values). Unfortunately,
- type-classes are a source of abstraction overheads during execution\todo{cite}. Type-classes
- are in most of the cases statically known. Ideally, we would be able to
- deterministically remove abstraction overheads of type classes.
+ generic parameters (\eg, \code{Numeric} abstracts over numeric values). Unfortunately,
+ type-classes introduce \emph{dynamic dispatch} on every call~\cite{rompf_optimizing_2013} and are,
+ thus, impose a performance penalty. Type-classes are in most of the cases statically known. Here
+ we show how with \tool we can remove all abstraction overheads of type classes.
+
+In Scala, type classes are implemented with objects and implicit parameters~\cite{oliveira_type_2010}.
+In \figref{fig:numeric}, we define a \code{trait Numeric} serves as an interface for
+all numeric types. Then we define a concrete implementation of \code{Numeric} for
+type \code{Double} (\code{DoubleNumeric}). The \code{DoubleNumeric} is than passed
+as an implicit argument \code{dnum} to all methods that use it (\eg, \code{zero}).
 
 \begin{figure}
 \begin{listing}
 object Numeric {
   @inline implicit def dnum: Numeric[Double]@ct =
-    ct(DoubleNum)
+    ct(DoubleNumeric)
   @inline def zero[T](implicit num: Numeric[T]@ct): T =
     num.zero
 }
@@ -124,15 +137,22 @@ object DoubleNumeric extends Numeric[Double] {
   def zero: Double = 0.0
 }
 \end{listing}
-\caption{\label{fig:numeric} Function for computing the non-negative power of a real number.}
+\caption{\label{fig:numeric} Removing abstraction overheads of type classes.}
 \end{figure}
 
+When \code{zero} is applied first the implicit argument (\code{dnum}) gets inlined due to the \code{inline} annotation,
+then the function zero gets inlined. Since \code{dnum} returns the compile-time view
+of \code{DoubleNumerc} the method \code{zero} is evaluated at compile time. The constant
+\code{0.0} is promoted to \code{ct} since \code{DoubleNumeric} is a compile time view (formally defined in \sct{sct:compile-views}).
+Finally the \code{ct(0.0)} result is coerced to a dynamic value by the signature of \code{Numeric.zero}. The
+compile-time execution is shown in the following snippet\begin{lstparagraph}
+Numeric.zero[Double]
+  $\hookrightarrow$ Numeric.zero[Double](DoubleNumeric)
+  $\hookrightarrow$ ct(DoubleNumeric).zero
+  $\hookrightarrow$ (ct(0.0): Double)
+  $\hookrightarrow$ 0.0
+\end{lstparagraph}
 
-\subsection{Dot Product}
+\subsection{Inner Product of Vectors}
 \label{sct:dot-product}
-\begin{itemize}
-  \item Explain the removal of type classes together with inline. Explain how type classes
-  are @i? and how they will completely evaluate if they are passed a static value.
-  \item Comparison to other approaches.
-\end{itemize}
 
