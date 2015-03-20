@@ -158,9 +158,9 @@ Function \code{inline} can be applied on functions/methods to promote only the f
 
  The use of subtyping simplifies verification of validty of function calls and helps computing the
  least upper bounds of terms. For example, validity of function calls:\begin{lstparagraph}
-   ct(List)(1, ct(2)): List[Int@static]@ct
-   ct(List)(ct(1), ct(2)): List[Int@ct]@ct
-   ct(List)((x: Int@dynamic), ct(2)): List[Int@dynamic]@ct
+ct(List)(1, ct(2)): List[Int@static]@ct
+ct(List)(ct(1), ct(2)): List[Int@ct]@ct
+ct(List)((x: Int@dynamic), ct(2)): List[Int@dynamic]@ct
 \end{lstparagraph}
 
  % todo cite literature (who else does this)
@@ -200,7 +200,26 @@ The \code{inline} annotation promotes only function/method bodies to compile-tim
  are statically known in objects and classes with final methods, thus, the \code{inline}
  annotation is only applicable on such methods.
 
-
 \subsection{Convenient Implicit Conversions}
 \label{sct:implicits}
-% tracking of values with static terms.
+
+% Requires desugaring
+If method parameters require compile-time views of a type the corresponding arguments
+ in method application would always have to be promoted to \code{ct}.
+ In practice this is not convenient as it requires an inconveniently large number
+ of annotations. Staging is commonly used for optimization of libraries, and as such, it should not
+ affect user code - users should not be aware of the internal operation of the library.
+
+To address this issue we introduce implicit conversions from \code{static} terms to \code{ct} terms.
+ The conversions support translation of language literals, direct class constructor calls with static arguments, and static method
+ calls with static arguments into their compile-time views. Since our compile-time evaluator does
+ not use Asai's~\cite{asai2002binding,sumii2001hybrid} method to keep track of
+ the value of each static term, we dissalow implicit conversions of terms with static variables.
+
+For example, for a factorial function \begin{lstparagraph}
+def fact(n: Int @ct) = if (n == 0) 1 else fact(n - 1)
+ \end{lstparagraph} we will not require annotations on literals \code{0}, and \code{1}. Furthermore,
+ the function can be invoked without promoting the literal \code{5} into it's compile-time view:\begin{lstparagraph}
+fact(5)
+  $\hookrightarrow$ 120
+ \end{lstparagraph}

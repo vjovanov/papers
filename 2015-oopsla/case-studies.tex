@@ -45,8 +45,8 @@ pow(base, 4)
   $\hookrightarrow$ base * base * base * base * 1
 \end{lstparagraph}
 
-Here, in the function application, constant 4 is promoted to \code{ct} by the automatic
-conversions. \todo{ref}
+Here, in the function application, constant 4 is promoted to \code{ct} by the implicit
+conversions (\sct{sct:implicits}).
 
 \subsection{Variable Argument Functions}
 \label{sct:varargs}
@@ -118,10 +118,10 @@ trait Numeric[T] {
   def zero: T
 }
 
-object DoubleNum[T <: Double] extends Numeric[Double] {
-  def plus(x: T, y: T): T = x + y
-  def times(x: T, y: T): T = x * y
-  def zero: T = 0.0
+object DoubleNumeric extends Numeric[Double] {
+  def plus(x: Double, y: Double): Double = x + y
+  def times(x: Double, y: Double): Double = x * y
+  def zero: Double = 0.0
 }
 \end{listing}
 \caption{\label{fig:numeric} Function for computing the non-negative power of a real number.}

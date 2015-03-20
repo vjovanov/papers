@@ -40,9 +40,9 @@ The \calculus calculus \sct{sct:calculus} captures the essence of user-controlle
  it is not obvious how to define \emph{classes} and methods from in modern multi-paradigm
  programming languages. Furthermore, \calculus requires an inconveniently
  large number of \code{inline} calls in method invocations.
- In this section we a scheme for translating classes into \calculus (\sct{sct:desugaring}),
- show how to provide compile time views of classes and and \emph{methods}\sct{sct:promotion},
- and formalize convenient implicit conversions for the calculus \sct{sct:conversions}.
+ In this section we a scheme for translating classes into \calculus (\sct{sct:desugaring}) and
+ show how to provide compile time views of classes and \emph{methods}\sct{sct:promotion}.
+
 
 % Restricted Language
 Furthermore, rules of \calculus do not support effect-full computations and each
@@ -72,7 +72,7 @@ Furthermore, rules of \calculus do not support effect-full computations and each
 
 \subsection{Compile-Time View of the Terms}
 \label{sct:compile-views}
-\begin{figure}
+\begin{figure*}
 \begin{multicols}{2}[]
 
   \infrule[\textsc{CT-TVar}]
@@ -84,20 +84,29 @@ Furthermore, rules of \calculus do not support effect-full computations and each
     {\Pi \tsv \cd{iT}{\inline{T}}}
 
 \end{multicols}
-\vspace{4pt}
+\vspace{10pt}
 
-  \infrule[\textsc{CT-Rec}]
+\begin{multicols}{2}[]
+\infrule[\textsc{CT-Rec}]
     {\seq{\Pi \tsv \cd{t}{t'}}}
     {\Pi \tsv \cd{\i\{ \seq{x = t} \}}{\inline{\{ \seq{x = t'} \}}}}
 
   \infrule[\textsc{CT-T-Rec}]
     {\seq{\Pi \tsv \cd{\i{T}}{\j{T}}}}
     {\Pi \tsv \cd{\{\seq{x : \i{T}}\}}{\inline{\{ \seq{x : \j{T}}}\}}}
-
-  \infrule[\textsc{CT-T-Arrow}]
+\end{multicols}
+\vspace{10pt}
+\begin{multicols}{2}[]
+\infrule[\textsc{CT-T-Arrow}]
     {\Pi \tsv \cd{\i{T}}{\j{T}} \ \ \ \  \Pi \tsv \cd{\k{S}}{\l{S}} }
     {\Pi \tsv \cd{\i{T} \Rightarrow \k{S}}{\j{T} \Rightarrow \l{S}}}
+\infrule[\textsc{CT-TApp}]
+    {\Pi \tsv \cd{t}{t'} \ \ \ \ \Pi \tsv \cd{\i{T}}{\j{T}}}
+    {\Pi \tsv \cd{t[\i{T}]}{t'[\j{T}]}}
+\end{multicols}
+\vspace{10pt}
 
+\begin{multicols}{2}[]
   \infrule[\textsc{CT-T-Univ}]
     {\Pi \tsv \cd{\j{T}}{\k{T}}}
     {\Pi \tsv \cd{[X <: \i{S}] \ra \j{T}}{[X <: \i{S}] \ra \k{T}}}
@@ -105,36 +114,14 @@ Furthermore, rules of \calculus do not support effect-full computations and each
   \infrule[\textsc{CT-Func}]
     {\Pi \tsv \cd{t}{t'} \ \ \ \ \Pi \tsv \cd{iT}{jT}}
     {\Pi \tsv \cd{\i(x: iT) \ra t}{\inline{(x: jT) \ra t'}}}
+\end{multicols}
+\vspace{10pt}
 
   \infrule[\textsc{CT-TAbs}]
     {\Pi,\ X \tsv \cd{t}{t'}}
     {\Pi \tsv \cd{\i([X <: \j{T_1}] \ra t)}{\inline{([X <: \j{T_1}] \ra t'})}}
 
-  \infrule[\textsc{CT-TApp}]
-    {\Pi \tsv \cd{t}{t'} \ \ \ \ \Pi \tsv \cd{\i{T}}{\j{T}}}
-    {\Pi \tsv \cd{t[\i{T}]}{t'[\j{T}]}}
-
-\caption{Translation of a type abstractions, function, and record values into a compile-time view. The translation
- is used for promoting types into their compile time versions.}
+\caption{Translation of type abstractions, functions, and records into corresponding
+ compile-time views.}
 \label{fig:ct-translation}
-\end{figure}
-
-\subsection{Implicit Conversions}
-\label{sct:conversions}
-
-% Requires desugaring
-According to \calculus rules if method signatures contain compile-time views of a type
- the corresponding arguments in method application would always have to be promoted to \code{inline}.
- In practice this is not convenient as it requires an inconveniently large number
- of annotations. Partial evaluation is an optimization, and as such, it should not
- affect user code - users should not be aware of the internal operation of the library.
-
-To address this issue we introduce implicit conversions from all language literals, and
- direct class constructor calls of non-inline type into their compile-time views.
- For example, for a factorial function \begin{lstparagraph}
-def fact(n: Int @ct) = if (n == 0) 1 else fact(n - 1)
- \end{lstparagraph} we will not require annotations on literals \code{0}, and \code{1}. Furthermore,
- the function can be invoked without promoting the literal \code{5} into it's compile-time view:\begin{lstparagraph}
-fact(5)
-  $\hookrightarrow$ 120
- \end{lstparagraph}
+\end{figure*}
