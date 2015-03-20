@@ -168,13 +168,39 @@ Numeric.zero[Double]
 \label{sct:dot-product}
 
 Here we demonstrate how the introductory example (\sct{sct:introduction}) is
-partially evaluated through staging. We start with the desugared \code{dot} function
+partially evaluated through staging. We start with the desugared \code{dot}
+function~(\ie, all implicit operations are shown):
 
 \begin{lstparagraph}
-def dot[V](v1: Vector[V]@ct, v2: Vector[V]@ct)
+@inline def dot[V](v1: Vector[V]@ct, v2: Vector[V]@ct)
   (implicit num: Numeric[V]@ct): V =
   (v1 zip v2).foldLeft(zero[V](num)) {
     case (prod, (cl, cr)) => prod + cl * cr
   }
 \end{lstparagraph}
 
+Function \code{dot} is generic in the type of vector elements. This will reflect
+upon the staging annotations as well (\code{ct} and \code{static}). When we apply the
+\code{dot} function with static arguments we will get the vector with static elements back:
+
+\begin{lstparagraph}
+dot[Double@static](
+  ct(Vector)(2.0, 4.0), ct(Vector)(1.0, 10.0))(
+  Numeric.dnum)
+$\hookrightarrow$
+  (ct(Vector)(2.0, 4.0) zip ct(Vector)(1.0, 10.0))
+    .foldLeft(ct(0.0)) {
+      case (prod, (cl, cr)) => prod + cl * cr
+    }
+$\hookrightarrow$ (2.0 * 1.0 + 4.0 * 10.0): Double@static
+\end{lstparagraph}
+
+When \code{dot} is evaluated with the \code{ct} elements the last step will further
+execute to a single compile-time value that can further be used in compile-time computations:
+\begin{lstparagraph}
+dot[Double@ct](
+  ct(Vector)(ct(2.0), ct(4.0)),
+  ct(Vector)(ct(1.0), ct(10.0)))(Numeric.dnum)
+$\hookrightarrow$ ct(2.0) * ct(1.0) + ct(4.0) * ct(10.0)
+$\hookrightarrow$ 42.0: Double@ct
+\end{lstparagraph}
