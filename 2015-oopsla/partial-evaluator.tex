@@ -136,6 +136,7 @@ Function \code{inline} can be applied on functions/methods to promote only the f
   that the term can only be known at runtime, \code{static} that the term is known
   at compile-time but it will not be computed at compile time, and \code{ct} that
   the term will be computed at compile-time.
+
  % TODO Cite better the tracking of static terms in static languages (polymorphic version e.g.)
  Tracking static terms was studied in the context of binding-time analysis
   in partial evaluation for typed~\cite{nielson_1988_automatic} and
@@ -145,6 +146,14 @@ Function \code{inline} can be applied on functions/methods to promote only the f
   when they are explicitly marked by the programmer with \code{ct}.
 
   % What are the static terms
+In \tool language literals, functions, direct class constructor calls with static arguments, and static method
+ calls with static arguments are marked as static. Examples of static terms are:\begin{lstparagraph}
+1, "1", 1.0
+(x: Int => x)
+new Cons(1, Nil)
+List(1,2,3)
+\end{lstparagraph}
+
 \subsection{Least Upper Bounds}
 \label{sct:lub}
 
@@ -200,7 +209,7 @@ The \code{inline} annotation promotes only function/method bodies to compile-tim
  are statically known in objects and classes with final methods, thus, the \code{inline}
  annotation is only applicable on such methods.
 
-\subsection{Convenient Implicit Conversions}
+\subsection{Implicit Conversions}
 \label{sct:implicits}
 
 % Requires desugaring
