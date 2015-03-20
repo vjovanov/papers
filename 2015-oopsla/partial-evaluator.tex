@@ -12,15 +12,15 @@
 % inline on traits
 % inline and inheritance
 
-We have implemented \tool, a staging extension for Scala based on compile-time views.
+In the section we informally present \tool, a staging extension for Scala based on the compile-time views.
  \tool is a compiler plugin that executes in a phase after the
- Scala type checker. The plugin starts with pre-typed Scala programs and uses
+ Scala type checker. The plugin takes as input pre-typed Scala programs and uses
  type annotations~\cite{odersky_1996_putting} to track and verify information about the biding-time
- of terms. Currently, it supports only two stages of compilation: host language compile-time
+ of terms. It supports only two stages of compilation: host language compile-time
  (types annotated with \code{@ct}) and host language run-time (unannotated code).
 
 To the user, \tool exposes a minimal interface (\figref{fig:interface}) with
-annotations \code{inline} and \code{ct}, and functions \code{inline} and \code{ct}.
+annotations \code{ct} and \code{inline}, and functions \code{ct} and \code{inline}.
 
 \begin{figure}
 \begin{listing}
@@ -43,7 +43,7 @@ package object scalact {
 annotation is integrated in the Scala's type system  and, therefore, can be
 arbitrarily nested in different variants of types. Table  \ref{tbl:ct-type}
 shows how the \code{@ct} annotation can be placed on types and how it, due to
-the translation to the compile-time views (\figref{ct-translation}), changes
+the translation to the compile-time views (\figref{fig:ct-translation}), changes
 method signatures on annotated types.
 
 \begin{table*}[t]
@@ -66,7 +66,7 @@ method signatures on annotated types.
 \end{table*}
 
  In \tabref{tbl:ct-type}, \code{Int@ct} is a non-polymorphic type and therefore
- according to the translation to the compile-time view (\ref{fig:ct-translation})
+ according to the translation to the compile-time view (\figref{fig:ct-translation})
  parameters of all methods will also be compile-time views. On the other hand,
  \code{Vector[Int]@ct} will have parameters of all methods transformed except
  the generic ones. In effect, this, makes higher order combinators of \code{Vector}
@@ -95,12 +95,12 @@ method signatures on annotated types.
 \smartparagraph{Functions \code{ct} and \code{inline}} are used at the term level
  for promoting Scala objects and methods/functions into their compile-time views. Without the
  the \code{ct} and \code{inline} we would not be able to instantiate compile-time views of types.
- \tabref{tbl:ct-type} shows how different types of terms are promoted to their
+ \tabref{tbl:ct-term} shows how different types of terms are promoted to their
  compile-time views.
 
 \begin{table*}[t]
 \caption{Promotion of terms to their compile-time views.}
-\label{tbl:ct-type}
+\label{tbl:ct-term}
 \centering
 \begin{tabularx}{\linewidth}{ X X }
 \toprule
@@ -147,11 +147,8 @@ Function \code{inline} can be applied on functions/methods to promote only the f
 
   % What are the static terms
 In \tool language literals, functions, direct class constructor calls with static arguments, and static method
- calls with static arguments are marked as static. Examples of static terms are:\begin{lstparagraph}
-1, "1", 1.0
-(x: Int => x)
-new Cons(1, Nil)
-List(1,2,3)
+ calls with static arguments are marked as static. Examples of static terms are\begin{lstparagraph}
+1.0, "1", (x: Int => x), new Cons(1, Nil), List(1,2,3)
 \end{lstparagraph}
 
 \subsection{Least Upper Bounds}
