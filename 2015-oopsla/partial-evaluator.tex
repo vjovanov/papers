@@ -137,12 +137,12 @@ Function \code{inline} can be applied on functions/methods to promote only the f
   at compile-time but it will not be computed at compile time, and \code{ct} that
   the term will be computed at compile-time.
 
- % TODO Cite better the tracking of static terms in static languages (polymorphic version e.g.)
  Tracking static terms was studied in the context of binding-time analysis
   in partial evaluation for typed~\cite{nielson_1988_automatic} and
   untyped~\cite{gomard1991partial} languages. We use similar techniques
   (described in~\sct{sct:calculus}), however, unlike in partial evaluation we
-  do not evaluate static terms at compile time. Static terms are evaluated only
+  do not evaluate static terms at compile time. They are tracked for verifying
+  correctness and providing convenient implict conversions. Static terms are evaluated only
   when they are explicitly marked by the programmer with \code{ct}.
 
   % What are the static terms
