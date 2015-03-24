@@ -3,7 +3,7 @@ install:
  - sudo apt-get install chktex texlive-latex3  texlive-math-extra
 language: bash
 script: 
- - cd 2015-oopsla/
+ - cd 2015-scala-symposium/
  - bash ./clean-make.sh
  - cd ../
  - cd 2014-ecoop-demo/
