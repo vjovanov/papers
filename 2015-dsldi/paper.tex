@@ -140,9 +140,9 @@
 Domain-specific language (DSL) compilers use \emph{domain knowledge} to perform
  \emph{domain-specific optimizations} that can yield several orders of magnitude speedups~\cite{rompf_optimizing_2013}.
  These optimizations, however, often require knowledge of the run-time values. For example,
- in matrix chain multiplication, knowing sizes of matrices allows choosing the
+ in matrix-chain multiplication, knowing matrix sizes allows choosing the
  optimal multiplication order~\cite[Ch.~15.2]{cormen2001introduction} and
- in relational algebra knowing data sizes is necessary for choosing the right join order~\cite{selinger1979access}.
+ in relational algebra knowing relation sizes is necessary for choosing the right join order~\cite{selinger1979access}.
  As a motivating example we will use multiplication of three matrices in a DSL for linear algebra
  embedded in Scala:
 \vspace{0.5em}
@@ -164,47 +164,50 @@ In this program, without knowing the matrix sizes, the DSL compiler can not dete
 Ideally we would change the multiplication order at runtime only when the condition \code{c1 > c2} changes.
 The only solution for producing an optimal program is to use \emph{dynamic compilation}~\cite{auslander1996fast}.
 
-Existing dynamic compilation systems, however, are not a right fit for this task
- as they use run-time information for transformations that are not domain specific, e.g., specialization~\cite{grant2000dyc}, loop unrolling~\cite{suganuma2001dynamic}, etc. As a consequence:
+Existing dynamic compilation systems, however, are not a right fit for this task.
+ They use run-time information for transformations that are not domain specific, e.g., specialization~\cite{grant2000dyc}, loop unrolling~\cite{suganuma2001dynamic}, etc. In these systems:
 \begin{itemize}
 
  \item Value profiling tracks the \emph{stability} of values. In our example
- we need to track stability over computation over several (possibly unstable) values that are used for computing \code{c1} and \code{c2}.
+  we need to track stability over computation over several (possibly unstable)
+  values that are used for computing \code{c1} and \code{c2}.
 
  \item Guards for recompilation are implemented as equality checks between the current value
   and the previous stable value of the variable. In our example we need comparisons with previous versions of
   the computation over run-time values (\code{c1 > c2}).
 
- % Hypothesis
  \item Code caches are based on checking equality of stable values. In our example, we need equality
   with computed values that change the outcome of DSL compilation.
 
 \end{itemize}
 
-Only, exception to existing dynamic compilation systems is Truffle~\cite{wurthinger2013one} that allows creation of custom profiling and recompilation guards. However, with Truffle, language designers do not have the full view of the program, and thus, can not perform global optimizations (e.g., matrix chain multiplication optimization).
+Only exception to existing dynamic compilation systems is Truffle~\cite{wurthinger2013one} that allows creation of custom profiling and recompilation guards. However, with Truffle, language designers do not have the full view of the program, and thus, can not perform global optimizations (e.g., matrix chain multiplication optimization).
 
-We propose a dynamic compilation system aimed for domain specific languages in which:
+We propose a dynamic compilation system aimed for domain specific languages where:
 \begin{itemize}
 
-  \item DSL authors declaratively state the values that are of interest for profiling
-    (e.g., array and matrix sizes, vector and matrix sparsity, etc.).
+  \item DSL authors declaratively, at the definition site, state the values that
+    are of interest for dynamic compilation (e.g., array and matrix sizes, vector
+    and matrix sparsity, etc.). These values can regularly be used for making
+    compilation decisions throughout the DSL compilation pipeline.
 
-  \item The DSL compiler is instrumented to reify all operations and transformation decisions
-   based on the profiled run-time values. In our example, all computations on run-time values
-   performed during matrix chain multiplication optimization would be reified and stored (i.e., \code{c1} and \code{c2}).
+  \item The instrumented DSL compiler transparently reifies all computations on the run-time values that will affect compilation decisions.
+   In our example, the compiler reifies and stores all computations on run-time values in the
+   unmodified dynamic programming algorithm~\cite{cormen2001introduction} for determining the
+   optimal multiplication order (i.e., \code{c1 > c2}).
 
-  \item Automatically introduces guards based on the stored compilation process (i.e., \code{c1 > c2} in the example).
+  \item Recompilation guards are introduced automatically based on the stored DSL
+   compilation process (i.e., recompilation guard is \code{c1 > c2} in the example).
 
-  \item Automatically adds code caches that are not addressed by stable values but with
-   outcomes of the DSL compilation decisions. In the example the code cache would have two
-   entries addressed with a single boolean value \code{c1>c2}.
+  \item Automatically manages code caches that are addressed with outcomes of the
+   DSL compilation decisions instead with stable individual values. In the example
+   the code cache would have two entries addressed with a single boolean
+   value computed with \code{c1 > c2}.
 
 \end{itemize}
 
-In the talk we will present the prototype of the dynamic compilation system for domain specific languages
- and the performance results on several examples in linear algebra. Our goal is to foster
- discussion on different policies for the automatic introduction of recompilation guards:
- \emph{i)} heuristic, \emph{ii) DSL author specified}, and \emph{cost based}.
+The goal of this talk is to foster discussion on the new approach to dynamic compilation with focus on different policies for automatic introduction of recompilation guards:
+ \emph{i)} heuristic, \emph{ii) DSL author specified}, and \emph{based on domain knowledge}.
 
 \bibliographystyle{plain}
 \bibliography{vjovanov-lib}
