@@ -16,7 +16,7 @@ For formal partial evaluation rules refer \cf \sct{fig:partial-evaluation}.
 
 Function inlining can be expressed as staged computation~\cite{monnier2003inlining}.
  Inlining is achieved when a statically known function body is applied with symbolic
- arguments. In \tool we use the \code{inline} annotation on functions and methods to achieve inlining:\begin{lstparagraph}
+ arguments. In \tool we use the \code{ct} annotation on functions and methods to achieve inlining:\begin{lstparagraph}
 @ct def zero[T](implicit num: Numeric[T]) = num.zero
 
 zero[Double]
@@ -31,7 +31,7 @@ The canonical example in staging literature is partial evaluation of the power f
  where exponent is an integer:
 \begin{lstparagraph}
 def pow(base: Double, exp: Int): Double =
-  if (exp == 0) 1 else base * pow(base, exp)
+  if (exp == 0) 1 else base * pow(base, exp - 1)
 \end{lstparagraph} When the exponent (\code{exp}) is statically known this function can be partially
 evaluated into \code{exp} multiplications of the \code{base} argument, significantly
 improving performance~\cite{calcagno2003implementing}.
@@ -40,7 +40,7 @@ With compile-time views making\code{pow} partially evaluated requires adding two
 
 \begin{lstparagraph}
 def pow(base: Double, exp: Int@ct): Double =
-  if (exp == 0) 1 else base * pow(base, exp)
+  if (exp == 0) 1 else base * pow(base, exp - 1)
 \end{lstparagraph}
 
 % TODO cite infinite recursion
@@ -95,8 +95,9 @@ def min(vs: Int*): Int = macro
 
 def min_CT(vs: Seq[Int]@ct): Int =
   vs.tail.foldLeft(vs.head) { (min, el) =>
-  if (el < min) el else min
-}
+    if (el < min) el else min
+  }
+
 def min_D(vs: Seq[Int]): Int =
   vs.tail.foldLeft(vs.head) {
     (min, el) => if (el < min) el else min
@@ -147,11 +148,10 @@ object DoubleNumeric extends Numeric[Double] {
 \caption{\label{fig:numeric} Removing abstraction overheads of type classes.}
 \end{figure}
 
-% TODO Improve
 When \code{zero} is applied first the implicit argument (\code{dnum}) gets
 inlined due to the \code{ct} annotation of the return type, then the function \code{zero} gets
 inlined. Since \code{dnum} returns a compile-time view of \code{DoubleNumerc}
-the method \code{zero} is evaluated at compile time. The constant \code{0.0} is
+the method \code{zero} on \code{dnum} is evaluated at compile time. The constant \code{0.0} is
 promoted to \code{ct} since \code{DoubleNumeric} is a compile time view. Finally the \code{ct(0.0)} result
 is coerced to a dynamic value by the signature of \code{Numeric.zero}. The
 compile-time execution is shown in the following snippet
