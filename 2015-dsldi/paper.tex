@@ -150,7 +150,6 @@ Domain-specific language (DSL) compilers use \emph{domain knowledge} to perform
   m1 * m2 * m3
 \end{lstlisting}
 \vspace{0.5em}
-
 In this program, without knowing the matrix sizes, the DSL compiler can not determine the
  optimal order of multiplications. There are two possible orders
  \code{(m1*m2)*m3} with an estimated cost \code{c1} and \code{m1*(m2*m3)} with an estimated cost \code{c2} where:
@@ -171,12 +170,12 @@ Yet, dynamic compilation systems---such as DyC~\cite{grant2000dyc} and JIT compi
 
  To perform domain-specific optimizations we must check stability, introduce guards, and code caches, based on the
   computation specified in the DSL optimizer---outside the user program. Ideally, the DSL optimizer should be
-  agnostic of the fact that input values are collected at runtime. In the example,
-  stability is required for the condition \code{c1 > c2}. Then, recompilation guards
-  and code caches would recompile and reclaim code based on the same condition. The
-  values in the user program, however, could be unstable.
+  agnostic of the fact that input values are collected at runtime. In the example
+  stability is only required for the condition \code{c1 > c2}, while the values
+  \code{c1} and \code{c2} themselves are allowed to be unstable. Finally, recompilation guards
+  and code caches would recompile and reclaim code based on the same condition.
 
-An exception to existing dynamic compilation systems is Truffle~\cite{wurthinger2013one} which allows creation of user defined recompilation guards. However, with Truffle, language designers do not have the full view of the program, and thus, can not perform global optimizations (e.g., matrix-chain multiplication optimization). Further, recompilation guards must be manually introduced and the code in the DSL optimizer must be modified to specially handle decisions based on runtime values.
+An exception to existing dynamic compilation systems are Truffle~\cite{wurthinger2013one} and Lancet~\cite{lancet}. They allow creation of user defined recompilation guards. However, with Truffle, language designers do not have the full view of the program, and thus, can not perform global optimizations (e.g., matrix-chain multiplication optimization). Further, recompilation guards must be manually introduced and the code in the DSL optimizer must be modified to specially handle decisions based on runtime values.
 
 We propose a dynamic compilation system aimed for domain specific languages where:
 \begin{itemize}
@@ -205,7 +204,14 @@ We propose a dynamic compilation system aimed for domain specific languages wher
 The goal of this talk is to foster discussion on the new approach to dynamic compilation with focus on different policies for automatic introduction of recompilation guards:
  \emph{i)} heuristic, \emph{ii)} DSL author specified, and \emph{iii)} based on domain knowledge.
 
+{
+\linespread{0.90}
 \bibliographystyle{plain}
 \bibliography{vjovanov-lib}
+}
+
+
+
+
 
 \end{document}
