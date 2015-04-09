@@ -1,53 +1,40 @@
 \section{Compile-Time Views in Scala}
 \label{sct:interface}
 
-% TODO This is all together not good without having @inline at the term level (classes,
-% objects, traits, methods, etc.). Unfortunately, this opens up a new can of worms
-% that we are not ready for now. If the paper is ready by Tuesday evening we can take a
-% stab at it.
-
-% Motivate: data structure that whenever instantiated is already ct.
-% Example: complex number, parser ...
-% inline on classes and their methods
-% inline on traits
-% inline and inheritance
-
-In the section we informally present \tool, a staging extension for Scala based on the compile-time views.
+In this section we informally present \tool, a staging extension for Scala based on the compile-time views.
  \tool is a compiler plugin that executes in a phase after the
- Scala type checker. The plugin takes as input pre-typed Scala programs and uses
+ Scala type checker. The plugin takes as input typechecked Scala programs and uses
  type annotations~\cite{odersky_1996_putting} to track and verify information about the biding-time
  of terms. It supports only two stages of compilation: host language compile-time
  (types annotated with \code{@ct}) and host language run-time (unannotated code).
 
 To the user, \tool exposes a minimal interface (\figref{fig:interface}) with
-annotations \code{ct} and \code{inline}, and functions \code{ct} and \code{inline}.
+a single annotation \code{ct} and a single function \code{ct}.
 
 \begin{figure}
 \begin{listing}
 package object scalact {
-
   final class ct extends StaticAnnotation
-  final class inline extends StaticAnnotation
 
   @compileTimeOnly def ct[T](body: => T): T = ???
-  @compileTimeOnly def inline[T](body: => T): T = ???
-
 }
 \end{listing}
 \label{fig:interface}
 \caption{Interface of the \tool.}
 \end{figure}
 
-\smartparagraph{Annotation \code{ct}} is used at the type level~(\eg,
+\smartparagraph{Annotation \code{ct}} is used on types~(\eg,
 \code{Int@ct}) and denotes a compile-time view of a type. The
-annotation is integrated in the Scala's type system  and, therefore, can be
-arbitrarily nested in different variants of types. Table  \ref{tbl:ct-type}
-shows how the \code{@ct} annotation can be placed on types and how it, due to
-the translation to the compile-time views (\figref{fig:ct-translation}), changes
-method signatures on annotated types.
+annotation is integrated in the Scala's type system and, therefore, can be
+arbitrarily nested in different variants of types.
+
+Since all operations on compile-time views are executed at compile time, non-generic
+ method parameters and result types are also compile-time views. Table \ref{tbl:ct-type}
+ shows how the \code{@ct} annotation can be placed on types and how it affects method
+ signatures on annotated types.
 
 \begin{table*}[t]
-\caption{Types and corresponding method signatures after translation to their compile-time views.}
+\caption{Compile-time views of types and their corresponding method signatures.}
 \label{tbl:ct-type}
 \centering
 \begin{tabularx}{\linewidth}{ X X X X }
@@ -65,36 +52,30 @@ method signatures on annotated types.
 \end{tabularx}
 \end{table*}
 
- In \tabref{tbl:ct-type}, \code{Int@ct} is a non-polymorphic type and therefore
- according to the translation to the compile-time view (\figref{fig:ct-translation})
- parameters of all methods will also be compile-time views. On the other hand,
- \code{Vector[Int]@ct} will have parameters of all methods transformed except
- the generic ones. In effect, this, makes higher order combinators of \code{Vector}
+ In \tabref{tbl:ct-type}, on \code{Int@ct} parameters and result types of all
+ methods are compile-time views. On the other hand, \code{Vector[Int]@ct} has parameters
+ of all methods transformed except the generic ones. In effect, this, makes higher order combinators of \code{Vector}
  operate on dynamic values, thus, function \code{f} passed to \code{map} accepts
- the dynamic value as input. Type \code{Vector[Int@ct]@ct} has all parts executed
+ the dynamic value as input. Type \code{Vector[Int@ct]@ct} has all methods executed
  at compile-time. The return type of the function \code{map} can still be
  both dynamic and a compile-time view: due to the type parameter \code{U}.
 
-\smartparagraph{Annotation inline} can be used only at the term level on statically
- known methods and functions. It denotes that the method/function will be inlined during
- compilation time. In other words, \code{inline} is marking that the function application
- is a compile-time computation and that application should be removed by partial evaluation.
- This is not the first time that inlining is achieved through partial
- evaluation~\cite{monnier2003inlining}.
-
- Internally \code{inline} can be expressed in terms of the \code{ct} annotation. A method\begin{lstparagraph}
-@inline def dot[V: Numeric]
+Annotation \code{ct} can be used to achieve simple inlining of statically
+ known methods and functions. This is achieved by putting the annotation of the method/function
+ definition:\begin{lstparagraph}
+ def dot[V: Numeric]
   (v1: Vector[V], v2: Vector[V]): V
 \end{lstparagraph}
-  will have an internal method type\begin{lstparagraph}
+This is not the first time that inlining is achieved through partial
+ evaluation~\cite{monnier2003inlining}.
+
+Annotated methods will have an annotated method type\begin{lstparagraph}
 ((v1: Vector[V], v2: Vector[V]) => V)@ct
-\end{lstparagraph} that can not be written by the users. We choose the name
- \code{inline} to be consistent with the existing Scala \code{inline} annotation.
+\end{lstparagraph} which can not be written by the users.
 
-
-\smartparagraph{Functions \code{ct} and \code{inline}} are used at the term level
- for promoting Scala objects and methods/functions into their compile-time views. Without the
- the \code{ct} and \code{inline} we would not be able to instantiate compile-time views of types.
+\smartparagraph{Function \code{ct}} is used at the term level
+ for promoting literals, modules, and methods/functions into their compile-time views.
+ Without \code{ct} we would not be able to instantiate compile-time views of types.
  \tabref{tbl:ct-term} shows how different types of terms are promoted to their
  compile-time views.
 
@@ -108,30 +89,23 @@ method signatures on annotated types.
   Promoted Term        \quad \quad \quad & Term's Promoted Type             \\
   \code{ct(Vector)(1, 2, 3)            } & \code{: Vector[Int]@ct        }  \\
   \code{ct(Vector)(ct(1), ct(2), ct(3))} & \code{: Vector[Int@ct]@ct     }  \\
-  \code{new (Cons@ct)(1, Nil)          } & \code{: Cons[Int]@ct          }  \\
-  \code{new (Cons@ct)(ct(1), ct(Nil))  } & \code{: Cons[Int@ct]@ct       }  \\
-  \code{ct((x: Int) => x)              } & \code{: (Int@ct => Int@ct)@ct }  \\
-  \code{inline((x: Int) => x)          } & \code{: (Int => Int)@ct       }  \\
+  \code{new (::@ct)(1, Nil)          } & \code{: (::[Int])@ct          }  \\
+  \code{new (::@ct)(ct(1), ct(Nil))  } & \code{: (::[Int@ct])@ct       }  \\
+  \code{ct((x: Int@ct) => x)           } & \code{: (Int@ct => Int@ct)@ct }  \\
+  \code{ct((x: Int) => x)              } & \code{: (Int => Int)@ct       }  \\
 
 \bottomrule
 \end{tabularx}
 \end{table*}
 
 Function \code{ct} can be applied to objects (\eg, \code{Vector}) to provide a compile-time
- view over their methods. When those objects have generic parameters, \code{ct} be used
- to promote the arguments, and thus, the result types of these functions. When applied,
- on functions \code{ct} promotes the compile-time view as well as its arguments
- and the return type.
-
-Function \code{inline} can be applied on functions/methods to promote only the function/method
- to their compile time views without promoting the arguments. This function can be
- seen as a shallow version of \code{ct} that makes only the outer type a compile-time view.
+ view over their methods. When those methods have generic parameters, \code{ct} can be used
+ to promote the arguments, and thus, the result types of these methods.
 
 \subsection{Tracking Binding-Time of Terms}
 \label{sct:static}
 
-
- Internally \tool has additional type annotations for tracking the binding-time of terms.
+ Internally \tool has additional type annotations for tracking the binding time of terms.
   Type of each term is annotated with either \code{dynamic}, \code{static}, or \code{ct}. \code{dynamic} denotes
   that the term can only be known at runtime, \code{static} that the term is known
   at compile-time but it will not be computed at compile time, and \code{ct} that
@@ -175,8 +149,8 @@ ct(List)((x: Int@dynamic), ct(2)): List[Int@dynamic]@ct
  depend only on return type of the body but also the conditional~\cite{}. For example, if
  both branches of an \code{if} construct are \code{static} the result can still be \code{dynamic}
  if the condition is \code{dynamic}. Here subtyping also helps as the binding type of the
- return value is simply calculated as \code{lub(c, thn, elz)} where \code{lub} is a function
- for computing least upper bounds, and \code{c}, \code{thn}, \code{elz} are respectively
+ return value is simply calculated as \code{lub(c, thn, elz)} where \code{lub(tps: Type*)} is a function
+ for computing the least upper bounds of types, and \code{c}, \code{thn}, \code{elz} are respectively
  binding times of the condition, the then branch, and the else branch.
 
 \subsection{Well-Formedness of Compile-Time Views}
@@ -191,19 +165,20 @@ To satisfy cross-stage persistence \tool verifies that composite dynamic
  types~(\eg, polymorphic-types, function types, record types, etc.) are not composed
  of compile-time views. The intuition is that all method parameters~(including \code{this})
  of compile time views must either be a compile-time view or them selves type variables. In the following example,
- we show malformed types and examples of terms that are inconsistent with causality\begin{lstparagraph}
+ we show malformed types and examples of terms that are inconsistent\begin{lstparagraph}
 xs: List[Int@ct]     => ct(Predef).println(xs.head)
 fn: (Int@ct=>Int@ct) => ct(Predef).println(fn(ct(1)))
 \end{lstparagraph}
 
-In the first example the program should print the head of the dynamically known list
- at compile time. In the second example the statement should print the result of \code{fn} at
- compile time but the body of the function is unknown.
+In the first example the program would, according to the semantics of \code{@ct}, print a head of the list at compile time.
+ However the head of the list is known only in the runtime stage. In the second example the program should
+ print the result of \code{fn} at compile time but the body of the function will
+ be known at runtime. By causality such examples are not possible.
 
 % Examples on classes
-The \code{inline} annotation promotes only function/method bodies to compile-time views. In effect,
- this requires only the method/function body to be known at compile time. Method bodies
- are statically known in objects and classes with final methods, thus, the \code{inline}
+On functions/methods the \code{ct} annotation requires that function/method bodies are known at compile-time.
+ Otherwise, inlining of such functions/methods would not be possible at compile-time. In Scala,
+ method bodies are statically known in objects and classes with final methods, thus, the \code{ct}
  annotation is only applicable on such methods.
 
 \subsection{Implicit Conversions}
@@ -212,22 +187,20 @@ The \code{inline} annotation promotes only function/method bodies to compile-tim
 % Requires desugaring
 If method parameters require compile-time views of a type the corresponding arguments
  in method application would always have to be promoted to \code{ct}.
- In practice this is not convenient as it requires an inconveniently large number
- of annotations. Staging is commonly used for optimization of libraries, and as such, it should not
- affect user code - users should not be aware of the internal operation of the library.
+ In some libraries this could require an inconveniently large number
+ of annotations.
 
-To address this issue we introduce implicit conversions from \code{static} terms to \code{ct} terms.
+To minimize the number of required annotations we introduce implicit conversions from \code{static} terms to \code{ct} terms.
  The conversions support translation of language literals, direct class constructor calls with static arguments, and static method
  calls with static arguments into their compile-time views. Since our compile-time evaluator does
  not use Asai's~\cite{asai2002binding,sumii2001hybrid} method to keep track of
  the value of each static term, we dissalow implicit conversions of terms with static variables.
 
 For example, for a factorial function \begin{lstparagraph}
-def fact(n: Int @ct) = if (n == 0) 1 else fact(n - 1)
- \end{lstparagraph} we will not require annotations on literals \code{0}, and \code{1}. Furthermore,
- the function can be invoked without promoting the literal \code{5} into it's compile-time view:\begin{lstparagraph}
+def fact(n: Int @ct): Int@ct =
+  if (n == 0) 1 else fact(n - 1)
+ \end{lstparagraph} we will not require promotions of literals \code{0}, and \code{1}. Furthermore,
+ the function can be invoked without promoting the argument into it's compile-time view:\begin{lstparagraph}
 fact(5)
   $\hookrightarrow$ 120
  \end{lstparagraph}
-
- % TODO adding inline

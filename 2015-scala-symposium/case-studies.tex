@@ -17,7 +17,7 @@ For formal partial evaluation rules refer \cf \sct{fig:partial-evaluation}.
 Function inlining can be expressed as staged computation~\cite{monnier2003inlining}.
  Inlining is achieved when a statically known function body is applied with symbolic
  arguments. In \tool we use the \code{inline} annotation on functions and methods to achieve inlining:\begin{lstparagraph}
-@inline def zero[T](implicit num: Numeric[T]) = num.zero
+@ct def zero[T](implicit num: Numeric[T]) = num.zero
 
 zero[Double]
   $\hookrightarrow$ num.zero
@@ -44,9 +44,9 @@ def pow(base: Double, exp: Int@ct): Double =
 \end{lstparagraph}
 
 % TODO cite infinite recursion
-To satisfy cross-stage persistence (\sct{sct:wf-ctv}) the \code{pow} must be \code{@inline}.
-However, to make reduce the number of required annotations we implicitly add the \code{inline} annotation
-when at least one parameter or the result type is marked as \code{ct}. In the example
+To satisfy cross-stage persistence (\sct{sct:wf-ctv}) the \code{pow} must be \code{@ct}.
+However, to reduce the number of required annotations we implicitly add the \code{ct} annotation
+when at least one parameter type or the result type is marked as \code{ct}. In the example
  the \code{ct} annotation on \code{exp} requires that the function must be called with
  a compile-time view of \code{Int}. \tool ensures that the definiton of the \code{pow} function
  does not cause infinite recursion at compile-time~\cite{} by invoking the power function
@@ -147,12 +147,12 @@ object DoubleNumeric extends Numeric[Double] {
 \caption{\label{fig:numeric} Removing abstraction overheads of type classes.}
 \end{figure}
 
+% TODO Improve
 When \code{zero} is applied first the implicit argument (\code{dnum}) gets
-inlined due to the \code{inline} annotation, then the function zero gets
-inlined. Since \code{dnum} returns the compile-time view of \code{DoubleNumerc}
+inlined due to the \code{ct} annotation of the return type, then the function \code{zero} gets
+inlined. Since \code{dnum} returns a compile-time view of \code{DoubleNumerc}
 the method \code{zero} is evaluated at compile time. The constant \code{0.0} is
-promoted to \code{ct} since \code{DoubleNumeric} is a compile time view
-(formally defined in \sct{sct:compile-views}). Finally the \code{ct(0.0)} result
+promoted to \code{ct} since \code{DoubleNumeric} is a compile time view. Finally the \code{ct(0.0)} result
 is coerced to a dynamic value by the signature of \code{Numeric.zero}. The
 compile-time execution is shown in the following snippet
 
@@ -172,7 +172,7 @@ partially evaluated through staging. We start with the desugared \code{dot}
 function~(\ie, all implicit operations are shown):
 
 \begin{lstparagraph}
-@inline def dot[V](v1: Vector[V]@ct, v2: Vector[V]@ct)
+ def dot[V](v1: Vector[V]@ct, v2: Vector[V]@ct)
   (implicit num: Numeric[V]@ct): V =
   (v1 zip v2).foldLeft(zero[V](num)) {
     case (prod, (cl, cr)) => prod + cl * cr
