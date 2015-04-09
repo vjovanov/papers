@@ -131,20 +131,19 @@
 
 \title{Dynamic Compilation of DSLs}
 
-\author{Vojin Jovanovic}
+\author{Vojin Jovanovic and Martin Odersky}
 \institute{EPFL, Switzerland\\
-\email{vojin.jovanovic@epfl.ch}}
+\email{{firstname}.{lastname}@epfl.ch}}
 
 \maketitle
 
 Domain-specific language (DSL) compilers use \emph{domain knowledge} to perform
  \emph{domain-specific optimizations} that can yield several orders of magnitude speedups~\cite{rompf_optimizing_2013}.
- These optimizations, however, often require knowledge of the run-time values. For example,
+ These optimizations, however, often require knowledge of values known only at program runtime. For example,
  in matrix-chain multiplication, knowing matrix sizes allows choosing the
  optimal multiplication order~\cite[Ch.~15.2]{cormen2001introduction} and
  in relational algebra knowing relation sizes is necessary for choosing the right join order~\cite{selinger1979access}.
- As a motivating example we will use multiplication of three matrices in a DSL for linear algebra
- embedded in Scala:
+ Consider the example of matrix-chain multiplication:
 \vspace{0.5em}
 \begin{lstlisting}
   val (m1, m2, m3) = ... // matrices of unknown size
@@ -161,53 +160,50 @@ In this program, without knowing the matrix sizes, the DSL compiler can not dete
   c2 = m2.rows*m2.columns*m3.columns+m1.rows*m2.rows*m3.columns
 \end{lstlisting}
 \vspace{0.5em}
-Ideally we would change the multiplication order at runtime only when the condition \code{c1 > c2} changes.
-The only solution for producing an optimal program is to use \emph{dynamic compilation}~\cite{auslander1996fast}.
+Ideally we would change the multiplication order at runtime only when the condition \code{c1 > c2} changes. For this
+task \emph{dynamic compilation}~\cite{auslander1996fast} seems ideal.
 
-Existing dynamic compilation systems, however, are not a right fit for this task.
- They use run-time information for transformations that are not domain specific, e.g., specialization~\cite{grant2000dyc}, loop unrolling~\cite{suganuma2001dynamic}, etc. In these systems:
-\begin{itemize}
+Yet, dynamic compilation systems---such as DyC~\cite{grant2000dyc} and JIT compilers---have shortcomings.
+ They use runtime information primarily for specialization. In these systems
+ profiling tracks \emph{stability} of values in the user program. Then, \emph{recompilation guards}
+ and \emph{code caches} are based on checking equality of current values and previously stable
+ values.
 
- \item Value profiling tracks the \emph{stability} of values. In our example
-  we need to track stability over computation over several (possibly unstable)
-  values that are used for computing \code{c1} and \code{c2}.
+ To perform domain-specific optimizations we must check stability, introduce guards, and code caches, based on the
+  computation specified in the DSL optimizer---outside the user program. Ideally, the DSL optimizer should be
+  agnostic of the fact that input values are collected at runtime. In the example,
+  stability is required for the condition \code{c1 > c2}. Then, recompilation guards
+  and code caches would recompile and reclaim code based on the same condition. The
+  values in the user program, however, could be unstable.
 
- \item Guards for recompilation are implemented as equality checks between the current value
-  and the previous stable value of the variable. In our example we need comparisons with previous versions of
-  the computation over run-time values (\code{c1 > c2}).
-
- \item Code caches are based on checking equality of stable values. In our example, we need equality
-  with computed values that change the outcome of DSL compilation.
-
-\end{itemize}
-
-Only exception to existing dynamic compilation systems is Truffle~\cite{wurthinger2013one} that allows creation of custom profiling and recompilation guards. However, with Truffle, language designers do not have the full view of the program, and thus, can not perform global optimizations (e.g., matrix chain multiplication optimization).
+An exception to existing dynamic compilation systems is Truffle~\cite{wurthinger2013one} which allows creation of user defined recompilation guards. However, with Truffle, language designers do not have the full view of the program, and thus, can not perform global optimizations (e.g., matrix-chain multiplication optimization). Further, recompilation guards must be manually introduced and the code in the DSL optimizer must be modified to specially handle decisions based on runtime values.
 
 We propose a dynamic compilation system aimed for domain specific languages where:
 \begin{itemize}
 
   \item DSL authors declaratively, at the definition site, state the values that
     are of interest for dynamic compilation (e.g., array and matrix sizes, vector
-    and matrix sparsity, etc.). These values can regularly be used for making
+    and matrix sparsity). These values can regularly be used for making
     compilation decisions throughout the DSL compilation pipeline.
 
-  \item The instrumented DSL compiler transparently reifies all computations on the run-time values that will affect compilation decisions.
-   In our example, the compiler reifies and stores all computations on run-time values in the
+  \item The instrumented DSL compiler transparently reifies all computations on
+   the runtime values that will affect compilation decisions. In our example,
+   the compiler reifies and stores all computations on runtime values in the
    unmodified dynamic programming algorithm~\cite{cormen2001introduction} for determining the
    optimal multiplication order (i.e., \code{c1 > c2}).
 
   \item Recompilation guards are introduced automatically based on the stored DSL
-   compilation process (i.e., recompilation guard is \code{c1 > c2} in the example).
+   compilation process. In the example the recompilation guard would be \code{c1 > c2}.
 
-  \item Automatically manages code caches that are addressed with outcomes of the
-   DSL compilation decisions instead with stable individual values. In the example
+  \item Code caches are automatically managed and addressed with outcomes of the
+   DSL compilation decisions instead of stable values from user programs. In the example
    the code cache would have two entries addressed with a single boolean
    value computed with \code{c1 > c2}.
 
 \end{itemize}
 
 The goal of this talk is to foster discussion on the new approach to dynamic compilation with focus on different policies for automatic introduction of recompilation guards:
- \emph{i)} heuristic, \emph{ii) DSL author specified}, and \emph{based on domain knowledge}.
+ \emph{i)} heuristic, \emph{ii)} DSL author specified, and \emph{iii)} based on domain knowledge.
 
 \bibliographystyle{plain}
 \bibliography{vjovanov-lib}
