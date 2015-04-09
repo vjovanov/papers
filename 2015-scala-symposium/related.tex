@@ -2,8 +2,19 @@
 \label{sct:related-work}
 
 % Staging MetaML
+
 % LMS Type Directed partial evaluation
-% Idris and Static in D
+
+ Programming languages Idris~\cite{brady2010scrapping} and D~\cite{dlang} try to solve this problem by allowing
+  the \code{static} annotation on function arguments. Annotation \code{static} denotes
+  that the term is statically known and that all operations on that term should
+  be executed at compile-time. However, since \code{static} is placed on terms rather
+  then types, it can mark only \emph{whole terms} as static. This restricts the number
+  of programs that can be expressed, \eg, we could not express that vectors in the
+  signature of \emph{dot} are static only in size. Finally, information about \code{static}
+  terms can not be deterministically propagated through return types of functions so \code{static}
+  in Idris and D is a partial evaluation construct.
+
 % Specialization Scenarios
 % MacroML
 % Hybrid Partial Evaluation
