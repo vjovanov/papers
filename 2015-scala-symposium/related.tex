@@ -2,19 +2,51 @@
 \label{sct:related-work}
 
 % Staging MetaML
+MetaOCaml~\cite{taha_multi-stage_1997,calcagno2003implementing} is a staging extension
+of OCaml. It uses quotation to promote
+
+% MacroML
+MacroML~\cite{ganz2001macros}
 
 % LMS Type Directed partial evaluation
 
- Programming languages Idris~\cite{brady2010scrapping} and D~\cite{dlang} try to solve this problem by allowing
-  the \code{static} annotation on function arguments. Annotation \code{static} denotes
+ Programming language Idris~\cite{brady2010scrapping} try to solve this problem by allowing
+  the \code{static} annotation on function parameters. Annotation \code{static} denotes
   that the term is statically known and that all operations on that term should
   be executed at compile-time. However, since \code{static} is placed on terms rather
   then types, it can mark only \emph{whole terms} as static. This restricts the number
   of programs that can be expressed, \eg, we could not express that vectors in the
   signature of \emph{dot} are static only in size. Finally, information about \code{static}
-  terms can not be deterministically propagated through return types of functions so \code{static}
-  in Idris and D is a partial evaluation construct.
+  terms can not be propagated through return types of functions so \code{static}
+  in Idris is a partial evaluation construct, i.e., it hints that partial evaluation
+  should be applied if function arguments are static.
+
+Programming language D~\cite{dlang} also introduces the \code{static} keyword for function parameters.
 
 % Specialization Scenarios
-% MacroML
+\cite{le2004specialization}
+
 % Hybrid Partial Evaluation
+Hybrid Partial Evaluation~(HPE)~\cite{shali2011Hybrid} is a technique for partial evaluation that
+ does not perform binding time analysis (similarly to online partial evaluators) but relies on the user
+ provided annotation \code{CT}\footnote{Name \code{ct} in \tool is inspired by hybrid partial evaluation.}.
+ HPE implementations exist for both Java and Scala~\cite{sherwany2015refactoring}.
+ Although, \code{CT} is used for partial evaluation, it does not affect typing of user programs. Furthermore,
+ behavior of \code{CT} in context of generics is not described. \tool can be seen
+ as statically typed version of hybrid partial evaluation with support for parametric polymorphism.
+ Due to the support for parametric polymorphism \tool can express compile-time data structures with
+ dynamic data.
+
+% Yin-Yang
+Jovanovic et al.~\cite{yin-yang} in the Yin-Yang framework solve the problem
+ of code duplication by generating reification and code generation logic based on original Scala code.
+ With their approach there is no code duplication for the supported language features. However, not all of
+ Scala is supported and all generated terms are generated for the next stage, thus,
+ staging is not possible there is no notion of staging.
+
+% Forge
+Forge by Sujeeth et al.~\cite{forge} uses a DSL to declare a specification of the libraries.
+ Forge then generates both unannotated and annotated code based on the specification.
+ Their language also supports generating staged code (comprised of terms different from multiple stages).
+ Forge specification and code generation supports only a subset of Scala guided towards the
+ Delite~\cite{brown_heterogeneous_2011,composition-ecoop2013} framework.

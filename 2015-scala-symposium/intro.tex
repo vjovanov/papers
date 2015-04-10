@@ -50,7 +50,7 @@ Here the \code{Rep} annotations on \code{Rep[T]} denote that elements of vectors
 {\bf Staging at host language compile time.} How can we use staging for programs whose values are statically
  known at the host language compile-time (the first stage)? Existing staging frameworks
  treat unannotated terms as runtime values of the host language and annotated terms as
- values in later stages of compilation. Even if we would take that the first stage is
+ values in later stages of compilation. Even if we would take that the first stage is executed
  at the host language compile time, we would have to annotate all run-time values.
  Annotating all values is cumbersome since host language run-time values comprise
  the majority of user programs~(\sct{sct:discussion}).
@@ -60,6 +60,8 @@ know the basics of Scala to comprehend this paper.}
 \footnotetext[2]{In this work we use LMS as a representative of type-based staging systems.}
 
 Interesting exception is MacroML
+
+% Type annotations, and thus all operations continue to work!
 
 {\bf Code Duplication.} Staging systems based on type annotations (e.g., LMS and type-directed
 partial evaluation~\cite{danvy1999type}) inherently require code duplication as,
@@ -81,6 +83,7 @@ Sujeeth et al.~\cite{forge} and Jovanovic et al.~\cite{yin-yang}
  of analyzed programs (\sct{sct:discussion}). Therefore, annotating static terms
  introduces less overhead for the programmer.
 
+% TODO count the number of terms
 We treat annotated types as \emph{compile-time views}
  of existing data types. Compile-time view of a type denotes that all operations on that type are
  executed at host language compile time. We promote types to their compile-time views

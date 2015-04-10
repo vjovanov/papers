@@ -1,4 +1,35 @@
 \section{Discussion}
 \label{sct:discussion}
-@ct vs @rep
-count them
+
+% State the three possibilities.
+To distinguish terms executed at compile-time from terms executed at runtime with type annotations we have the following possibilities:
+\begin{enumerate}
+\item Annotate types of all terms that should be executed at runtime. Here all types analyzed LMS and realized that this is not an option.
+
+
+\item Annotate types of terms that should be executed at runtime but introduce scopes (e.g., method bodies) for which this rule applies.
+In this way we would avoid annotating types of all runtime terms. This approach is taken by MacroML where
+macro functions are executed at compile time and quoted terms are executed at runtime. First approach is, also,
+a special case of this approach where there is a single scope for the whole language.
+
+\item Annotate types of terms that are executed at compile time. This approach is used with \tool and annotated types are
+called compile-time views.
+\end{enumerate}
+
+In \tool we decided to annotate types of terms that are executed at compile time. Compared to
+the first solution our approach takes requires less annotations. We analyzed
+% TODO Count annotations in OptiML
+
+Compared to the second approach our solution is simpler to comprehend and communicate. In the second approach there are
+two things that users need to understand when reasoning about staged programs: \emph{i)} where does
+the compile time scope start, and \emph{ii)} which terms are annotated. With \tool the comprehension
+is simple: terms whose types are annotated with \code{ct} are executed at compile time.
+
+% The number of annotations if it is a mostly manipulate code snippets.
+It is also interesting to the second and third approaches. Here the number of annotations
+depends on the program. If the programs are mostly partially evaluated the second approach
+is better. These category of programs could also be regarded as code generators as most of the code
+is executed at compile time and produces large outputs. When programs are comprised of mostly
+runtime values the approach of \tool requires less annotations.
+
+
