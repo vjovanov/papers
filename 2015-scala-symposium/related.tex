@@ -1,17 +1,30 @@
 \section{Related Work}
 \label{sct:related-work}
 
-% Staging MetaML
+% Staging LMS Type Directed partial evaluation
 MetaOCaml~\cite{taha_multi-stage_1997,calcagno2003implementing} is a staging extension
-of OCaml. It uses quotation to promote
+ for OCaml. It uses quotation to determine the stage in which the term is executed. Types of quoted terms are annotated
+ to assure cross-stage persistence. Staging in MetaOCaml starts at host language runtime and
+ can not express compile-time computations. Further, operations on annotated types
+ do not get automatically promoted to the adequate stage of computation as with compile-time views.
+ Finally, there are no implicit conversions so all stage promotions of terms must be explicit.
 
 % MacroML
-MacroML~\cite{ganz2001macros}
+MacroML~\cite{ganz2001macros} is a language that translates macros into MetaML staging executed
+ at compile time to provide a ``clean'' solution for macros. In MacroML, within
+ the \code{let mac} construct function parameters can be annotated as an early stage computation. These parameters
+ can then be used in escaped terms, \ie, terms scheduled to execute at compile time. Unlike \tool, MacroML
+ uses escapes and early parameters to mark terms scheduled for to execute at compile time. Within
+ escapes terms scheduled for runtime again need to be marked with brackets. This kind of dual annotations are
+ not required as compile-time views are automatically promoted to runtime terms.
 
 % LMS Type Directed partial evaluation
+In LMS~\cite{rompf2012lightweight} terms that are annotated with \code{Rep} types will be executed at
+ the stage after runtime compilation. Therefore, LMS can not directly be used for compile time computation. Furthermore,
+ LMS requires additional reification logic and code generation for all \code{Rep} types.
 
- Programming language Idris~\cite{brady2010scrapping} try to solve this problem by allowing
-  the \code{static} annotation on function parameters. Annotation \code{static} denotes
+ Programming language Idris~\cite{brady2010scrapping} introduces the \code{static} annotation
+  on function parameters to achieve partial evaluation. Annotation \code{static} denotes
   that the term is statically known and that all operations on that term should
   be executed at compile-time. However, since \code{static} is placed on terms rather
   then types, it can mark only \emph{whole terms} as static. This restricts the number
@@ -21,10 +34,8 @@ MacroML~\cite{ganz2001macros}
   in Idris is a partial evaluation construct, i.e., it hints that partial evaluation
   should be applied if function arguments are static.
 
-Programming language D~\cite{dlang} also introduces the \code{static} keyword for function parameters.
-
 % Specialization Scenarios
-\cite{le2004specialization}
+% TODO should we \cite{le2004specialization}
 
 % Hybrid Partial Evaluation
 Hybrid Partial Evaluation~(HPE)~\cite{shali2011Hybrid} is a technique for partial evaluation that
@@ -37,16 +48,16 @@ Hybrid Partial Evaluation~(HPE)~\cite{shali2011Hybrid} is a technique for partia
  Due to the support for parametric polymorphism \tool can express compile-time data structures with
  dynamic data.
 
-% Yin-Yang
-Jovanovic et al.~\cite{yin-yang} in the Yin-Yang framework solve the problem
- of code duplication by generating reification and code generation logic based on original Scala code.
- With their approach there is no code duplication for the supported language features. However, not all of
- Scala is supported and all generated terms are generated for the next stage, thus,
- staging is not possible there is no notion of staging.
-
 % Forge
-Forge by Sujeeth et al.~\cite{forge} uses a DSL to declare a specification of the libraries.
+Forge~\cite{forge}, by Sujeeth et al., uses a DSL to declare a specification of the libraries.
  Forge then generates both unannotated and annotated code based on the specification.
  Their language also supports generating staged code (comprised of terms different from multiple stages).
  Forge specification and code generation supports only a subset of Scala guided towards the
  Delite~\cite{brown_heterogeneous_2011,composition-ecoop2013} framework.
+
+% Yin-Yang
+The Yin-Yang framework, by Jovanovic et al.~\cite{yin-yang}, solves the problem
+ of code duplication by generating reification and code generation logic based on Scala code of existing types.
+ With their approach there is no code duplication for the supported language features. However, not all of the
+ Scala language is supported and all generated terms are generated for the next stage, thus,
+ making a stage distinction is impossible.

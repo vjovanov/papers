@@ -59,10 +59,13 @@ Here the \code{Rep} annotations on \code{Rep[T]} denote that elements of vectors
 know the basics of Scala to comprehend this paper.}
 \footnotetext[2]{In this work we use LMS as a representative of type-based staging systems.}
 
-Interesting exception is MacroML
+MacroML~\cite{ganz2001macros} expresses macros as two-stage computations that start executing from host language compile time.
+ In MacroML, parameters of macros can be annotated as an early stage computation. These parameters
+ can then used in escaped terms for compile-time computation. Terms scheduled for runtime execution,
+ withing the escaped terms, again need to be quoted with brackets. This,
+ in effect, imposes quotation for both escaping and brackets which requiring additional effort.
 
 % Type annotations, and thus all operations continue to work!
-
 {\bf Code Duplication.} Staging systems based on type annotations (e.g., LMS and type-directed
 partial evaluation~\cite{danvy1999type}) inherently require code duplication as,
 a priory, no operations are defined on \code{Rep} annotated types. For example,
