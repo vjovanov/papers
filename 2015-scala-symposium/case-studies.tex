@@ -1,10 +1,9 @@
 \section{Case Studies}
 \label{sct:case-studies}
 
-In this section we present selected use-cases for compile-time views that at the
-same  time demonstrate step-by-step the mechanics behind \tool and the
-interesting applications.  We start by inlining a simple function with staging
-(\sct{sct:inlining}), then do the canonical staging  example of the power function
+In this section we present selected use-cases for compile-time views that, at the
+same time, demonstrate step-by-step the mechanics behind \tool. We start by inlining a simple function with staging
+(\sct{sct:inlining}), then do the canonical staging  example of the integer power function
 (\sct{sct:recursion}), then we demonstrate how variable argument functions can
 be  desugared into the core functionality (\sct{sct:varargs}). Finally, we
 demonstrate how the abstraction overhead of the \code{dot} function and all
@@ -36,7 +35,7 @@ def pow(base: Double, exp: Int): Double =
 evaluated into \code{exp} multiplications of the \code{base} argument, significantly
 improving performance~\cite{calcagno2003implementing}.
 
-With compile-time views making\code{pow} partially evaluated requires adding two annotations:
+With compile-time views making \code{pow} partially evaluated requires adding only one annotation:
 
 \begin{lstparagraph}
 def pow(base: Double, exp: Int@ct): Double =
@@ -49,7 +48,7 @@ However, to reduce the number of required annotations we implicitly add the \cod
 when at least one parameter type or the result type is marked as \code{ct}. In the example
  the \code{ct} annotation on \code{exp} requires that the function must be called with
  a compile-time view of \code{Int}. \tool ensures that the definiton of the \code{pow} function
- does not cause infinite recursion at compile-time~\cite{} by invoking the power function
+ does not cause infinite recursion at compile-time by invoking the power function
  only when the value of the \code{ct} arguments is known.
 
  The application of the function \code{pow} with a constant
@@ -112,9 +111,9 @@ for statically known varargs or to the original min function for dynamic argumen
 \subsection{Removing Abstraction Overhead of Type-Classes}
 \label{sct:type-classes-removal}
 
-Type-classes are omnipresent in everyday programming as they provide allow abstraction over
+Type-classes are omnipresent in everyday programming as they allow abstraction over
  generic parameters (\eg, \code{Numeric} abstracts over numeric values). Unfortunately,
- type-classes introduce \emph{dynamic dispatch} on every call~\cite{rompf_optimizing_2013} and are,
+ type-classes introduce \emph{dynamic dispatch} on every call~\cite{rompf_optimizing_2013} and,
  thus, impose a performance penalty. Type-classes are in most of the cases statically known. Here
  we show how with \tool we can remove all abstraction overheads of type classes.
 

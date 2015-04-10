@@ -11,7 +11,7 @@
   In this work we will focus on staging systems where all stages are in the same language and that, through static typing, assure
   that terms in the next stage are well typed.
 
-  Notable staging systems for statically typed languages are
+  Notable staging systems in statically typed languages are
   MetaOCaml~\cite{taha_multi-stage_1997,calcagno2003implementing}
   and LMS~\cite{rompf2012lightweight}. These systems were successfully applied as a
   \emph{partial evaluatior}~\cite{jones1993partial}: for removing abstraction
@@ -28,7 +28,7 @@ def dot[T:Numeric](v1: Vector[T], v2: Vector[T]): T =
   }
  \end{lstparagraph}
 
-In function \code{dot}, if the vector sizes are constant the inner product can
+In function \code{dot}, if vector sizes are constant, the inner product can
  be partially evaluated into a sum of products of vector components. To achieve partial evaluation,
  we must communicate to the staging system that operations on values of vector components
  should be executed in the next stage. The compilation stage
@@ -41,7 +41,7 @@ def dot[T:Numeric]
  \end{lstparagraph}
 
 Here the \code{Rep} annotations on \code{Rep[T]} denote that elements of vectors will be known
- only in the next stage (in LMS this is a stage after run-time compilation). After run-time compilation \code{zip},
+ only in the next stage (in LMS, this is a stage after run-time compilation). After run-time compilation \code{zip},
  \code{foldLeft}, and pattern matching inside the closure will not exist
  as they were evaluated in the previous stage of compilation (host language runtime). Note that in
  LMS unannotated code is always executed during host-language runtime
@@ -50,18 +50,19 @@ Here the \code{Rep} annotations on \code{Rep[T]} denote that elements of vectors
 {\bf Staging at host language compile time.} How can we use staging for programs whose values are statically
  known at the host language compile-time (the first stage)? Existing staging frameworks
  treat unannotated terms as runtime values of the host language and annotated terms as
- values in later stages of compilation. Even if we would start staging at the host language compile time,
- we would have to annotate all run-time values. Annotating all values is cumbersome
- since host language run-time values comprise the majority of user programs~(\sct{sct:discussion}).
+ values in later stages of compilation. Even if we would take that the first stage is
+ at the host language compile time, we would have to annotate all run-time values.
+ Annotating all values is cumbersome since host language run-time values comprise
+ the majority of user programs~(\sct{sct:discussion}).
 
 \footnotetext[1]{All code examples are written in \emph{Scala}. It is necessary to
 know the basics of Scala to comprehend this paper.}
 \footnotetext[2]{In this work we use LMS as a representative of type-based staging systems.}
 
-TODO MetaML
+Interesting exception is MacroML
 
-{\bf Annotating the Next Stage.} Staging systems based on type annotations (e.g., LMS and type-directed
-partial evaluation~\cite{danvy1999type}) inherently require duplication of code as,
+{\bf Code Duplication.} Staging systems based on type annotations (e.g., LMS and type-directed
+partial evaluation~\cite{danvy1999type}) inherently require code duplication as,
 a priory, no operations are defined on \code{Rep} annotated types. For example,
 in the LMS version of the \code{dot} function, all numeric types (\ie, \code{Rep[Int]}, \code{Rep[Double]}, etc.)
 must be re-implemented in order to typecheck the programs and achieve code generation
@@ -82,7 +83,7 @@ Sujeeth et al.~\cite{forge} and Jovanovic et al.~\cite{yin-yang}
 
 We treat annotated types as \emph{compile-time views}
  of existing data types. Compile-time view of a type denotes that all operations on that type are
- executed at host language compile time. We annotate types as compile-time views
+ executed at host language compile time. We promote types to their compile-time views
  with the \code{@ct} annotation (\eg, \code{Int@ct}). Similarly, statically known terms can be promoted
  their compile time duals with the \code{ct} function on the term level.
  By having two views of the same type we obviate the need for introducing reification and code generation logic for
@@ -97,8 +98,8 @@ def dot[V: Numeric@ct]
 \end{lstparagraph}
 
 Since, vector elements are polymorphic the result
- of the function can be a dynamic value, or a compile-time value
- that can be further used for compile time computations. The binding time of the return type
+ of the function can be a dynamic value, or a compile-time view
+ that can be further used for compile-time computations. The binding time of the return type
  of \code{dot} will match the binding time of vector elements:
 
 \vspace{1.8mm}
