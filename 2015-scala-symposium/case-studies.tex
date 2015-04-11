@@ -1,23 +1,21 @@
 \section{Case Studies}
 \label{sct:case-studies}
 
-In this section we present selected use-cases for compile-time views that at the
-same  time demonstrate step-by-step the mechanics behind \tool and the
-interesting applications.  We start by inlining a simple function with staging
-(\sct{sct:inlining}), then do the canonical staging  example of the power function
+In this section we present selected use-cases for compile-time views that, at the
+same time, demonstrate step-by-step the mechanics behind \tool. We start by inlining a simple function with staging
+(\sct{sct:inlining}), then do the canonical staging  example of the integer power function
 (\sct{sct:recursion}), then we demonstrate how variable argument functions can
 be  desugared into the core functionality (\sct{sct:varargs}). Finally, we
 demonstrate how the abstraction overhead of the \code{dot} function and all
 associated type-class related abstraction an be removed (\sct{sct:dot-product}).
-For formal partial evaluation rules refer \cf \sct{fig:partial-evaluation}.
 
 \subsection{Inlining Expressed Through Staging}
 \label{sct:inlining}
 
 Function inlining can be expressed as staged computation~\cite{monnier2003inlining}.
  Inlining is achieved when a statically known function body is applied with symbolic
- arguments. In \tool we use the \code{inline} annotation on functions and methods to achieve inlining:\begin{lstparagraph}
-@inline def zero[T](implicit num: Numeric[T]) = num.zero
+ arguments. In \tool we use the \code{ct} annotation on functions and methods to achieve inlining:\begin{lstparagraph}
+@ct def zero[T](implicit num: Numeric[T]) = num.zero
 
 zero[Double]
   $\hookrightarrow$ num.zero
@@ -31,25 +29,25 @@ The canonical example in staging literature is partial evaluation of the power f
  where exponent is an integer:
 \begin{lstparagraph}
 def pow(base: Double, exp: Int): Double =
-  if (exp == 0) 1 else base * pow(base, exp)
+  if (exp == 0) 1 else base * pow(base, exp - 1)
 \end{lstparagraph} When the exponent (\code{exp}) is statically known this function can be partially
 evaluated into \code{exp} multiplications of the \code{base} argument, significantly
 improving performance~\cite{calcagno2003implementing}.
 
-With compile-time views making\code{pow} partially evaluated requires adding two annotations:
+With compile-time views making \code{pow} partially evaluated requires adding only one annotation:
 
 \begin{lstparagraph}
 def pow(base: Double, exp: Int@ct): Double =
-  if (exp == 0) 1 else base * pow(base, exp)
+  if (exp == 0) 1 else base * pow(base, exp - 1)
 \end{lstparagraph}
 
 % TODO cite infinite recursion
-To satisfy cross-stage persistence (\sct{sct:wf-ctv}) the \code{pow} must be \code{@inline}.
-However, to make reduce the number of required annotations we implicitly add the \code{inline} annotation
-when at least one parameter or the result type is marked as \code{ct}. In the example
+To satisfy cross-stage persistence (\sct{sct:wf-ctv}) the \code{pow} must be \code{@ct}.
+However, to reduce the number of required annotations we implicitly add the \code{ct} annotation
+when at least one parameter type or the result type is marked as \code{ct}. In the example
  the \code{ct} annotation on \code{exp} requires that the function must be called with
  a compile-time view of \code{Int}. \tool ensures that the definiton of the \code{pow} function
- does not cause infinite recursion at compile-time~\cite{} by invoking the power function
+ does not cause infinite recursion at compile-time by invoking the power function
  only when the value of the \code{ct} arguments is known.
 
  The application of the function \code{pow} with a constant
@@ -95,8 +93,9 @@ def min(vs: Int*): Int = macro
 
 def min_CT(vs: Seq[Int]@ct): Int =
   vs.tail.foldLeft(vs.head) { (min, el) =>
-  if (el < min) el else min
-}
+    if (el < min) el else min
+  }
+
 def min_D(vs: Seq[Int]): Int =
   vs.tail.foldLeft(vs.head) {
     (min, el) => if (el < min) el else min
@@ -111,9 +110,9 @@ for statically known varargs or to the original min function for dynamic argumen
 \subsection{Removing Abstraction Overhead of Type-Classes}
 \label{sct:type-classes-removal}
 
-Type-classes are omnipresent in everyday programming as they provide allow abstraction over
+Type-classes are omnipresent in everyday programming as they allow abstraction over
  generic parameters (\eg, \code{Numeric} abstracts over numeric values). Unfortunately,
- type-classes introduce \emph{dynamic dispatch} on every call~\cite{rompf_optimizing_2013} and are,
+ type-classes introduce \emph{dynamic dispatch} on every call~\cite{rompf_optimizing_2013} and,
  thus, impose a performance penalty. Type-classes are in most of the cases statically known. Here
  we show how with \tool we can remove all abstraction overheads of type classes.
 
@@ -148,11 +147,10 @@ object DoubleNumeric extends Numeric[Double] {
 \end{figure}
 
 When \code{zero} is applied first the implicit argument (\code{dnum}) gets
-inlined due to the \code{inline} annotation, then the function zero gets
-inlined. Since \code{dnum} returns the compile-time view of \code{DoubleNumerc}
-the method \code{zero} is evaluated at compile time. The constant \code{0.0} is
-promoted to \code{ct} since \code{DoubleNumeric} is a compile time view
-(formally defined in \sct{sct:compile-views}). Finally the \code{ct(0.0)} result
+inlined due to the \code{ct} annotation of the return type, then the function \code{zero} gets
+inlined. Since \code{dnum} returns a compile-time view of \code{DoubleNumerc}
+the method \code{zero} on \code{dnum} is evaluated at compile time. The constant \code{0.0} is
+promoted to \code{ct} since \code{DoubleNumeric} is a compile time view. Finally the \code{ct(0.0)} result
 is coerced to a dynamic value by the signature of \code{Numeric.zero}. The
 compile-time execution is shown in the following snippet
 
@@ -172,7 +170,7 @@ partially evaluated through staging. We start with the desugared \code{dot}
 function~(\ie, all implicit operations are shown):
 
 \begin{lstparagraph}
-@inline def dot[V](v1: Vector[V]@ct, v2: Vector[V]@ct)
+ def dot[V](v1: Vector[V]@ct, v2: Vector[V]@ct)
   (implicit num: Numeric[V]@ct): V =
   (v1 zip v2).foldLeft(zero[V](num)) {
     case (prod, (cl, cr)) => prod + cl * cr

@@ -1,0 +1,217 @@
+\documentclass{llncs}
+\usepackage{llncsdoc}
+
+% Math
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{math}
+\usepackage{mathtools}
+
+% Graphics
+\usepackage{graphicx}
+
+% Text stuff
+\usepackage{listings}
+%% sstucki: comment this back in later. my eyes hurt from the
+%% pixelated substituted fonts...
+%\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage[usenames]{color}
+\usepackage[font=bf,labelfont=bf]{caption}
+\DeclareCaptionType{copyrightbox}
+\usepackage{subcaption}
+\usepackage{multirow}
+\usepackage{etoolbox}
+\usepackage{stmaryrd}
+
+% PL Formulas
+\usepackage{fleqn}
+\usepackage{latexsym}
+\usepackage{bcprules}
+\usepackage{prooftree}
+
+\patchcmd{\maketitle}{\@copyrightspace}{}{}{}
+%\usepackage[font=bf,labelfont=bf]{caption}
+
+%for Strikethrough, to remove when not required anymore
+\usepackage[normalem]{ulem}
+
+% Layout
+\usepackage{xspace}% space in macros
+\usepackage{multicol}
+
+% Makes tables look beautiful
+\usepackage{booktabs}
+\usepackage{tabularx}
+
+\input{yy_macros}
+
+% ----- begin macros
+\lstdefinelanguage{Scala}%
+{morekeywords={abstract,%
+  case,catch,char,class,%
+  def,else,extends,final,for,%
+  if,import,implicit,%
+  match,module,%
+  new,null,%
+  object,override,%
+  %package,% commented out for a specific example
+  private,protected,public,%
+  for,public,return,super,%
+  this,throw,trait,try,type,%
+  val,var,%
+  with,while,%
+  yield,%
+  macro%
+  },%
+  sensitive,%
+  morecomment=[l]//,%
+  morecomment=[s]{/*}{*/},%
+  morestring=[b]",%
+  morestring=[b]',%
+  showstringspaces=false%
+}[keywords,comments,strings]%
+
+\lstset{language=Scala,%
+  mathescape=true,%
+%  columns=[c]fixed,%
+%  basewidth={0.5em, 0.40em},%
+  aboveskip=1pt,%\smallskipamount,
+  belowskip=1pt,%\negsmallskipamount,
+  lineskip=-0.2pt,
+  basewidth={0.54em, 0.4em},%
+%  basicstyle=\ttfamily,%\scriptsize,%
+  basicstyle=\footnotesize\ttfamily,
+  keywordstyle=\sffamily\bfseries%
+%  keywordstyle=\sffamily\bfseries,%
+%  xleftmargin=0.5cm
+}
+
+
+\newcommand{\commentstyle}[1]{\slseries{#1}}
+\newcommand{\keywordstyle}[1]{\bfseries{#1}}
+
+% Code
+\lstnewenvironment{listing}{\lstset{language=Scala}}{}
+\lstnewenvironment{listingsmall}{\lstset{language=Scala,basicstyle=\small\ttfamily}}{}
+\lstnewenvironment{listingtiny}{\lstset{language=Scala,basicstyle=\scriptsize\ttfamily}}{}
+
+\newcommand{\scode}[1]{\lstinline[language=Scala,columns=fixed,basicstyle=\ttfamily,keywordstyle=\ttfamily]|#1|}
+\newcommand{\jcode}[1]{\lstinline[language=Java,flexiblecolumns=true,basicstyle=\ttfamily]{#1}}
+
+\newcommand{\code}[1]{\scode{#1}}
+\newcommand{\sct}[1]{(\S \ref{#1})}
+
+% TODOs:
+\newif\ifshowTodos
+\showTodostrue
+\showTodosfalse % Uncomment this to hide all TODOs.
+\ifshowTodos
+\newcommand{\todo}[1]{{\color{red} \textbf{[TODO: #1 ]}}}
+\newcommand{\sstucki}[1]{{\color{red} [\textbf{sstucki}: #1 ]}}
+\newcommand{\manojo}[1]{{\color{red} [\textbf{manojo}: #1 ]}}
+\newcommand{\comm}[1]{}
+\newcommand{\orElse}[2]{{\color{red} [\sout{#1} {\color{magenta} #2}]}}
+\else
+\newcommand{\todo}[1]{}
+\newcommand{\sstucki}[1]{}
+\newcommand{\manojo}[1]{}
+\newcommand{\comm}[1]{}
+\newcommand{\orElse}[2]{#2}
+\renewcommand{\sout}[1]{}
+\fi
+% paper specific commands
+\newcommand{\tool}{Yin-Yang\xspace}
+
+
+
+\begin{document}
+
+\title{Dynamic Compilation of DSLs}
+
+\author{Vojin Jovanovic and Martin Odersky}
+\institute{EPFL, Switzerland\\
+\email{\{firstname\}.\{lastname\}@epfl.ch}}
+
+\maketitle
+
+Domain-specific language (DSL) compilers use \emph{domain knowledge} to perform
+ \emph{domain-specific optimizations} that can yield several orders of magnitude speedups~\cite{rompf_optimizing_2013}.
+ These optimizations, however, often require knowledge of values known only at program runtime. For example,
+ in matrix-chain multiplication, knowing matrix sizes allows choosing the
+ optimal multiplication order~\cite[Ch.~15.2]{cormen2001introduction} and
+ in relational algebra knowing relation sizes is necessary for choosing the right join order~\cite{selinger1979access}.
+ Consider the example of matrix-chain multiplication:
+\vspace{0.5em}
+\begin{lstlisting}
+  val (m1, m2, m3) = ... // matrices of unknown size
+  m1 * m2 * m3
+\end{lstlisting}
+\vspace{0.5em}
+In this program, without knowing the matrix sizes, the DSL compiler can not determine the
+ optimal order of multiplications. There are two possible orders
+ \code{(m1*m2)*m3} with an estimated cost \code{c1} and \code{m1*(m2*m3)} with an estimated cost \code{c2} where:
+ \vspace{0.5em}
+\begin{lstlisting}
+  c1 = m1.rows*m1.columns*m2.columns+m1.rows*m2.columns*m3.rows
+  c2 = m2.rows*m2.columns*m3.columns+m1.rows*m2.rows*m3.columns
+\end{lstlisting}
+\vspace{0.5em}
+Ideally we would change the multiplication order at runtime only when the condition \code{c1 > c2} changes. For this
+task \emph{dynamic compilation}~\cite{auslander1996fast} seems ideal.
+
+Yet, dynamic compilation systems---such as DyC~\cite{grant2000dyc} and JIT compilers---have shortcomings.
+ They use runtime information primarily for specialization. In these systems
+ profiling tracks \emph{stability} of values in the user program. Then, \emph{recompilation guards}
+ and \emph{code caches} are based on checking equality of current values and previously stable
+ values.
+
+ To perform domain-specific optimizations we must check stability, introduce guards, and code caches, based on the
+  computation specified in the DSL optimizer---outside the user program. Ideally, the DSL optimizer should be
+  agnostic of the fact that input values are collected at runtime. In the example
+  stability is only required for the condition \code{c1 > c2}, while the values
+  \code{c1} and \code{c2} themselves are allowed to be unstable. Finally, recompilation guards
+  and code caches would recompile and reclaim code based on the same condition.
+
+An exception to existing dynamic compilation systems are Truffle~\cite{wurthinger2013one} and Lancet~\cite{lancet}. They allow creation of user defined recompilation guards. However, with Truffle, language designers do not have the full view of the program, and thus, can not perform global optimizations (e.g., matrix-chain multiplication optimization). Further, recompilation guards must be manually introduced and the code in the DSL optimizer must be modified to specially handle decisions based on runtime values.
+
+We propose a dynamic compilation system aimed for domain specific languages where:
+\begin{itemize}
+
+  \item DSL authors declaratively, at the definition site, state the values that
+    are of interest for dynamic compilation (e.g., array and matrix sizes, vector
+    and matrix sparsity). These values can regularly be used for making
+    compilation decisions throughout the DSL compilation pipeline.
+
+  \item The instrumented DSL compiler transparently reifies all computations on
+   the runtime values that will affect compilation decisions. In our example,
+   the compiler reifies and stores all computations on runtime values in the
+   unmodified dynamic programming algorithm~\cite{cormen2001introduction} for determining the
+   optimal multiplication order (i.e., \code{c1 > c2}).
+
+  \item Recompilation guards are introduced automatically based on the stored DSL
+   compilation process. In the example the recompilation guard would be \code{c1 > c2}.
+
+  \item Code caches are automatically managed and addressed with outcomes of the
+   DSL compilation decisions instead of stable values from user programs. In the example
+   the code cache would have two entries addressed with a single boolean
+   value computed with \code{c1 > c2}.
+
+\end{itemize}
+
+The goal of this talk is to foster discussion on the new approach to dynamic compilation with focus on different policies for automatic introduction of recompilation guards:
+ \emph{i)} heuristic, \emph{ii)} DSL author specified, and \emph{iii)} based on domain knowledge.
+
+{
+\linespread{0.90}
+\bibliographystyle{plain}
+\bibliography{vjovanov-lib}
+}
+
+
+
+
+
+\end{document}

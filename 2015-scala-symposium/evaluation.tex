@@ -1,23 +1,41 @@
 \section{Evaluation}
 \label{sct:evaluation}
 
-\subsection{Reduction of Code Duplication}
+In this section we evaluate the amount of code that is obviated compared to existing
+type directed staging systems (\sct{sct:duplication}). Then we evaluate performance of
+\tool compared to LMS and hand optimized code (\sct{sct:performance})
 
-% Explanation of the problem with type-directed partial evaluation.
+\subsection{Reduction in Code Duplication}
+\label{sct:duplication}
 
-\subsection{Performance Comparison}
+Evaluating reduction of duplicated code (for reification and code generation) in type based
+staging systems is difficult as the factor varies from program to program. To avoid benchmark dependent
+results we instead calculate the lower bound on the duplication factor.
+
+Given that we have a method on a type \code{T} whose body contains \code{n} lines of code (without
+the method definition). To introduce the same method on an annotated type \code{Rep[T]} we need another
+ method for reification which has at least 1 line of code. Then we need code generation
+ logic, which, if we use the same language should not have less lines than the original method
+ plus at least one line for matching the reified method. For method of $n$ lines
+ we get a lower bound on the code duplication factor of:$$
+ 2n+3/n+1
+$$
+For single line methods ($n=0$) the factor is 3 and for large methods ($n\rightarrow\infty$) it converges to 2.
+
+\subsection{Performance of Generated Code}
+\label{sct:performance}
 \begin{table}[h]
-\caption{Performance comparison with LMS and hand optimized code.}
+\caption{Comparison of \tool with LMS and hand optimized code.}
 \label{tbl:numbers}
 \centering
 \begin{tabularx}{\linewidth}{ X X X X}
 \toprule
 
-  Benchmark                  & Hand Optimized                                    &  LMS      &    Scala Inline            \\
-  \code{pow}                 &                                                   &           &                            \\
-  \code{min}                 &                                                   &           &                            \\
-  \code{dot}                 &                                                   &           &                            \\
-  \code{fft}                 &                                                   &           &                            \\
+  Benchmark                  & \tool                                             &  LMS      &  Optimized by Hand          \\
+  \code{pow}                 &                                                   &           &                             \\
+  \code{min}                 &                                                   &           &                             \\
+  \code{dot}                 &                                                   &           &                             \\
+  \code{fft}                 &                                                   &           &                             \\
 
 \bottomrule
 \end{tabularx}
