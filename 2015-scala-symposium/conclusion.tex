@@ -1,2 +1,13 @@
 \section{Conclusion}
 \label{sct:conclusion}
+
+\tool is only the first step towards a staging system for Scala that is fully integrated in the language. For
+ complete integration it would be necessery to allow usage of \code{ct} on trait and class definitions
+ as well as abstract types.
+
+In \tool annotation of a term determins the stage where it is computed. When \tool is used only for partial evaluation
+ this can lead to unnecessary code duplication as users need to provide two versions of the same
+ code (one staged and one unstaged). For a practical system it is necessary to extend \tool with
+ annotations which denote that terms should be partially evaluated if they are statically known.
+ We have achieved this for variable argument funcitons in \sct{sct:varargs} with an ad-hoc mechanism,
+ however, we seek for a principled solution.
