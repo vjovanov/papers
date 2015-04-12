@@ -43,15 +43,14 @@ def pow(base: Double, exp: Int@ct): Double =
 
 % TODO cite infinite recursion
 To satisfy cross-stage persistence (\sct{sct:wf-ctv}) the \code{pow} must be \code{@ct}.
-However, to reduce the number of required annotations we implicitly add the \code{ct} annotation
-when at least one parameter type or the result type is marked as \code{ct}. In the example
+This annotation is automatically added by \tool as described in \sct{sct:implicits}. In the example,
  the \code{ct} annotation on \code{exp} requires that the function must be called with
  a compile-time view of \code{Int}. \tool ensures that the definiton of the \code{pow} function
  does not cause infinite recursion at compile-time by invoking the power function
  only when the value of the \code{ct} arguments is known.
 
  The application of the function \code{pow} with a constant
- exponent will produce:
+ exponent produces:
 
 \begin{lstparagraph}
 pow(base, 4)

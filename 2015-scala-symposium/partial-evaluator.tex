@@ -29,7 +29,9 @@ annotation is integrated in the Scala's type system and, therefore, can be
 arbitrarily nested in different variants of types.
 
 Since all operations on compile-time views are executed at compile time, non-generic
- method parameters and result types of compile-time views also become compile-time views. Table \ref{tbl:ct-type}
+ method parameters and result types of compile-time views also become compile-time views.
+ Generic parameters remain unchanged as their binding time is defined during corresponding
+ type application. Table \ref{tbl:ct-type}
  shows how the \code{@ct} annotation can be placed on types and how it affects method
  signatures on annotated types.
 
@@ -63,11 +65,11 @@ Since all operations on compile-time views are executed at compile time, non-gen
 Annotation \code{ct} can be used to achieve simple inlining of statically
  known methods and functions. This is achieved by putting the annotation of the method/function
  definition:\begin{lstparagraph}
- def dot[V: Numeric]
-  (v1: Vector[V], v2: Vector[V]): V
+ @ct def dot[T: Numeric]
+  (v1: Vector[T], v2: Vector[T]): T
 \end{lstparagraph}
 Annotated methods will have an annotated method type\begin{lstparagraph}
-((v1: Vector[V], v2: Vector[V]) => V)@ct
+((v1: Vector[T], v2: Vector[T]) => T)@ct
 \end{lstparagraph} which can not be written by the users. This is not the first time
 that inlining is achieved through partial evaluation~\cite{monnier2003inlining}.
 
@@ -112,9 +114,9 @@ that inlining is achieved through partial evaluation~\cite{monnier2003inlining}.
  Tracking static terms was studied in the context of binding-time analysis
   in partial evaluation for typed~\cite{nielson_1988_automatic} and
   untyped~\cite{gomard1991partial} languages. We use similar techniques, however,
-  unlike in partial evaluation we do not evaluate static terms at compile time. They are tracked for verifying
-  correctness and providing convenient implicit conversions. Static terms are evaluated only
-  when they are explicitly marked by the programmer with \code{ct}.
+  unlike in partial evaluation we do not evaluate static terms at compile time. They are tracked
+  in the same way as \code{ct}, for verifying correctness of term promotions to \code{ct} and providing
+  convenient implicit conversions. Static terms are evaluated only when they are explicitly marked by the programmer with \code{ct}.
 
   % What are the static terms
 In \tool language literals, functions, direct class constructor calls with static arguments, and static method
@@ -122,7 +124,7 @@ In \tool language literals, functions, direct class constructor calls with stati
 1.0, "1", (x: Int => x), new Cons(1, Nil), List(1,2,3)
 \end{lstparagraph}
 
-\subsection{Least Upper Bounds}
+\subsection{Subtyping}
 \label{sct:lub}
 
  We use subtyping of Scala to simplify tracking of binding times by introducing a
@@ -178,17 +180,28 @@ On functions/methods the \code{ct} annotation requires that function/method bodi
  method bodies are statically known in objects and classes with final methods, thus, the \code{ct}
  annotation is only applicable on such methods.
 
-\subsection{Implicit Conversions}
+\subsection{Minimizing the Number of Annotations}
 \label{sct:implicits}
 
-% Requires desugaring
-If method parameters require compile-time views of a type the corresponding arguments
- in method application would always have to be promoted to \code{ct}.
- In some libraries this could require an inconveniently large number
- of annotations.
+One of the design goals of \tool is to minimize the number of superfluous staging annotations. We achieve
+ this by implicitly adding annotations and term promotions that would with high probability be added by the user.
 
-To minimize the number of required annotations we introduce implicit conversions from certain \code{static} terms to \code{ct} terms.
- The conversions support translation of language literals, direct class constructor calls with static arguments, and static method
+
+{\bf Adding \code{ct} to Functions.} Due to cross-stage persistence if a single parameter of
+a function is annotated with \code{ct} the whole function must also be \code{ct}. Since forgetting
+this annotation would only result in an error we implicitly add
+the \code{ct} annotation when at least one parameter type or the result type is marked as \code{ct}.
+
+{\bf Implicit Conversions.} If method parameters require the compile-time view of a type the corresponding arguments
+ in method application would always have to be promoted to \code{ct}.
+ In some libraries this could require an inconveniently large number of annotations.
+
+To minimize the number of required annotations we introduce \emph{implicit conversions}
+ from certain \code{static} terms to \code{ct} terms. Note that we use a custom mechanism for
+ implicit conversions based on type annotations. This is necessary as Scala implicit conversions
+ are oblivious to type annotations (\sct{sct:limitations}).
+
+The conversions support translation of language literals, direct class constructor calls with static arguments, and static method
  calls with static arguments into their compile-time views. Since our compile-time evaluator does
  not use Asai's~\cite{asai2002binding,sumii2001hybrid} method to keep track of
  the value of each static term, we disallow implicit conversions of terms with static variables.
@@ -206,3 +219,9 @@ Without implicit conversions the factorial functions would be more verbose \begi
 def fact(n: Int @ct): Int@ct =
   if (n == ct(0)) ct(1) else fact(n - ct(1))
  \end{lstparagraph} as well as each function application (\code{fact(ct(5))}).
+
+Implicit conversions are safe in all cases except when the user should be warned about potential
+code explosion. For example, a user could accidentally call \code{fact} with a very large and
+cause code explosion without even knowing that staging is happening. If \code{ct} was required
+it would remind the users about the potential problems. In the desing of \tool we decided to
+prefer less annotations over code-explosion prevention.
