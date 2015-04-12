@@ -1,10 +1,10 @@
 \section{Limitations}
 \label{sct:limitations}
 
-\begin{itemize}
-\item Interaction with type variables.
-\item Type variables.
-\item Type annotations and overloading and implicit search.
-\item Can not inherit from a compile time view.
-\item type annotations do not interact with overloading and implicit search.
-\end{itemize}
+{\bf Type Annotations.} Using type annotations for annotating the compilation stage is not ideal. Type annotations are not fully
+ integrated into the Scala language. Major drawbacks are that overloading resolution and implicit search are oblivious about annotations. For example, if two methods have the same signatures but different staging annotations the compiler will report an error. Implicit search will fail in two ways: \emph{i)} if two implicits with the same type are in scope but annotations differ the compiler will report and ambiguous implicit error and \emph{ii)} if a method requires an implicit parameter with the \code{ct} annotation
+ the compiler might provide an implicit argument without the annotation.
+
+{\bf Type Annotation Position.} Annotations in Scala can be used in many different positions and \tool supports only some of them. Annotation \code{ct} can not be used in following positions: \emph{i)} on classes, traits, and modules, \emph{ii) in the list of inherited classes and traits}, \emph{iii)} on the right hand side of the type variable definitions, and \emph{iv)} on all terms outside the method definitions (constructors, constructor arguments, etc.).
+
+{\bf Access Modifiers.} Scala supports access modifiers of members. If methods that use \tool internally access \code{private} members of the class \tool will fail as all staged methods are inlined at the call site. Similar limitations exist with inlining functions in Scala. This problem could be circumvented inside Scala, however, the JVM will not allow this in the bytecode verification phase.

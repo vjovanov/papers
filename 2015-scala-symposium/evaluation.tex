@@ -1,7 +1,7 @@
 \section{Evaluation}
 \label{sct:evaluation}
 
-In this section we evaluate the amount of code that is obviated compared to existing
+In this section we evaluate the amount of code that is obviated with \tool compared to existing
 type directed staging systems (\sct{sct:duplication}). Then we evaluate performance of
 \tool compared to LMS and hand optimized code (\sct{sct:performance})
 
@@ -24,21 +24,32 @@ For single line methods ($n=0$) the factor is 3 and for large methods ($n\righta
 
 \subsection{Performance of Generated Code}
 
+In this section we compare performance of \tool with LMS and original code. All benchmarks
+are executed on an Intel Core i7 processor (4960HQ) working frequency of 2.6 GHZ with 16GB
+of DDR3 with a working frequency of 1600 MHz. For all benchmarks we use Scala
+2.11.5 and the HotSpot(TM) 64-Bit Server (24.51-b03) virtual machine. In all benchmarks
+the virtual machine is warmed up, no garbage collection happens, and all reported numbers are
+a mean of 5 measurements.
 
+In \tabref{tbl:numbers} we show execution time normalized to original code for:
+ \emph{i)} \code{pow(42.0, 10)},
+ \emph{ii)} \code{min(a, b, c, d, e)},
+ \emph{iii)} inner product of two statically known vectors of size 50,
+ and \emph{iv)} the butterfly network of size 4 for fast Fourier transform \code{fft} (equivalent to code presented by Rompf and Odersky~\cite{rompf2012lightweight}). For all benchmarks the performance results are equivalent to LMS.
 
 \label{sct:performance}
 \begin{table}[h]
-\caption{Comparison of \tool with LMS and hand optimized code.}
+\caption{Speedup of LMS and \tool compared to the naive implementation of the algorithms.}
 \label{tbl:numbers}
 \centering
-\begin{tabularx}{\linewidth}{ X X X X}
+\begin{tabularx}{\linewidth}{ X X X }
 \toprule
 
-  Benchmark                  & \tool                                             &  LMS      &  Optimized by Hand          \\
-  \code{pow}                 &                                                   &           &                             \\
-  \code{min}                 &                                                   &           &                             \\
-  \code{dot}                 &                                                   &           &                             \\
-  \code{fft}                 &                                                   &           &                             \\
+  Benchmark                   &  LMS      &  \tool                             \\
+  \code{pow}                  &    221.75 & 221.70                             \\
+  \code{min}                  &    1.82   & 1.79                               \\
+  \code{dot}                  &  246.08   & 246.08                             \\
+  \code{fft}                  &  12.14    & 12.88                              \\
 
 \bottomrule
 \end{tabularx}

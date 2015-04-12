@@ -6,7 +6,6 @@ To distinguish terms executed at compile-time from terms executed at runtime wit
 \begin{enumerate}
 \item Annotate types of all terms that should be executed at runtime. Here all types analyzed LMS and realized that this is not an option.
 
-
 \item Annotate types of terms that should be executed at runtime but introduce scopes (e.g., method bodies) for which this rule applies.
 In this way we would avoid annotating types of all runtime terms. This approach is taken by MacroML where
 macro functions are executed at compile time and quoted terms are executed at runtime. First approach is, also,
@@ -16,9 +15,9 @@ a special case of this approach where there is a single scope for the whole lang
 called compile-time views.
 \end{enumerate}
 
-In \tool we decided to annotate types of terms that are executed at compile time. Compared to
-the first solution our approach takes requires less annotations. We analyzed
-% TODO Count annotations in OptiML
+To compare approach of \tool with the first approach we analyzed 817 functions
+from the OptiML~\cite{sujeeth_optiml:_2011} DSL based on LMS. With the \tool scheme
+OptiML would require more than 2x less annotations to implement.
 
 Compared to the second approach our solution is simpler to comprehend and communicate. In the second approach there are
 two things that users need to understand when reasoning about staged programs: \emph{i)} where does
