@@ -3,7 +3,7 @@
 
  \emph{Multi-stage programming} (or \emph{staging}) is a meta-programming technique
   where compilation is separated in multiple \emph{stages}. Execution of each
-  stage outputs code that is executed in the next stage of compilation. The first
+  stage outputs code that is executed in the \emph{next stage} of compilation. The first
   stage of compilation happens at the \emph{host language} compile time, the second
   stage happens at the host language runtime, the third stage happens at runtime of
   runtime generated code, etc. Different stages of compilation can be executed in the same
@@ -33,8 +33,8 @@ In function \code{dot}, if vector sizes are constant, the inner product can
  we must communicate to the staging system that operations on values of vector components
  should be executed in the next stage. The compilation stage
  in which a term is executed is determined by \emph{code quotation}~(in MetaOCaml)
- or by parametric types \code{Rep}~(in LMS). In LMS marking
- that the vector size is statically known is achieved by annotating only vector elements with
+ or by parametric types \code{Rep}~(in LMS). In LMS we denote that the vector size
+ is statically known is achieved by annotating only vector elements with
  a \code{Rep} type\footnotemark[2]:\begin{lstparagraph}
 def dot[T:Numeric]
   (v1: Vector[Rep[T]], v2: Vector[Rep[T]]): Rep[T]
@@ -42,12 +42,48 @@ def dot[T:Numeric]
 
 Here the \code{Rep} annotations on \code{Rep[T]} denote that elements of vectors will be known
  only in the next stage (in LMS, this is a stage after run-time compilation). After run-time compilation \code{zip},
- \code{foldLeft}, and pattern matching inside the closure will not exist
+ \code{foldLeft}, and pattern matching inside the closure will not exist in the \emph{residual} program
  as they were evaluated in the previous stage of compilation (host language runtime). Note that in
  LMS unannotated code is always executed during host-language runtime
  and type-annotated code is executed after run-time compilation.
 
-{\bf Staging at host language compile time.} How can we use staging for programs whose values are statically
+%  Monovariance
+{\bf Stage monovariance.} The \code{dot} function in LMS is monovariant: it can only
+ accept vectors that are statically known but their elements are dynamic. In order
+ to support both versions the author of \code{dot} would have the body of
+ \code{dot} with slightly different stage annotations: \begin{lstparagraph}
+def dot[T:Numeric](v1: Vector[T], v2: Vector[T]): T
+ \end{lstparagraph}
+
+Designers of \emph{binding-time analysis} for offline partial-evaluators had the
+same difficulties with monovariance. First solutions duplicate
+code~\cite{rytz1992polyvariant} to achieve polyvariance. Duplication is  much
+less troublesome with partial evaluation as users do not write the duplicate
+code.  Henglein and Mossin introduce polymorphic binding-time
+analysis~\cite{henglein1994polymorphic}, which was further refined to parametric
+polymorphism~\cite{heldal2001binding}, and recursion and
+subtyping~\cite{dussart1995polymorphic}. These approaches are not used for
+staging but for automatic binding-time analysis.  Finally, Ofenbeck et
+al.~\cite{ofenbeck2013spiral} propose a solution to this problem based on type
+classes and higher-kinded types. Their solution requires additional annotations
+and implicit parameters in the type signature of polyvariant methods.
+
+% Type annotations, and thus all operations continue to work!
+{\bf Code Duplication.} Staging systems based on type annotations (e.g., LMS and type-directed
+partial evaluation~\cite{danvy1999type}) inherently require code duplication as,
+a priory, no operations are defined on \code{Rep} annotated types. For example,
+in the LMS version of the \code{dot} function, all numeric types (\ie, \code{Rep[Int]}, \code{Rep[Double]}, etc.)
+must be re-implemented in order to typecheck the programs and achieve code generation
+for the next stage.
+
+Sujeeth et al.~\cite{forge} and Jovanovic et al.~\cite{yin-yang}
+ propose generating code for the next stage computations based on
+ a language specification. These approaches solve the problem,
+ but they require writing additional specification for the libraries,
+ require a large machinery for code generation,
+ and support only restricted parts of Scala.
+
+{\bf Staging at host language compile time.} How can we use type based staging for programs whose values are statically
  known at the host language compile-time (the first stage)? Existing staging frameworks
  treat unannotated terms as runtime values of the host language and annotated terms as
  values in later stages of compilation. Even if we would take that the first stage is executed
@@ -65,37 +101,23 @@ MacroML~\cite{ganz2001macros} expresses macros as two-stage computations that st
  withing the escaped terms, again need to be quoted with brackets. This,
  in effect, imposes quotation for both escaping and brackets which requiring additional effort.
 
-% Type annotations, and thus all operations continue to work!
-{\bf Code Duplication.} Staging systems based on type annotations (e.g., LMS and type-directed
-partial evaluation~\cite{danvy1999type}) inherently require code duplication as,
-a priory, no operations are defined on \code{Rep} annotated types. For example,
-in the LMS version of the \code{dot} function, all numeric types (\ie, \code{Rep[Int]}, \code{Rep[Double]}, etc.)
-must be re-implemented in order to typecheck the programs and achieve code generation
-for the next stage.
 
-Sujeeth et al.~\cite{forge} and Jovanovic et al.~\cite{yin-yang}
- propose generating code for the next stage computations based on
- a language specification. These approaches solve the problem,
- but they require writing additional specification for the libraries,
- require a large machinery for code generation,
- and support only restricted parts of Scala.
+{\bf Polymorphic binding-time information.} The main idea of this paper is to use polymorphic binding-time analysis:
+ \emph{i)} to enable stage polivariant code through bounded parametric polymorphism, and \emph{ii)} to allow viewing existing
+ data types in different stages of computation in a type safe manner.
 
-{\bf Annotating the Previous Stage.} The main idea of this paper is that \emph{annotated types}
- should denote computations that happen during the \emph{previous stage} of compilation.
- The reason is that static terms appear less frequently than run-time terms in a large set
- of analyzed programs (\sct{sct:discussion}). Therefore, annotating static terms
- introduces less overhead for the programmer.
+\emph{Annotated types} denote terms whose instances and non-polymorphic fields are known, and
+ whose methods can be executed at in the \emph{previous stage} (i.e., compile time). We call annotated types \emph{compile-time views}
+ of existing data types. Types are promoted to their compile-time views with type qualifiers~\cite{} expressed with
+ the \code{@ct} annotation (\eg, \code{Int@ct}). In terms, statically known terms can be promoted
+ their compile time duals with the \code{ct} function. By having two views of the same type
+ we obviate the need for introducing reification and code generation logic for existing types.
 
-% TODO count the number of terms
-We treat annotated types as \emph{compile-time views}
- of existing data types. Compile-time view of a type denotes that all operations on that type are
- executed at host language compile time. We promote types to their compile-time views
- with the \code{@ct} annotation (\eg, \code{Int@ct}). Similarly, statically known terms can be promoted
- their compile time duals with the \code{ct} function on the term level.
- By having two views of the same type we obviate the need for introducing reification and code generation logic for
- existing types.
+With bounded parametric polymorphism we can make functions stage polyvariant in their arguments by replacing them with
+type parameters upperbounded by their original type. For example, polymorphic power function is defined as:\begin{lstparagraph}
+@ct def pow[V <: Long](base: Long, exp: V): Long
+\end{lstparagraph}
 
-% Restricted to compile-time, but just techincal.
 With compile-time views, to require that vectors \code{v1} and \code{v2} are
  static and to partially evaluate the function, a programmer needs to make
  a simple modification of the \code{dot} signature:\begin{lstparagraph}
@@ -103,10 +125,10 @@ def dot[V: Numeric@ct]
   (v1: Vector[V]@ct, v2: Vector[V]@ct): V
 \end{lstparagraph}
 
-Since, vector elements are polymorphic the result
+Since, vector elements are stage polymorphic the result
  of the function can be a dynamic value, or a compile-time view
- that can be further used for compile-time computations. The binding time of the return type
- of \code{dot} will match the binding time of vector elements:
+ that can be further used for compile-time computations. The binding time of
+ the return type of \code{dot} will match the binding time of vector elements:
 
 \vspace{1.8mm}
 \begin{listing}[mathescape]
@@ -115,19 +137,25 @@ Since, vector elements are polymorphic the result
     $\hookrightarrow$ (el1 * el3 + el2 * el4): Double
 
   // ct promotes static terms to compile-time views
-  dot(Vector(ct(2.0), ct(4.0)),
-      Vector(ct(1.0), ct(10.0)))
+  dot(Vector(ct(2), ct(4)), Vector(ct(1), ct(10)))
     $\hookrightarrow$ 42: Double@ct
 \end{listing}
 \vspace{1.8mm}
 
 In this paper we contribute to the state of the art:
 \begin{itemize}
+% TODO link to parametric polymorphism
+ \item By using bounded parametric polymorphism as a vehicle to succinctly
+   achieve polyvariant staging. This allows writing polyvariant stage programs
+   without code duplication or additional language features. Stage annotations
+   passed through type parameters are used by underlying polymorphic binding-time
+   analysis to effectively execute polyvariant staging.
 
- \item By introducing compile-time views~(\sct{sct:interface}) as means to succinctly achieve
-  type safe two-stage programming starting from host language compile time.
+ \item By obviating the need for reification and code generation logic in type based staging systems. The binding-time
+   same analysis is to allow same types to be used in multiple stages.
 
- \item By obviating the need for reification and code generation logic in type based staging systems.
+ \item By introducing compile-time views~(\sct{sct:interface}) as means to achieve
+  type safe type based two-stage programming starting from host language compile time.
 
  \item By demonstrating the usefulness of compile-time views in four case
   studies (\sct{sct:case-studies}): inlining, partially evaluating recursion,
@@ -136,10 +164,8 @@ In this paper we contribute to the state of the art:
 
 \end{itemize}
 
-We have implemented a staging extension for Scala \tool \footnotemark[3].
+We have implemented a staging extension for Scala \tool.
  \tool has a minimal interface (\sct{sct:interface}) based on type annotations.
  We have evaluated performance gains and the validity of \tool on all case
  studies~(\sct{sct:case-studies}) and compared them to LMS. In all benchmarks (\sct{sct:evaluation})
  our evaluator performs the same as LMS and gives significant performance gains compared to original programs.
-
-\footnotetext[3]{Source code: \url{https://github.com/scala-ct/scala-ct}.}

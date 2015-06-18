@@ -16,7 +16,7 @@ a single annotation \code{ct} and a single function \code{ct}.
 package object scalact {
   final class ct extends StaticAnnotation
 
-  @compileTimeOnly def ct[T](body: => T): T = ???
+  def ct[T](body: => T): T = ???
 }
 \end{listing}
 \label{fig:interface}
@@ -102,7 +102,7 @@ that inlining is achieved through partial evaluation~\cite{monnier2003inlining}.
 \end{tabularx}
 \end{table*}
 
-\subsection{Tracking Binding-Time of Terms}
+\subsection{Polymorphic Binding-Time Analysis}
 \label{sct:static}
 
  Internally \tool has additional type annotations for tracking the binding time of terms.
@@ -225,3 +225,16 @@ code explosion. For example, a user could accidentally call \code{fact} with a v
 cause code explosion without even knowing that staging is happening. If \code{ct} was required
 it would remind the users about the potential problems. In the desing of \tool we decided to
 prefer less annotations over code-explosion prevention.
+
+\subsection{Nominal Types and Subtyping}
+\label{sct:nominal-types}
+
+\subsection{Compile-Time Evaluation}
+\label{sct:evaluation}
+
+\subsection{Mutable State}
+\label{sct:mutable-state}
+% TODO arrays and variables
+% TODO attachments
+% TODO mutable state
+% TODO emulate arrays as mutable lists
