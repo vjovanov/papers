@@ -1,3 +1,26 @@
-Staging systems choose a compilation stage in which a term is executed based on: quotation (e.g., MetaOCaml), or types (e.g., LMS). Type based staging systems, require type annotations of all \emph{next stage} terms, as well as implementing reification and code generation logic for all next stage types. Further, when we use staging at host language compile-time, all terms scheduled to execute at runtime require type annotations and all libraries used at runtime require logic for reification and code generation. Number of annotations is especially noticeable in languages with local type inference as method parameter types must be provided by the programmer.
+In staged languages each term is executed at a single \emph{compilation stage}
+ that is determined based on: quotation (e.g., MetaOCaml), or types (e.g., LMS).
+ To ensure \empth{cross-stage persistence} (i.e., correctness) types of next/previous
+ stage terms must annotated. Consequentially staged functions are \emph{monovariant}:
+ their arguments can not vary with respect to a compilation stage.
 
-We introduce a type based staging system for Scala where terms whose types are annotated are executed in the earlier stage of compilation, in our case, at host language compile-time. Annotated types represent merely \emph{compile-time views} of original types and therefore no reification and code generation logic is necessary. We compare our framework with LMS and show that in majority of programs we require less type annotations while we achieve same performance improvements.
+Type based staged languages require type annotations of all \emph{next stage}
+ terms, as well as implementing reification and code generation logic for all
+ next stage types. Further, when we use staging at host language compile-time,
+ all terms scheduled to execute at runtime require type annotations and all
+ libraries used at runtime require logic for reification and code generation.
+ Annotations are especially noticeable in languages with local type
+ inference as types of method parameters must be provided by the programmer.
+
+We introduce a type based staging extension for Scala where we transparently
+ extend Scala with polymorphic binding-time information. By using this information
+ we enable parametrically polymorphic parameters to also be stage polymorphic.
+ With our scheme defining stage polyvariant functions can be done through
+ existing language features (i.e., bounded parametric polymorphism).  Further,
+ terms whose types are monomorphically annotated are executed in the earlier
+ stage of compilation, in our case, at host language compile-time. Annotated
+ types rely on the polymorphic binding time to represent merely \emph{\mbox
+ {compile-time} views} of original types. This obviates the necessity for
+ reification and code generation logic. We compare our framework with LMS and
+ show that in  majority of programs we require less type annotations while we
+ achieve same  performance  improvements.
