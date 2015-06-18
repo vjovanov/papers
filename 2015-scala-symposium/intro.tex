@@ -114,13 +114,9 @@ Since, vector elements are polymorphic the result
   dot(Vector(el1, el2), Vector(el3, el4))
     $\hookrightarrow$ (el1 * el3 + el2 * el4): Double
 
-  // ScalaCT tracks wheater terms are static
-  dot(Vector(2.0, 4.0), Vector(1.0, 10.0))
-    $\hookrightarrow$ (2.0 * 1.0 + 4.0 * 10.0): Double@static
-
   // ct promotes static terms to compile-time views
-  dot(Vector(ct(2), ct(4)),
-      Vector(ct(1), ct(10)))
+  dot(Vector(ct(2.0), ct(4.0)),
+      Vector(ct(1.0), ct(10.0)))
     $\hookrightarrow$ 42: Double@ct
 \end{listing}
 \vspace{1.8mm}
