@@ -28,12 +28,14 @@ package object scalact {
 annotation is integrated in the Scala's type system and, therefore, can be
 arbitrarily nested in different variants of types.
 
-Since operation on compile-time views should be executed at compile time, non-generic
- method parameters and result types of compile-time views also become compile-time views.
+Since operations on compile-time views should be executed at compile time, the \code{ct} type
+can be viewed as the original type whose instance is known at compile time with additional
+ methods whose non-generic method parameters and result types also become compile-time views (if possible).
  Generic parameters remain unchanged as their binding time is defined during corresponding
- type application. Table \ref{tbl:ct-type}
- shows how the \code{@ct} annotation can be placed on types and how it affects method
- signatures on annotated types.
+ type application. Table \ref{tbl:ct-type} shows how the \code{@ct} annotation can be
+ placed on types and how it affects method signatures of additional methods. Note that methods are not
+ in fact added to the type but the binding-time polymorphic behavior of original methods can be observed
+ as additional methods.
 
 \begin{table*}[t]
 \caption{Compile-time views of types and additional methods that will be available to the user.}
@@ -60,22 +62,23 @@ Since operation on compile-time views should be executed at compile time, non-ge
  methods are also compile-time views. On the other hand, \code{Vector[Int]@ct} has parameters
  of all methods transformed except the generic ones. In effect, this, makes higher order combinators of \code{Vector}
  operate on dynamic values, thus, function \code{f} passed to \code{map} accepts
- the dynamic value as input. Type \code{Vector[Int@ct]@ct} has all methods executed
- at compile-time. The return type of the function \code{map} on \code{Vector[Int@ct]@ct}
+ the dynamic value as input. Note that \code{hashCode} of \code{Vector[Int]@ct} returns a dynamic value--this is
+ due to its implementation that internally operates on generic values that are dynamic.
+ Type \code{Vector[Int@ct]@ct} has all additional methods promoted to compile-time. The return type of the function \code{map} on \code{Vector[Int@ct]@ct}
  can still be either dynamic or a compile-time view due to the type parameter \code{U}.
 
-Annotation \code{ct} can be used to achieve simple inlining of statically
- known methods and functions. This is achieved by putting the annotation of the method/function
+Annotation \code{ct} can also be used to achieve inlining of statically known methods and functions.
+ This is achieved by putting the annotation of the method/function\footnote{This is not the first time
+that inlining is achieved through partial evaluation~\cite{monnier2003inlining}.}
  definition:\begin{lstparagraph}
  @ct def dot[T: Numeric]
   (v1: Vector[T], v2: Vector[T]): T
 \end{lstparagraph}
 Annotated methods will have an annotated method type\begin{lstparagraph}
 ((v1: Vector[T], v2: Vector[T]) => T)@ct
-\end{lstparagraph} which can not be written by the users. This is not the first time
-that inlining is achieved through partial evaluation~\cite{monnier2003inlining}.
+\end{lstparagraph} which can not be written by the users.
 
-% Binding time is inferred for Type parameters.
+% Binding time is inferred for type parameters.
 \smartparagraph{Function \code{ct}} is used at the term level
  for promoting literals, modules, and methods/functions into their compile-time views.
  \tabref{tbl:ct-term} shows how different types of terms are promoted to their
@@ -105,9 +108,7 @@ that inlining is achieved through partial evaluation~\cite{monnier2003inlining}.
 \label{sct:wf-ctv}
 
 % Nice description of csp and pointer to the right paper.
-Earlier stages of computation can not depend on values from later stages. This property,
- defined as \emph{cross-stage persistence}~\cite{taha_multi-stage_1997,westbrook2010mint},
- imposes that all operations on compile-time views must known at compile time.
+Earlier stages of computation can not depend on values from later stages. This property---defined as \emph{cross-stage persistence}~\cite{taha_multi-stage_1997,westbrook2010mint}---imposes that all operations on compile-time views must be known at compile time.
 
 To satisfy cross-stage persistence \tool verifies that binding time of composite
  types~(\eg, polymorphic types, function types, record types, etc.) is always
