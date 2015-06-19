@@ -8,8 +8,7 @@
   stage happens at the host language runtime, the third stage happens at runtime of
   runtime generated code, etc. Different stages of compilation can be executed in the same
   language~\cite{taha_multi-stage_1997,nielson2005two} or in different languages~\cite{brown_heterogeneous_2011,devito2013terra}.
-  In this work we will focus on staging systems where all stages are in the same language and that, through static typing, assure
-  that terms in the next stage are well typed.
+  In this work we will focus on staging where all stages are in the same language and that, through static typing, assures that terms in the next stage are well typed.
 
   Notable staging systems in statically typed languages are
   MetaOCaml~\cite{taha_multi-stage_1997,calcagno2003implementing}
@@ -40,8 +39,7 @@ def dot[T:Numeric]
   (v1: Vector[Rep[T]], v2: Vector[Rep[T]]): Rep[T]
  \end{lstparagraph}
 
-Here the \code{Rep} annotations on \code{Rep[T]} denote that elements of vectors will be known
- only in the next stage (in LMS, this is a stage after run-time compilation). After run-time compilation \code{zip},
+Here the \code{Rep} annotations on \code{Rep[T]} denote that elements of vectors will be known only in the next stage (in LMS, this is a stage after run-time compilation). After run-time compilation \code{zip},
  \code{foldLeft}, and pattern matching inside the closure will not exist in the \emph{residual} program
  as they were evaluated in the previous stage of compilation (host language runtime). Note that in
  LMS unannotated code is always executed during host-language runtime
@@ -60,10 +58,9 @@ same difficulties with monovariance. First solutions duplicate
 code~\cite{rytz1992polyvariant} to achieve polyvariance. Duplication is  much
 less troublesome with partial evaluation as users do not write the duplicate
 code.  Henglein and Mossin introduce polymorphic binding-time
-analysis~\cite{henglein1994polymorphic}, which was further refined to parametric
-polymorphism~\cite{heldal2001binding}, and recursion and
-subtyping~\cite{dussart1995polymorphic}. These approaches are not used for
-staging but for automatic binding-time analysis.  Finally, Ofenbeck et
+analysis~\cite{henglein1994polymorphic} to avoid code duplication, which was further refined to parametric
+polymorphism~\cite{heldal2001binding}, and recursion and subtyping~\cite{dussart1995polymorphic}. Although effective,
+these approaches are not used for staging but for offline partial evaluation. Finally, Ofenbeck et
 al.~\cite{ofenbeck2013spiral} propose a solution to this problem based on type
 classes and higher-kinded types. Their solution requires additional annotations
 and implicit parameters in the type signature of polyvariant methods.
@@ -103,20 +100,20 @@ MacroML~\cite{ganz2001macros} expresses macros as two-stage computations that st
 
 
 {\bf Polymorphic binding-time information.} The main idea of this paper is to use polymorphic binding-time analysis:
- \emph{i)} to enable stage polivariant code through bounded parametric polymorphism, and \emph{ii)} to allow viewing existing
- data types in different stages of computation in a type safe manner.
-
-\emph{Annotated types} denote terms whose instances and non-polymorphic fields are known, and
- whose methods can be executed at in the \emph{previous stage} (i.e., compile time). We call annotated types \emph{compile-time views}
- of existing data types. Types are promoted to their compile-time views with type qualifiers~\cite{} expressed with
- the \code{@ct} annotation (\eg, \code{Int@ct}). In terms, statically known terms can be promoted
- their compile time duals with the \code{ct} function. By having two views of the same type
- we obviate the need for introducing reification and code generation logic for existing types.
+ \emph{i)} to enable stage polivariant code through bounded parametric polymorphism, and \emph{ii)} to allow reusing existing
+ data types in different stages of computation without code duplication.
 
 With bounded parametric polymorphism we can make functions stage polyvariant in their arguments by replacing them with
 type parameters upperbounded by their original type. For example, polymorphic power function is defined as:\begin{lstparagraph}
 @ct def pow[V <: Long](base: Long, exp: V): Long
 \end{lstparagraph}
+
+\emph{Annotated types} denote terms whose instances and non-polymorphic fields are known, and
+ whose methods can be executed at in the \emph{previous stage} (i.e., compile time). We call annotated types \emph{compile-time views}
+ of existing data types. Types are promoted to their compile-time views with type qualifiers~\cite{foster1999theory} expressed with
+ the \code{@ct} annotation (\eg, \code{Int@ct}). In terms, statically known terms can be promoted
+ their compile time duals with the function \code{ct}. By having two views of the same type
+ we obviate the need for introducing reification and code generation logic for existing types.
 
 With compile-time views, to require that vectors \code{v1} and \code{v2} are
  static and to partially evaluate the function, a programmer needs to make
@@ -144,15 +141,15 @@ Since, vector elements are stage polymorphic the result
 
 In this paper we contribute to the state of the art:
 \begin{itemize}
-% TODO link to parametric polymorphism
+% TODO links
  \item By using bounded parametric polymorphism as a vehicle to succinctly
    achieve polyvariant staging. This allows writing polyvariant stage programs
    without code duplication or additional language features. Stage annotations
    passed through type parameters are used by underlying polymorphic binding-time
-   analysis to effectively execute polyvariant staging.
+   analysis to determine the correct binding-times.
 
- \item By obviating the need for reification and code generation logic in type based staging systems. The binding-time
-   same analysis is to allow same types to be used in multiple stages.
+ \item By obviating the need for reification and code generation logic in type based staging systems. The same binding-time
+   analysis is to allow types defined in monovariant way to be used in multiple stages.
 
  \item By introducing compile-time views~(\sct{sct:interface}) as means to achieve
   type safe type based two-stage programming starting from host language compile time.
