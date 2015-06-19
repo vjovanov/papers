@@ -1,7 +1,7 @@
-\section{Compile-Time Views in Scala}
+\section{\tool Interface}
 \label{sct:interface}
 
-In this section we informally present \tool, a staging extension for Scala based on compile-time views.
+In this section we present \tool, a staging extension for Scala based polymorphic binding-time analysis.
  \tool is a compiler plugin that executes in a phase after the
  Scala type checker. The plugin takes as input typechecked Scala programs and uses
  type annotations~\cite{odersky_1996_putting} to track and verify information about the biding-time
@@ -28,7 +28,7 @@ package object scalact {
 annotation is integrated in the Scala's type system and, therefore, can be
 arbitrarily nested in different variants of types.
 
-Since all operations on compile-time views are executed at compile time, non-generic
+Since operation on compile-time views should be executed at compile time, non-generic
  method parameters and result types of compile-time views also become compile-time views.
  Generic parameters remain unchanged as their binding time is defined during corresponding
  type application. Table \ref{tbl:ct-type}
@@ -36,7 +36,7 @@ Since all operations on compile-time views are executed at compile time, non-gen
  signatures on annotated types.
 
 \begin{table*}[t]
-\caption{Compile-time views of types and their corresponding method signatures.}
+\caption{Compile-time views of types and additional methods that will be available to the user.}
 \label{tbl:ct-type}
 \centering
 \begin{tabularx}{\linewidth}{ X X X X }
@@ -46,8 +46,10 @@ Since all operations on compile-time views are executed at compile time, non-gen
   \code{Int@ct}               & \ &  \code{+(rhs: Int@ct): Int@ct}                     &  \\
   \code{Vector[Int]@ct}       & \ &  \code{map[U](f: (Int => U)@ct): Vector[U]@ct}     &  \\
                               & \ &  \code{length: Int@ct}                             &  \\
+                              & \ &  \code{hashCode: Int}                              &  \\
   \code{Vector[Int@ct]@ct}    & \ &  \code{map[U](f: (Int@ct => U)@ct): Vector[U]@ct}  &  \\
                               & \ &  \code{length: Int@ct}                             &  \\
+                              & \ &  \code{hashCode: Int@ct}                           &  \\
   \code{Map[Int@ct, Int]@ct}  & \ &  \code{get(key: Int@ct): Option[Int]@ct}           &  \\
 
 \bottomrule
@@ -73,15 +75,12 @@ Annotated methods will have an annotated method type\begin{lstparagraph}
 \end{lstparagraph} which can not be written by the users. This is not the first time
 that inlining is achieved through partial evaluation~\cite{monnier2003inlining}.
 
-
-
+% Binding time is inferred for Type parameters.
 \smartparagraph{Function \code{ct}} is used at the term level
  for promoting literals, modules, and methods/functions into their compile-time views.
- Without \code{ct} we would not be able to instantiate compile-time views of types.
  \tabref{tbl:ct-term} shows how different types of terms are promoted to their
  compile-time views. An exception for promoting terms to compile-time views is the
  \code{new} construct. Here we use the type annotation on the constructed type.
-
 
 \begin{table*}[t]
 \caption{Promotion of terms to their compile-time views.}
@@ -101,57 +100,6 @@ that inlining is achieved through partial evaluation~\cite{monnier2003inlining}.
 \bottomrule
 \end{tabularx}
 \end{table*}
-
-\subsection{Polymorphic Binding-Time Analysis}
-\label{sct:static}
-
- Internally \tool has additional type annotations for tracking the binding time of terms.
-  Type of each term is annotated with either \code{dynamic}, \code{static}, or \code{ct}. \code{dynamic} denotes
-  that the term can only be known at runtime, \code{static} that the term is known
-  at compile-time but it will not be computed at compile time, and \code{ct} that
-  the term will be computed at compile-time.
-
- Tracking static terms was studied in the context of binding-time analysis
-  in partial evaluation for typed~\cite{nielson_1988_automatic} and
-  untyped~\cite{gomard1991partial} languages. We use similar techniques, however,
-  unlike in partial evaluation we do not evaluate static terms at compile time. They are tracked
-  in the same way as \code{ct}, for verifying correctness of term promotions to \code{ct} and providing
-  convenient implicit conversions. Static terms are evaluated only when they are explicitly marked by the programmer with \code{ct}.
-
-  % What are the static terms
-In \tool language literals, functions, direct class constructor calls with static arguments, and static method
- calls with static arguments are marked as static. Examples of static terms are\begin{lstparagraph}
-1.0, "1", (x: Int => x), new Cons(1, Nil), List(1,2,3)
-\end{lstparagraph}
-
-\subsection{Subtyping}
-\label{sct:lub}
-
- We use subtyping of Scala to simplify tracking of binding times by introducing a
- subtyping relation between \code{dynamic}, \code{static}, and \code{ct}. We argue that
- a \code{static} type is a more specific \code{dynamic} as it is statically known
- and that \code{ct} is more specific than \code{static} as its operations are executed
- at compile time. Therefore we establish that\begin{lstparagraph}
-                 ct <: static <: dynamic
-\end{lstparagraph}
-
- The use of subtyping simplifies tracking binding times of terms as in all cases
- where least upper bounds are calculated we can use the same mechanism for binding-times.
- An interesting example are the binding times of type parameters:\begin{lstparagraph}
-ct(List)(1, ct(2)): List[Int@static]@ct
-ct(List)(ct(1), ct(2)): List[Int@ct]@ct
-ct(List)((x: Int@dynamic), ct(2)): List[Int@dynamic]@ct
-\end{lstparagraph}
-
-Notable exception are control flow constructs for which the original Scala rules for least
- upper bounds do not hold. The binding-time of control flow constructs does not
- depend only on the return type of the branches but also on the conditionals. For example, if
- both branches of an \code{if} construct are \code{static} the result can still be \code{dynamic}
- if the condition is \code{dynamic}. Here subtyping also helps as the binding type of the
- return value is simply calculated as \code{lub(c, thn, elz)} where \code{lub(tps: Type*)} is a function
- for computing the least upper bounds of types, and \code{c}, \code{thn}, \code{elz} are respectively
- binding times of the condition, the then branch, and the else branch. The same principles can be applied for
- pattern matching.
 
 \subsection{Well-Formedness of Compile-Time Views}
 \label{sct:wf-ctv}
@@ -186,7 +134,6 @@ On functions/methods the \code{ct} annotation requires that function/method bodi
 One of the design goals of \tool is to minimize the number of superfluous staging annotations. We achieve
  this by implicitly adding annotations and term promotions that would with high probability be added by the user.
 
-
 {\bf Adding \code{ct} to Functions.} Due to cross-stage persistence if a single parameter of
 a function is annotated with \code{ct} the whole function must also be \code{ct}. Since forgetting
 this annotation would only result in an error we implicitly add
@@ -207,7 +154,7 @@ The conversions support translation of language literals, direct class construct
  the value of each static term, we disallow implicit conversions of terms with static variables.
 
 For example, for a factorial function \begin{lstparagraph}
-def fact(n: Int @ct): Int@ct =
+def fact(n: Int@ct): Int@ct =
   if (n == 0) 1 else fact(n - 1)
  \end{lstparagraph} we will not require promotions of literals \code{0}, and \code{1}. Furthermore,
  the function can be invoked without promoting the argument into it's compile-time view:\begin{lstparagraph}
@@ -216,15 +163,19 @@ fact(5)
  \end{lstparagraph}
 
 Without implicit conversions the factorial functions would be more verbose \begin{lstparagraph}
-def fact(n: Int @ct): Int@ct =
+@ct def fact(n: Int@ct): Int@ct =
   if (n == ct(0)) ct(1) else fact(n - ct(1))
  \end{lstparagraph} as well as each function application (\code{fact(ct(5))}).
 
 Implicit conversions are safe in all cases except when the user should be warned about potential
-code explosion. For example, a user could accidentally call \code{fact} with a very large and
+code explosion. For example, a user could accidentally call \code{fact} with a very large number and
 cause code explosion without even knowing that staging is happening. If \code{ct} was required
-it would remind the users about the potential problems. In the desing of \tool we decided to
+it would remind the users about the potential problems. In the design of \tool we decided to
 prefer less annotations over code-explosion prevention.
+
+
+\section{Polymorphic Binding-Time Analysis}
+\label{sct:bta}
 
 \subsection{Nominal Types and Subtyping}
 \label{sct:nominal-types}
@@ -236,5 +187,5 @@ prefer less annotations over code-explosion prevention.
 \label{sct:mutable-state}
 % TODO arrays and variables
 % TODO attachments
-% TODO mutable state
+% TODO mutable state not for now
 % TODO emulate arrays as mutable lists
