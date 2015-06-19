@@ -1,2 +1,2 @@
 #!/bin/bash
-make clean && make
+make clean && make | grep ".*:[0-9]*:.*" 

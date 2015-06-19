@@ -163,10 +163,10 @@ fact(5)
   $\hookrightarrow$ 120
  \end{lstparagraph}
 
-Without implicit conversions the factorial functions would be more verbose \begin{lstparagraph}
-@ct def fact(n: Int@ct): Int@ct =
-  if (n == ct(0)) ct(1) else fact(n - ct(1))
- \end{lstparagraph} as well as each function application (\code{fact(ct(5))}).
+Without implicit conversions the factorial functions would be more verbose
+\begin{lstparagraph} @ct def fact(n: Int@ct): Int@ct =   if (n == ct(0)) ct(1)
+else fact(n - ct(1))  \end{lstparagraph} as well as each function application
+(\code{fact(ct(5))}).
 
 Implicit conversions are safe in all cases except when the user should be warned about potential
 code explosion. For example, a user could accidentally call \code{fact} with a very large number and
@@ -175,8 +175,109 @@ it would remind the users about the potential problems. In the design of \tool w
 prefer less annotations over code-explosion prevention.
 
 
-\section{Polymorphic Binding-Time Analysis}
-\label{sct:bta}
+\section{Polymorphic Binding-Time Analysis} \label{sct:bta}
+
+Scala is an object oriented language with numerous features and separate compilation. To avoid a mismatch between
+the formalization and Scala we describe binding-time analysis on the minimal subset of Scala that gives insights in the
+actual implementation.
+\newcommand{\alt}{\mid}
+\newcommand{\ct}[1]{ct \; #1}
+\begin{align*}
+\shortintertext{Terms:}
+t       &::= t\;t \alt \func{x: \tau}{t} \alt x[\overline{\tau}] \alt x \alt \ct{v} \\
+v       &::= \func{x: \tau}{t} \alt c\\
+c       &::= \ktrue \alt \kfalse \alt 0 \alt 1 \alt \dots\\
+\shortintertext{Types:}
+b       &::= \beta \alt  rt \alt  ct \\
+\gamma  &::= \forall \overline{\beta} \Rightarrow C. \gamma \alt \sigma'\\
+\sigma' &::= \tau \alt \sigma \alt \gamma\langle{\overline{b}}\rangle\\
+\sigma  &::= \univ{\overline{X^b}}{\tau}\\
+\tau    &::= X^b \alt \tau \rightarrow^b \tau \alt \sigma[\overline{\tau}]\alt \btyp\\
+\btyp   &::= \kbool^b \alt \kint^b
+\end{align*}
+
+Well formed types:
+\begin{figure}[H]
+  \infrule
+  {\wff(\sigma) | b \ \ \ \ \wff(\overline{\tau}) | \overline{\tau} <: b}
+  {\wff{\sigma[\overline{\tau}] | b}}}
+
+  \infrule
+  {\wff(\tau_1) | b_1 \ \ \ \ \wff(\tau_2) | b_2 \ \ \ \ b_1<:b_3 \ \ \ \ b_2<:b_3}
+  {\wff{\i{(\tau_1 \rightarrow^{b_3} \tau_2) | b_3}}}
+
+  \infrule
+  {\wff(\sigma) | b \ \ \ \ \wff(\overline{\tau}) | \overline{\tau} <: b}
+  {\wff{\sigma[\overline{\tau}] | b}}}
+
+  \infax
+  {\wff(X^b)|b}
+
+  \infax
+  {\wff(Bool^b)|b}
+
+  \infax
+  {\wff(Int^b)|b}
+
+\caption {Well formed types $\wff{\i{T}}$}
+\end{figure}
+
+Coaercions:
+
+Subtyping relation:
+
+Deviate from regular underline/overline
+Context:
+
+Constructors:
+ % $$\context class tname: \lambda \overline{X^{rt}}.\func{x: \tau}{t}$$
+Methods:
+ % $$\context def mname: \lambda \overline{X^{rt}}.\func{x: \tau}{t}$$
+
+Translation to polymorphic calculus:
+
+generic translations rules
+
+
+To achieve polyvariant staging we augment Scala with \emph{binding-time
+annotations}. There are two concrete binding time annotations $rt$ and $ct$
+(often named $D$ and $S$ in related work). Annotations $rt$ and $ct$ represent
+run-time binding time and compile time binding time respectively. To achieve
+binding-time polymorphism we also introduce binding time variables $b$.
+
+Binding times form a two-point lattice with the ordering operator $<:$.
+TODO
+% Maybe define the rules.
+Binding time variables are introduced with binding time abstraction $\forall \overline{\beta}$ where $\overline{\beta}$
+stands for a set of variables. Free binding time variables are tracked in a context $B$.
+
+To achieve polyvariant staging and cross stage persistence we introduce a set $C$ of constraints
+on binding time variables. The set $C$ contains assumptions on binding-time variables defined as $B, C \tsv \beta <: b$ where all free variables are in context $B$. Finally, a polyvariant term is defined as:
+
+$$B, C \tsv \forall \overline{\beta} \Rightarrow \{\overline{\beta_i <: b}\}. \; t$$
+
+The corresponding application of polymorphic terms is defines as
+
+ $$t<\overline{b}>$$
+
+{\bf Types.} To preserve clarity we will look only at a subset of Scala types that includes functions, rank-1 parametric polymorphism, and base types:
+
+We distinguish our selves from the others by keeping rank-1 and by annotating type parameters separately
+Mention that for every type variable we have a corresponding binding time variable.
+{\bf Well formedness.} For each type we want to assure two things: \emph{i)} cross-stage persistence, \emph{ii)} that for each type variable we have a corresponding binding time variable. We assure the cross stage persistence
+$$C contains wff(\sigma)$$
+$$wff(\tau \rightarrow \tau) = \cup \cup$$
+$$wff(\tau[\tau]) = \cup \cup$$
+$$wff(\forall\alpha[\tau]) = \cup \cup$$
+
+$$$$
+
+
+% Define binding time abstractions
+
+% Define polymorphic binding times
+
+% Define the translation
 
 \subsection{Nominal Types and Subtyping}
 \label{sct:nominal-types}
